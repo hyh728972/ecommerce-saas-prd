@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>订单详情 - 苏银豆商城</title>
+<link rel="stylesheet" href="../assets/common.css">
+<style>
+  /* Fix: page-scroll 的 min-height:100vh 会撑高 phone-frame，导致 absolute 的底部栏被顶出视口。
+     锁定 phone-frame 为一屏、让 page-scroll 吃掉中间空间，底部栏即可正常贴底。 */
+  .phone-frame {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    isolation: isolate;
+    transform: translateZ(0);
+  }
+  .page-scroll {
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* 演示场景切换条（原型演示控件，固定于手机界面外左上角） */
+  .scene-bar {
+    position: fixed;
+    top: 8px;
+    left: 8px;
+    z-index: 99999;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background: var(--card-bg);
+    padding: 8px 8px 10px;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    width: 88px;
+  }
+  .scene-bar-label {
+    font-size: 10px;
+    color: var(--text-light);
+    text-align: center;
+    line-height: 1.2;
+  }
+  .scene-tab {
+    width: 100%;
+    padding: 8px 0;
+    font-size: 12px;
+    color: var(--text-secondary);
+    background: var(--bg-color);
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-family: inherit;
+    transition: all .15s;
+  }
+  .scene-tab.scene-tab--active {
+    color: var(--card-bg);
+    background: linear-gradient(135deg, var(--primary-start), var(--price-color));
+    font-weight: 600;
+  }
+  .scene-panel { display: none; }
+  .scene-panel.is-on { display: block; }
+
+  /* Status header */
+  .detail-status-header {
+    background: linear-gradient(135deg, var(--primary-start), var(--price-color));
+    padding: var(--space-lg) 12px 20px;
+    color: var(--card-bg);
+  }
+  .status-main {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    margin-bottom: var(--space-sm);
+  }
+  .status-main svg { width: 24px; height: 24px; }
+  .status-main .text { font-size: var(--font-lg); font-weight: 700; }
+  .status-desc { font-size: var(--font-sm); opacity: 0.85; margin-left: 34px; }
+
+  /* Address */
+  .detail-address {
+    background: var(--card-bg);
+    padding: var(--space-md);
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-sm);
+  }
+  .detail-address svg { width: 18px; height: 18px; color: var(--primary-start); flex-shrink: 0; margin-top: 2px; }
+  .detail-address .addr-text { font-size: var(--font-sm); color: var(--text-color); line-height: 1.6; }
+  .detail-address .addr-name { font-weight: 600; }
+
+  /* Package card */
+  .package-card {
+    background: var(--card-bg);
+    border-radius: 0;
+    margin: var(--space-sm) 0 0;
+    overflow: hidden;
+  }
+  .package-card + .package-card { margin-top: var(--space-sm); }
+  .package-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 12px 0;
+  }
+  .package-head .pkg-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #262626;
+  }
+  .package-head .pkg-status {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--primary-start);
+  }
+
+  /* Logistics — 单行摘要，对齐订单列表 */
+  .logistics-quick {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 10px 12px 0;
+    padding: 8px 10px;
+    background: var(--bg-color);
+    border-radius: 4px;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+    border-bottom: none;
+  }
+  .logistics-quick:active { opacity: 0.85; }
+  .logistics-quick svg { width: 16px; height: 16px; color: var(--primary-start); flex-shrink: 0; }
+  .logistics-quick .lg-info { flex: 1; min-width: 0; }
+  .logistics-quick .lg-status {
+    font-size: 12px;
+    color: #262626;
+    font-weight: 400;
+    margin-bottom: 0;
+    line-height: 1.4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .logistics-quick .lg-arrow { color: var(--text-light); flex-shrink: 0; display: flex; }
+  .logistics-quick .lg-arrow svg { width: 12px; height: 12px; color: var(--text-light); }
+
+  /* Products — 对齐订单列表商品行 */
+  .detail-products {
+    padding: 4px 12px 12px;
+  }
+  .order-product-row {
+    display: flex;
+    gap: 10px;
+    padding: 10px 0;
+  }
+  .order-product-row .op-img {
+    width: 72px;
+    height: 72px;
+    border-radius: 6px;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: var(--bg-input);
+  }
+  .order-product-row .op-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .order-product-row .op-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .order-product-row .op-line {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .order-product-row .op-name {
+    flex: 1;
+    min-width: 0;
+    font-size: 13px;
+    color: #262626;
+    line-height: 1.4;
+    font-weight: 400;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .order-product-row .op-price {
+    flex-shrink: 0;
+    font-size: 13px;
+    font-weight: 400;
+    color: #262626;
+    line-height: 1.4;
+    text-align: right;
+  }
+  .order-product-row .op-spec {
+    flex: 1;
+    min-width: 0;
+    font-size: 12px;
+    color: #999;
+    line-height: 1.35;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .order-product-row .op-qty {
+    flex-shrink: 0;
+    font-size: 12px;
+    color: #999;
+    line-height: 1.35;
+    text-align: right;
+  }
+  .op-aftersale-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    padding: 6px 8px;
+    background: var(--bg-color);
+    border-radius: 4px;
+    text-decoration: none;
+    color: inherit;
+    line-height: 1.35;
+  }
+  .op-aftersale-bar:active { opacity: 0.85; }
+  .op-aftersale-bar .op-as-text {
+    flex: 1;
+    min-width: 0;
+    font-size: 12px;
+    color: var(--primary-start);
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .op-aftersale-bar .op-as-arrow {
+    flex-shrink: 0;
+    color: var(--text-light);
+    font-size: 12px;
+    line-height: 1;
+  }
+
+  /* 组合商品 · 摘要条 / 抽屉清单（对齐确认订单） */
+  .order-product-row.is-combo-row {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    column-gap: 10px;
+    row-gap: 6px;
+  }
+  .order-product-row .prod-combo-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1 1 100%;
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    padding: 6px 8px;
+    background: var(--bg-color);
+    border-radius: 4px;
+    text-decoration: none;
+    color: inherit;
+    line-height: 1.35;
+    cursor: pointer;
+    box-sizing: border-box;
+  }
+  .order-product-row .prod-combo-bar:active { opacity: 0.85; }
+  .order-product-row .prod-combo-bar .pcb-thumbs {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  .order-product-row .prod-combo-bar .pcb-thumb {
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    overflow: hidden;
+    background: var(--card-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .order-product-row .prod-combo-bar .pcb-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .order-product-row .prod-combo-bar .pcb-text {
+    flex: 1;
+    min-width: 0;
+    font-size: 12px;
+    color: #999;
+    font-weight: 400;
+    text-align: right;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .order-product-row .prod-combo-bar .pcb-arrow {
+    flex-shrink: 0;
+    color: var(--text-light);
+    font-size: 12px;
+    line-height: 1;
+  }
+  .order-product-row .op-combo-tag {
+    display: inline-block;
+    vertical-align: middle;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--card-bg);
+    background: linear-gradient(135deg, var(--primary-start), var(--price-color));
+    padding: 1px 5px;
+    border-radius: 3px;
+    margin-right: 4px;
+    line-height: 1.3;
+  }
+  .combo-detail-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 8px; }
+  .combo-detail-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .combo-detail-item .cd-thumb {
+    width: 56px;
+    height: 56px;
+    border-radius: 6px;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: var(--bg-input);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .combo-detail-item .cd-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .combo-detail-item .cd-info { flex: 1; min-width: 0; }
+  .combo-detail-item .cd-name {
+    font-size: 13px;
+    color: #262626;
+    line-height: 1.4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .combo-detail-item .cd-meta {
+    font-size: 12px;
+    color: #999;
+    line-height: 1.35;
+    margin-top: 2px;
+  }
+  .combo-detail-item .cd-role {
+    flex-shrink: 0;
+    font-size: 10px;
+    padding: 1px 5px;
+    border-radius: 3px;
+    line-height: 1.3;
+  }
+  .combo-detail-item .cd-role-main { background: rgba(46,125,50,0.1); color: var(--price-color); }
+  .combo-detail-item .cd-role-fit { background: var(--bg-light); color: var(--text-secondary); }
+
+  .drawer-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    background: rgba(0,0,0,0.4);
+    z-index: 300;
+    display: none;
+    align-items: flex-end;
+    box-sizing: border-box;
+  }
+  .drawer-overlay.show { display: flex; }
+  .drawer-sheet {
+    width: 100%;
+    background: var(--card-bg);
+    border-radius: var(--radius-lg) 16px 0 0;
+    padding: 0 var(--space-lg) var(--space-xl);
+    animation: drawerUp .25s ease;
+    max-height: 80%;
+    overflow-y: auto;
+  }
+  @keyframes drawerUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  .drawer-handle { width: 36px; height: 4px; border-radius: var(--radius-xs); background: var(--text-disabled); margin: var(--space-md) auto 14px; }
+  .drawer-title { font-size: var(--font-md); font-weight: 600; color: var(--text-color); margin-bottom: var(--space-md); }
+  .drawer-btn {
+    width: 100%; height: 44px; border: none; border-radius: var(--radius-xl);
+    background: linear-gradient(135deg, var(--primary-start), var(--price-color));
+    color: var(--card-bg); font-size: var(--font-md); font-weight: 600; cursor: pointer; margin-top: var(--space-md);
+  }
+  .drawer-btn:active { opacity: .85; }
+
+  /* 虚拟商品 · 充值手机号（只读，对齐确认订单） */
+  .recharge-phone-section {
+    background: var(--card-bg);
+    padding: 14px 12px 12px;
+  }
+  .recharge-phone-section .rp-hd {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .recharge-phone-section .rp-label {
+    font-size: var(--font-base);
+    font-weight: 500;
+    color: var(--text-color);
+  }
+  .recharge-phone-section .rp-field {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    background: var(--bg-color);
+    border-radius: 6px;
+  }
+  .recharge-phone-section .rp-field svg {
+    width: 18px;
+    height: 18px;
+    color: var(--text-tertiary);
+    flex-shrink: 0;
+  }
+  .recharge-phone-section .rp-phone {
+    flex: 1;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-color);
+  }
+  .recharge-phone-section .rp-tip {
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--text-tertiary);
+    line-height: 1.4;
+  }
+
+  /* 电影票（对齐确认订单） */
+  .movie-ticket-section { background: var(--card-bg); padding: var(--space-md); margin-top: var(--space-sm); }
+  .movie-ticket-card { display: flex; gap: var(--space-md); }
+  .movie-poster { width: 80px; height: 112px; border-radius: var(--radius-sm); overflow: hidden; flex-shrink: 0; background: var(--border-divider); }
+  .movie-poster img { width: 100%; height: 100%; object-fit: cover; }
+  .movie-info { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: space-between; }
+  .movie-title { font-size: var(--font-md); font-weight: 600; color: var(--text-color); line-height: 1.4; }
+  .movie-meta { font-size: var(--font-sm); color: var(--text-tertiary); margin-top: var(--space-xs); }
+  .movie-meta b { color: var(--text-color); font-weight: 500; }
+  .movie-price-row { display: flex; align-items: center; justify-content: space-between; margin-top: var(--space-sm); }
+  .movie-price { font-size: var(--font-base); font-weight: 600; color: var(--text-color); }
+  .movie-qty { font-size: var(--font-sm); color: var(--text-tertiary); }
+
+  .special-as-tip {
+    margin: 0 12px 12px;
+    padding: 8px 10px;
+    background: var(--bg-color);
+    border-radius: 4px;
+    font-size: 12px;
+    color: #999;
+    line-height: 1.45;
+  }
+  .movie-ticket-section .special-as-tip { margin: 10px 0 0; }
+
+  /* Info section */
+  .detail-info {
+    background: var(--card-bg);
+    padding: var(--space-md);
+    margin-top: var(--space-sm);
+  }
+  .info-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-xs) 0;
+    font-size: var(--font-sm);
+  }
+  .info-item .lbl { color: var(--text-tertiary); }
+  .info-item .val { color: var(--text-color); }
+  .info-item .val.red { color: var(--price-color); font-weight: 600; }
+  .info-item.total-row {
+    border-top: 1px solid var(--bg-color);
+    margin-top: var(--space-sm);
+    padding-top: var(--space-md);
+    font-weight: 600;
+  }
+  .info-item.total-row .val { color: var(--price-color); font-size: var(--font-md); font-weight: 700; }
+
+  /* Bottom actions — 对齐订单列表按钮 */
+  .detail-bottom-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    background: var(--card-bg);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--space-sm);
+    height: 56px;
+    border-top: 1px solid var(--border-color);
+    z-index: 200;
+    padding: 0 var(--space-md) var(--space-sm);
+  }
+  .detail-bottom-bar .btn-sm {
+    padding: 6px 14px;
+    border-radius: 4px;
+    font-size: var(--font-sm);
+    cursor: pointer;
+    border: none;
+    background: var(--bg-color);
+    color: var(--text-color);
+    text-decoration: none;
+    line-height: 1.2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .detail-bottom-bar .btn-sm:active { opacity: 0.7; }
+  .detail-bottom-bar .btn-sm.primary {
+    border: none;
+    background: var(--selected-bg);
+    color: var(--primary-start);
+    font-weight: 600;
+  }
+</style>
+</head>
+<body>
+<!-- 演示场景切换条（原型演示控件，位于手机界面外） -->
+<div class="scene-bar">
+  <span class="scene-bar-label">演示</span>
+  <button type="button" class="scene-tab scene-tab--active" data-scene="goods">实物商品</button>
+  <button type="button" class="scene-tab" data-scene="combo">组合商品</button>
+  <button type="button" class="scene-tab" data-scene="virtual">虚拟商品</button>
+  <button type="button" class="scene-tab" data-scene="cake">蛋糕叔叔</button>
+  <button type="button" class="scene-tab" data-scene="movie">电影购票</button>
+</div>
+
+<div class="phone-frame">
+
+  <!-- Sub-page Navigation -->
+  <div class="sub-nav">
+    <div class="status-bar dark">
+      <span class="time">09:41</span>
+      <div class="icons">
+        <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+      </div>
+    </div>
+    <div class="nav-bar">
+      <div class="back-btn" onclick="history.back()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <span class="nav-title">订单详情</span>
+      <div class="capsule-btn"><img src="../assets/icons/小程序按钮.svg" alt=""></div>
+    </div>
+  </div>
+
+  <!-- Scrollable Content -->
+  <div class="page-scroll" style="padding-bottom: 64px;">
+
+    <div class="scene-panel is-on" data-scene="goods">
+    <!-- Status Header -->
+    <div class="detail-status-header">
+      <div class="status-main">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>
+        <span class="text">待收货</span>
+      </div>
+      <div class="status-desc">订单已拆为2个包裹，1个已签收、1个运输中，请确认收货</div>
+    </div>
+
+    <!-- Address -->
+    <div class="detail-address">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      <div class="addr-text">
+        <span class="addr-name">张三 138****8888</span><br>
+        北京市朝阳区建国路88号 悦享大厦A座12层
+      </div>
+    </div>
+
+    <!-- Package 1 -->
+    <div class="package-card">
+      <div class="package-head">
+        <span class="pkg-title">包裹1</span>
+        <span class="pkg-status">运输中</span>
+      </div>
+      <a href="43.物流追踪-原型页面.html?pkg=1" class="logistics-quick">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+        <div class="lg-info">
+          <div class="lg-status">顺丰速运 SF1234567890 · 运输中</div>
+        </div>
+        <div class="lg-arrow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </a>
+      <div class="detail-products">
+        <div class="order-product-row">
+          <div class="op-img"><img src="../assets/unsplash/1602143407151-7111542de6e8.jpg" alt=""></div>
+          <div class="op-main">
+            <div class="op-line">
+              <div class="op-name">日本进口保温杯 不锈钢真空便携水杯500ml</div>
+              <div class="op-price">&yen;68.00</div>
+            </div>
+            <div class="op-line">
+              <div class="op-spec">白色 500ml</div>
+              <div class="op-qty">&times;1</div>
+            </div>
+          </div>
+        </div>
+        <div class="order-product-row">
+          <div class="op-img"><img src="../assets/unsplash/1521572163474-6864f9cf17ab.jpg" alt=""></div>
+          <div class="op-main">
+            <div class="op-line">
+              <div class="op-name">纯棉短袖T恤男女款 夏季宽松百搭潮流</div>
+              <div class="op-price">&yen;39.90</div>
+            </div>
+            <div class="op-line">
+              <div class="op-spec">白色 L码</div>
+              <div class="op-qty">&times;1</div>
+            </div>
+            <a href="52.售后详情-原型页面.html?case=refund_return_approved&amp;orderId=SY2026040188018" class="op-aftersale-bar">
+              <span class="op-as-text">退货退款 · 待填写退货物流</span>
+              <span class="op-as-arrow">&gt;</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Package 2 -->
+    <div class="package-card">
+      <div class="package-head">
+        <span class="pkg-title">包裹2</span>
+        <span class="pkg-status">已签收</span>
+      </div>
+      <a href="43.物流追踪-原型页面.html?pkg=2" class="logistics-quick">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+        <div class="lg-info">
+          <div class="lg-status">中通快递 ZT2026040700001 · 已签收</div>
+        </div>
+        <div class="lg-arrow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </a>
+      <div class="detail-products">
+        <div class="order-product-row">
+          <div class="op-img"><img src="../assets/unsplash/1505740420928-5e560c06d30e.jpg" alt=""></div>
+          <div class="op-main">
+            <div class="op-line">
+              <div class="op-name">无线蓝牙降噪耳机 迷你入耳式超长续航</div>
+              <div class="op-price">&yen;89.00</div>
+            </div>
+            <div class="op-line">
+              <div class="op-spec">黑色 标准版</div>
+              <div class="op-qty">&times;1</div>
+            </div>
+            <a href="52.售后详情-原型页面.html?case=exchange_approved&amp;orderId=SY2026040188018" class="op-aftersale-bar">
+              <span class="op-as-text">换货 · 待填写退货物流</span>
+              <span class="op-as-arrow">&gt;</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Order Info -->
+    <div class="detail-info">
+      <div class="info-item">
+        <span class="lbl">订单编号</span>
+        <span class="val">SY2026040188018</span>
+      </div>
+      <div class="info-item">
+        <span class="lbl">下单时间</span>
+        <span class="val">2026-04-08 14:35:20</span>
+      </div>
+      <div class="info-item">
+        <span class="lbl">支付时间</span>
+        <span class="val">2026-04-08 14:36:08</span>
+      </div>
+      <!-- 金额明细：对齐确认订单页（券/礼品卡/次卡三选一 + 苏银豆叠加 + 现金兜底） -->
+      <div class="info-item">
+        <span class="lbl">商品金额</span>
+        <span class="val">&yen;196.90</span>
+      </div>
+      <div class="info-item">
+        <span class="lbl">运费</span>
+        <span class="val">&yen;0.00</span>
+      </div>
+      <div class="info-item">
+        <span class="lbl">优惠券（满100减20）</span>
+        <span class="val red">-&yen;20.00</span>
+      </div>
+      <div class="info-item">
+        <span class="lbl">苏银豆抵扣</span>
+        <span class="val red">-&yen;151.90（15190苏银豆）</span>
+      </div>
+      <div class="info-item">
+        <span class="lbl">现金支付（微信支付）</span>
+        <span class="val">&yen;25.00</span>
+      </div>
+      <div class="info-item total-row">
+        <span class="lbl">实付金额</span>
+        <span class="val">&yen;176.90</span>
+      </div>
+      <div class="info-item">
+        <span class="lbl">支付方式</span>
+        <span class="val">组合支付</span>
+      </div>
+      <div class="info-item">
+        <span class="lbl">备注</span>
+        <span class="val">请用泡沫纸包裹，谢谢</span>
+      </div>
+    </div>
+    </div>
+
+    <div class="scene-panel" data-scene="combo">
+      <div class="detail-status-header">
+        <div class="status-main">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>
+          <span class="text">部分发货</span>
+        </div>
+        <div class="status-desc">已发出2个包裹（1个已签收、1个运输中），其余待发货</div>
+      </div>
+      <div class="detail-address">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <div class="addr-text">
+          <span class="addr-name">张三 138****8888</span><br>
+          北京市朝阳区建国路88号 悦享大厦A座12层
+        </div>
+      </div>
+      <div class="package-card">
+        <div class="package-head">
+          <span class="pkg-title">包裹1</span>
+          <span class="pkg-status">运输中</span>
+        </div>
+        <a href="43.物流追踪-原型页面.html" class="logistics-quick">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+          <div class="lg-info">
+            <div class="lg-status">顺丰速运 SF2026040800002 · 运输中</div>
+          </div>
+          <div class="lg-arrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+        </a>
+        <div class="detail-products">
+          <div class="order-product-row is-combo-row">
+            <div class="op-img"><img src="../assets/products/oppo-x9/cp main01.jpg" alt=""></div>
+            <div class="op-main">
+              <div class="op-line">
+                <div class="op-name">【OPPO】Find X9 Ultra 哈苏联名专业影像套装</div>
+                <div class="op-price">&yen;6999</div>
+              </div>
+              <div class="op-line">
+                <div class="op-spec">极地冰川 · 12GB+512GB · 哈苏专业摄影套装</div>
+                <div class="op-qty">&times;1</div>
+              </div>
+            </div>
+            <div class="prod-combo-bar" role="button" onclick="openDrawer('comboDetailDrawer')">
+              <div class="pcb-thumbs">
+                <div class="pcb-thumb"><img src="../assets/products/oppo-x9/cp main01.jpg" alt=""></div>
+                <div class="pcb-thumb"><img src="../assets/products/oppo-x9/c main02.webp" alt=""></div>
+                <div class="pcb-thumb"><img src="../assets/products/oppo-x9/c main01.jpg" alt=""></div>
+              </div>
+              <span class="pcb-text">组合套装共3件 · 本包裹含主件</span>
+              <span class="pcb-arrow">&gt;</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="package-card">
+        <div class="package-head">
+          <span class="pkg-title">包裹2</span>
+          <span class="pkg-status">已签收</span>
+        </div>
+        <a href="43.物流追踪-原型页面.html" class="logistics-quick">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+          <div class="lg-info">
+            <div class="lg-status">中通快递 ZT2026040800003 · 已签收</div>
+          </div>
+          <div class="lg-arrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+        </a>
+        <div class="detail-products">
+          <div class="order-product-row">
+            <div class="op-img"><img src="../assets/products/oppo-x9/c main01.jpg" alt=""></div>
+            <div class="op-main">
+              <div class="op-line">
+                <div class="op-name"><span class="op-combo-tag">搭配</span>哈苏影像配件套装</div>
+                <div class="op-price">套装内</div>
+              </div>
+              <div class="op-line">
+                <div class="op-spec">滤镜/脚架/收纳包 · 同属哈苏联名专业影像套装</div>
+                <div class="op-qty">&times;1</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="package-card">
+        <div class="package-head">
+          <span class="pkg-title">待发货</span>
+          <span class="pkg-status">商家备货中</span>
+        </div>
+        <div class="detail-products">
+          <div class="order-product-row">
+            <div class="op-img"><img src="../assets/products/oppo-x9/c main02.webp" alt=""></div>
+            <div class="op-main">
+              <div class="op-line">
+                <div class="op-name"><span class="op-combo-tag">搭配</span>哈苏专业增距镜</div>
+                <div class="op-price">套装内</div>
+              </div>
+              <div class="op-line">
+                <div class="op-spec">10倍光变长焦 · 同属哈苏联名专业影像套装</div>
+                <div class="op-qty">&times;1</div>
+              </div>
+            </div>
+          </div>
+          <div class="order-product-row">
+            <div class="op-img"><img src="../assets/unsplash/1505740420928-5e560c06d30e.jpg" alt=""></div>
+            <div class="op-main">
+              <div class="op-line">
+                <div class="op-name">无线蓝牙降噪耳机 迷你入耳式超长续航</div>
+                <div class="op-price">&yen;89.00</div>
+              </div>
+              <div class="op-line">
+                <div class="op-spec">黑色 标准版</div>
+                <div class="op-qty">&times;1</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="detail-info">
+        <div class="info-item"><span class="lbl">订单编号</span><span class="val">SY2026040188020</span></div>
+        <div class="info-item"><span class="lbl">下单时间</span><span class="val">2026-04-08 14:35:20</span></div>
+        <div class="info-item"><span class="lbl">支付时间</span><span class="val">2026-04-08 14:36:08</span></div>
+        <div class="info-item"><span class="lbl">商品金额</span><span class="val">&yen;7088.00</span></div>
+        <div class="info-item"><span class="lbl">运费</span><span class="val">&yen;0.00</span></div>
+        <div class="info-item"><span class="lbl">优惠券（满8000减300）</span><span class="val red">-&yen;300.00</span></div>
+        <div class="info-item"><span class="lbl">苏银豆抵扣</span><span class="val red">-&yen;6700.00（670000苏银豆）</span></div>
+        <div class="info-item"><span class="lbl">现金支付（微信支付）</span><span class="val">&yen;88.00</span></div>
+        <div class="info-item total-row"><span class="lbl">实付金额</span><span class="val">&yen;6788.00</span></div>
+        <div class="info-item"><span class="lbl">支付方式</span><span class="val">组合支付</span></div>
+        <div class="info-item"><span class="lbl">配送方式</span><span class="val">快递 免邮</span></div>
+      </div>
+    </div>
+
+    <div class="scene-panel" data-scene="virtual">
+      <div class="detail-status-header">
+        <div class="status-main">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <span class="text">已完成</span>
+        </div>
+        <div class="status-desc">权益已充至 138****8888，可在对应平台账号查看</div>
+      </div>
+      <div class="recharge-phone-section">
+        <div class="rp-hd">
+          <span class="rp-label">充值手机号</span>
+        </div>
+        <div class="rp-field">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg>
+          <span class="rp-phone">138****8888</span>
+        </div>
+        <div class="rp-tip">支付成功后已自动充至该号码绑定账号</div>
+      </div>
+      <div class="package-card">
+        <div class="package-head">
+          <span class="pkg-title">虚拟发货</span>
+          <span class="pkg-status">已到账</span>
+        </div>
+        <div class="detail-products">
+          <div class="order-product-row">
+            <div class="op-img"><img src="../assets/unsplash/1513364776144-60967b0f800f.jpg" alt=""></div>
+            <div class="op-main">
+              <div class="op-line">
+                <div class="op-name">【爱奇艺】黄金VIP会员年卡 自动充值到账</div>
+                <div class="op-price">&yen;198.00</div>
+              </div>
+              <div class="op-line">
+                <div class="op-spec">12个月 · 官方直充</div>
+                <div class="op-qty">&times;1</div>
+              </div>
+            </div>
+          </div>
+          <div class="order-product-row">
+            <div class="op-img"><img src="../assets/unsplash/1483985988355-763728e1935b.jpg" alt=""></div>
+            <div class="op-main">
+              <div class="op-line">
+                <div class="op-name">【腾讯视频】VIP会员季卡 支持手机号充值</div>
+                <div class="op-price">&yen;58.00</div>
+              </div>
+              <div class="op-line">
+                <div class="op-spec">3个月 · 官方直充</div>
+                <div class="op-qty">&times;1</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="special-as-tip">虚拟商品不支持在线申请售后，如需退款或充值异常请联系客服沟通处理</div>
+      </div>
+      <div class="detail-info">
+        <div class="info-item"><span class="lbl">订单编号</span><span class="val">SY2026040188021</span></div>
+        <div class="info-item"><span class="lbl">下单时间</span><span class="val">2026-04-08 14:35:20</span></div>
+        <div class="info-item"><span class="lbl">支付时间</span><span class="val">2026-04-08 14:36:08</span></div>
+        <div class="info-item"><span class="lbl">商品金额</span><span class="val">&yen;256.00</span></div>
+        <div class="info-item"><span class="lbl">优惠券（满100减20）</span><span class="val red">-&yen;20.00</span></div>
+        <div class="info-item"><span class="lbl">苏银豆抵扣</span><span class="val red">-&yen;200.00（20000苏银豆）</span></div>
+        <div class="info-item"><span class="lbl">现金支付（微信支付）</span><span class="val">&yen;36.00</span></div>
+        <div class="info-item total-row"><span class="lbl">实付金额</span><span class="val">&yen;236.00</span></div>
+        <div class="info-item"><span class="lbl">支付方式</span><span class="val">组合支付</span></div>
+        <div class="info-item"><span class="lbl">发货方式</span><span class="val">自动发货 · 无需物流</span></div>
+      </div>
+    </div>
+
+    <div class="scene-panel" data-scene="cake">
+      <div class="detail-status-header">
+        <div class="status-main">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span class="text">待配送</span>
+        </div>
+        <div class="status-desc">商家将按约定时间配送，请保持电话畅通</div>
+      </div>
+      <div class="detail-address">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <div class="addr-text">
+          <span class="addr-name">张三 138****8888</span><br>
+          南京市鼓楼区中山北路123号 甜蜜时光蛋糕店
+        </div>
+      </div>
+      <div class="package-card">
+        <div class="package-head">
+          <span class="pkg-title">商家配送</span>
+          <span class="pkg-status">待配送</span>
+        </div>
+        <div class="logistics-quick" style="cursor:default">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+          <div class="lg-info">
+            <div class="lg-status">蛋糕叔叔专送 · 预计今天 14:00-16:00</div>
+          </div>
+        </div>
+        <div class="detail-products">
+          <div class="order-product-row">
+            <div class="op-img"><img src="../assets/unsplash/cake-birthday.jpg" alt=""></div>
+            <div class="op-main">
+              <div class="op-line">
+                <div class="op-name">经典鲜奶油生日蛋糕 8寸</div>
+                <div class="op-price">&yen;168.00</div>
+              </div>
+              <div class="op-line">
+                <div class="op-spec">8寸 草莓味</div>
+                <div class="op-qty">&times;1</div>
+              </div>
+            </div>
+          </div>
+          <div class="order-product-row">
+            <div class="op-img"><img src="../assets/unsplash/cake-cupcake.jpg" alt=""></div>
+            <div class="op-main">
+              <div class="op-line">
+                <div class="op-name">法式杯子蛋糕礼盒 6只装</div>
+                <div class="op-price">&yen;58.00</div>
+              </div>
+              <div class="op-line">
+                <div class="op-spec">混合口味 6只</div>
+                <div class="op-qty">&times;1</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="detail-info">
+        <div class="info-item"><span class="lbl">订单编号</span><span class="val">SY2026040188022</span></div>
+        <div class="info-item"><span class="lbl">下单时间</span><span class="val">2026-04-08 14:35:20</span></div>
+        <div class="info-item"><span class="lbl">支付时间</span><span class="val">2026-04-08 14:36:08</span></div>
+        <div class="info-item"><span class="lbl">商品金额</span><span class="val">&yen;226.00</span></div>
+        <div class="info-item"><span class="lbl">运费</span><span class="val">&yen;0.00</span></div>
+        <div class="info-item"><span class="lbl">优惠券（满100减20）</span><span class="val red">-&yen;20.00</span></div>
+        <div class="info-item"><span class="lbl">苏银豆抵扣</span><span class="val red">-&yen;180.00（18000苏银豆）</span></div>
+        <div class="info-item"><span class="lbl">现金支付（微信支付）</span><span class="val">&yen;26.00</span></div>
+        <div class="info-item total-row"><span class="lbl">实付金额</span><span class="val">&yen;206.00</span></div>
+        <div class="info-item"><span class="lbl">支付方式</span><span class="val">组合支付</span></div>
+        <div class="info-item"><span class="lbl">配送方式</span><span class="val">商家配送 免邮</span></div>
+        <div class="info-item"><span class="lbl">备注</span><span class="val">插8支蜡烛，贺卡写生日快乐</span></div>
+      </div>
+    </div>
+
+    <div class="scene-panel" data-scene="movie">
+      <div class="detail-status-header">
+        <div class="status-main">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3v4M8 3v4"/></svg>
+          <span class="text">待使用</span>
+        </div>
+        <div class="status-desc">出票成功，请凭取票码至影院取票入场</div>
+      </div>
+      <div class="movie-ticket-section">
+        <div class="movie-ticket-card">
+          <div class="movie-poster"><img src="../assets/unsplash/movie-poster-placeholder.jpg" alt=""></div>
+          <div class="movie-info">
+            <div>
+              <div class="movie-title">速度与激情11</div>
+              <div class="movie-meta">今天 <b>14:30</b> 英语 3D</div>
+              <div class="movie-meta">苏银国际影城 · 3号厅</div>
+              <div class="movie-meta">座位：<b>5排8座</b></div>
+            </div>
+            <div class="movie-price-row">
+              <span class="movie-price">&yen;50.00/张</span>
+              <span class="movie-qty">&times;1</span>
+            </div>
+          </div>
+        </div>
+        <div class="special-as-tip">电影票不支持在线申请退票/售后，如需改签或退票请联系客服沟通处理</div>
+      </div>
+      <div class="detail-info">
+        <div class="info-item"><span class="lbl">订单编号</span><span class="val">SY2026040188023</span></div>
+        <div class="info-item"><span class="lbl">下单时间</span><span class="val">2026-04-08 14:35:20</span></div>
+        <div class="info-item"><span class="lbl">支付时间</span><span class="val">2026-04-08 14:36:08</span></div>
+        <div class="info-item"><span class="lbl">票款金额</span><span class="val">&yen;50.00</span></div>
+        <div class="info-item"><span class="lbl">优惠券（电影专场·满50减10）</span><span class="val red">-&yen;10.00</span></div>
+        <div class="info-item"><span class="lbl">苏银豆抵扣</span><span class="val red">-&yen;40.00（4000苏银豆）</span></div>
+        <div class="info-item total-row"><span class="lbl">实付金额</span><span class="val">&yen;40.00</span></div>
+        <div class="info-item"><span class="lbl">支付方式</span><span class="val">组合支付</span></div>
+        <div class="info-item"><span class="lbl">取票码</span><span class="val">8821 6640</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bottom Actions -->
+  <div class="detail-bottom-bar" id="detailBottomBar">
+    <a href="43.物流追踪-原型页面.html" class="btn-sm">查看物流</a>
+    <button class="btn-sm primary" onclick="alert('已确认收货')">确认收货</button>
+  </div>
+
+  <div class="drawer-overlay" id="comboDetailDrawer" onclick="closeDrawer(event,'comboDetailDrawer')">
+    <div class="drawer-sheet" onclick="event.stopPropagation()">
+      <div class="drawer-handle"></div>
+      <div class="drawer-title">组合详情 <span style="font-size:13px;font-weight:400;color:var(--text-tertiary);">共 3 件</span></div>
+      <div class="combo-detail-list">
+        <div class="combo-detail-item">
+          <div class="cd-thumb"><img src="../assets/products/oppo-x9/cp main01.jpg" alt=""></div>
+          <div class="cd-info">
+            <div class="cd-name">Find X9 Ultra 手机</div>
+            <div class="cd-meta">极地冰川 · 12GB+512GB · x1</div>
+          </div>
+          <span class="cd-role cd-role-main">主件</span>
+        </div>
+        <div class="combo-detail-item">
+          <div class="cd-thumb"><img src="../assets/products/oppo-x9/c main02.webp" alt=""></div>
+          <div class="cd-info">
+            <div class="cd-name">哈苏专业增距镜</div>
+            <div class="cd-meta">10倍光变长焦 · x1</div>
+          </div>
+          <span class="cd-role cd-role-fit">搭配</span>
+        </div>
+        <div class="combo-detail-item">
+          <div class="cd-thumb"><img src="../assets/products/oppo-x9/c main01.jpg" alt=""></div>
+          <div class="cd-info">
+            <div class="cd-name">哈苏影像配件套装</div>
+            <div class="cd-meta">滤镜/脚架/收纳包 · x1套</div>
+          </div>
+          <span class="cd-role cd-role-fit">搭配</span>
+        </div>
+      </div>
+      <button class="drawer-btn" onclick="closeDrawer(null,'comboDetailDrawer')">我知道了</button>
+    </div>
+  </div>
+
+</div>
+<script src="../assets/auth.js"></script>
+<script src="../assets/auth-guard.js"></script>
+<script src="../assets/common.js"></script>
+<script src="../assets/theme-switcher.js"></script>
+<script>
+(function() {
+  var SCENES = { goods: 1, combo: 1, virtual: 1, cake: 1, movie: 1 };
+  var BAR_HTML = {
+    goods: '<a href="43.物流追踪-原型页面.html" class="btn-sm">查看物流</a><button class="btn-sm primary" onclick="alert(\'已确认收货\')">确认收货</button>',
+    combo: '<a href="43.物流追踪-原型页面.html" class="btn-sm">查看物流</a><button class="btn-sm primary" onclick="alert(\'已确认收货\')">确认收货</button>',
+    virtual: '<a href="91.在线客服-原型页面.html" class="btn-sm primary">联系客服</a>',
+    cake: '<button class="btn-sm" onclick="alert(\'已为您接通商家\')">联系商家</button><button class="btn-sm primary" onclick="alert(\'已确认收货\')">确认收货</button>',
+    movie: '<a href="91.在线客服-原型页面.html" class="btn-sm">联系客服</a><button class="btn-sm primary" onclick="alert(\'取票码：8821 6640\')">查看取票码</button>'
+  };
+  window.openDrawer = function(id) { document.getElementById(id).classList.add('show'); };
+  window.closeDrawer = function(e, id) {
+    if (e && e.target !== e.currentTarget) return;
+    document.getElementById(id).classList.remove('show');
+  };
+  function setScene(name) {
+    if (!SCENES[name]) name = 'goods';
+    document.querySelectorAll('.scene-panel').forEach(function(p) {
+      p.classList.toggle('is-on', p.getAttribute('data-scene') === name);
+    });
+    document.getElementById('detailBottomBar').innerHTML = BAR_HTML[name] || BAR_HTML.goods;
+    document.querySelectorAll('.scene-tab').forEach(function(t) {
+      t.classList.toggle('scene-tab--active', t.dataset.scene === name);
+    });
+  }
+  document.querySelectorAll('.scene-tab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      setScene(this.dataset.scene);
+      var u = new URLSearchParams(location.search);
+      u.set('scene', this.dataset.scene);
+      history.replaceState(null, '', location.pathname + '?' + u.toString());
+    });
+  });
+  var initScene = new URLSearchParams(location.search).get('scene');
+  setScene(SCENES[initScene] ? initScene : 'goods');
+})();
+</script>
+</body>
+</html>

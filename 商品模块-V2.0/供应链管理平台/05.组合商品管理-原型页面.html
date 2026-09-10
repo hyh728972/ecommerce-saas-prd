@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>组合商品管理 - 供应链管理平台</title>
+<style>
+:root {
+  --bg-app: #f4f3f0; --bg-sidebar: #1e1e22; --bg-surface: #ffffff;
+  --bg-hover: #f7f6f4; --bg-input: #f9f8f7;
+  --border: #e6e4e0; --border-light: #f0eeeb;
+  --text-primary: #1a1a1c; --text-secondary: #6b6b70; --text-muted: #99999d;
+  --text-sidebar: #c4c4c9; --text-sidebar-active: #ffffff;
+  --accent: #2d2d33; --accent-soft: #f0eeeb;
+  --red: #da3e3a; --red-bg: #fef4f3; --red-border: #fcd9d7;
+  --orange: #d97706; --orange-bg: #fffbf0; --orange-border: #fde8c4;
+  --blue: #2563eb; --blue-bg: #f5f8ff; --blue-border: #d4e0fc;
+  --green: #16a34a; --green-bg: #f4fdf6; --green-border: #c6f0d4;
+  --purple: #7c3aed; --purple-bg: #faf8ff; --purple-border: #e4dcfc;
+  --gray: #6b7280; --gray-bg: #f8f8f7; --gray-border: #e8e6e3;
+  --radius-sm: 4px; --radius: 8px; --radius-lg: 12px;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.04);
+  --shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-lg: 0 4px 16px rgba(0,0,0,.10), 0 2px 6px rgba(0,0,0,.04);
+  --transition: 160ms ease;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:"Microsoft YaHei",sans-serif;background:var(--bg-app);color:var(--text-primary);display:flex;min-height:100vh;-webkit-font-smoothing:antialiased;}
+
+/* ===== Sidebar ===== */
+.sidebar{width:232px;min-width:232px;background:var(--bg-sidebar);display:flex;flex-direction:column;padding:0;z-index:10;position:sticky;top:0;height:100vh;overflow-y:auto;}
+.sidebar-brand{padding:20px 20px 28px;border-bottom:1px solid rgba(255,255,255,.06);}
+.sidebar-brand .logo{font-size:17px;font-weight:600;color:#fff;letter-spacing:-.02em;display:flex;align-items:center;gap:10px;}
+.sidebar-brand .logo svg{flex-shrink:0;}
+.sidebar-brand .sub{font-size:11px;color:var(--text-sidebar);margin-top:2px;letter-spacing:.02em;}
+.sidebar-nav{flex:1;padding:12px 10px;display:flex;flex-direction:column;gap:2px;}
+.nav-section-label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.25);padding:14px 10px 6px;display:flex;align-items:center;gap:4px;cursor:pointer;user-select:none;}
+.nav-section-label:hover{color:rgba(255,255,255,.45);}
+.section-arrow{font-size:8px;transition:transform .2s ease;flex-shrink:0;}
+.nav-section.collapsed .section-arrow{transform:rotate(-90deg);}
+.nav-section.collapsed .nav-section-items{display:none;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:6px;color:var(--text-sidebar);font-size:13.5px;cursor:pointer;transition:all var(--transition);text-decoration:none;letter-spacing:.01em;}
+.nav-item:hover{background:rgba(255,255,255,.05);color:#fff;}
+.nav-item.active{background:rgba(255,255,255,.10);color:#fff;font-weight:500;}
+.nav-item .badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:600;padding:1px 7px;border-radius:10px;min-width:20px;text-align:center;line-height:18px;}
+.nav-icon{width:18px;height:18px;opacity:.55;flex-shrink:0;}
+.nav-item.active .nav-icon{opacity:1;}
+
+/* ===== Main ===== */
+.main{flex:1;display:flex;flex-direction:column;min-width:0;}
+.topbar{height:52px;min-height:52px;background:var(--bg-surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 28px;gap:16px;z-index:5;}
+.topbar .breadcrumb{font-size:12.5px;color:var(--text-muted);letter-spacing:.01em;}
+.topbar .breadcrumb span{color:var(--text-primary);font-weight:500;}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:16px;}
+.topbar-right .user-avatar{width:30px;height:30px;border-radius:50%;background:#e6e4e0;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);}
+
+.content{display:flex;flex-direction:column;padding:24px 28px;padding-bottom:70px;}
+.page-header{margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;}
+.page-header-left h1{font-size:22px;font-weight:600;letter-spacing:-.02em;}
+.page-header-left p{font-size:13px;color:var(--text-muted);margin-top:2px;}
+
+/* ===== Stats ===== */
+.stats-row{display:flex;gap:14px;margin-bottom:20px;}
+.stat-card{flex:1;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;display:flex;align-items:center;gap:14px;}
+.stat-icon{width:42px;height:42px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.stat-icon.purple{background:var(--purple-bg);color:var(--purple);}
+.stat-icon.green{background:var(--green-bg);color:var(--green);}
+.stat-icon.red{background:var(--red-bg);color:var(--red);}
+.stat-icon.blue{background:var(--blue-bg);color:var(--blue);}
+.stat-value{font-size:22px;font-weight:600;letter-spacing:-.02em;}
+.stat-label{font-size:12px;color:var(--text-muted);margin-top:1px;}
+
+/* ===== Buttons ===== */
+.btn{display:inline-flex;align-items:center;padding:5px 12px;border-radius:var(--radius-sm);font-size:12px;font-family:inherit;cursor:pointer;border:1px solid transparent;transition:all var(--transition);white-space:nowrap;font-weight:500;gap:5px;}
+.btn-sm{padding:4px 10px;font-size:11.5px;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{opacity:.85;}
+.btn-outline{border-color:var(--border);color:var(--text-primary);background:var(--bg-surface);}
+.btn-outline:hover{border-color:var(--text-muted);background:var(--bg-hover);}
+.btn-filter{height:36px;padding:0 16px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);font-size:13px;font-family:inherit;cursor:pointer;font-weight:500;transition:opacity var(--transition);}
+.btn-filter:hover{opacity:.88;}
+.btn-reset{height:36px;padding:0 14px;background:transparent;color:var(--text-secondary);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;cursor:pointer;transition:all var(--transition);}
+.btn-reset:hover{border-color:var(--text-muted);color:var(--text-primary);}
+.btn-link{color:var(--blue);border:none;background:none;padding:2px 4px;cursor:pointer;font-size:12px;font-family:inherit;transition:opacity var(--transition);}
+.btn-link:hover{opacity:.75;}
+
+/* ===== Tags ===== */
+.tag{display:inline-flex;align-items:center;padding:2px 10px;border-radius:4px;font-size:11.5px;font-weight:500;letter-spacing:.01em;white-space:nowrap;gap:4px;}
+.tag-red{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border);}
+.tag-green{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border);}
+.tag-blue{background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-border);}
+.tag-gray{background:var(--gray-bg);color:var(--gray);border:1px solid var(--gray-border);}
+.tag-orange{background:var(--orange-bg);color:var(--orange);border:1px solid var(--orange-border);}
+.tag-purple{background:var(--purple-bg);color:var(--purple);border:1px solid var(--purple-border);}
+
+/* ===== Checkbox ===== */
+.checkbox{width:16px;height:16px;accent-color:var(--accent);cursor:pointer;flex-shrink:0;}
+
+/* ===== Table Panel (ref: 01.供应链商品池) ===== */
+.table-panel{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-lg);display:flex;flex-direction:column;overflow:hidden;}
+.table-panel > .filter-bar{margin-bottom:0;border:none;border-bottom:1px solid var(--border);border-radius:0;}
+.filter-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:12px 16px;}
+.filter-bar select,.filter-bar input{height:36px;padding:0 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;background:var(--bg-surface);color:var(--text-primary);outline:none;transition:border-color var(--transition);}
+.filter-bar input[type="text"]{width:220px;}
+.filter-bar select{min-width:150px;}
+.filter-bar select:focus,.filter-bar input:focus{border-color:var(--accent);}
+.filter-bar .filter-extra{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.filter-bar .filter-extra span{font-size:12px;color:var(--text-muted);}
+
+/* Table */
+.table-scroll{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead th{background:#fafaf9;text-align:left;padding:10px 12px;font-weight:500;font-size:12px;color:var(--text-muted);letter-spacing:.02em;border-bottom:1px solid var(--border);white-space:nowrap;}
+thead th:first-child{padding-left:18px;}
+tbody td{padding:10px 12px;border-bottom:1px solid var(--border-light);vertical-align:top;}
+tbody td:first-child{padding-left:18px;}
+tbody tr{transition:background var(--transition);}
+tbody tr:hover{background:var(--bg-hover);}
+tbody tr:last-child td{border-bottom:none;}
+.price{font-family:"Microsoft YaHei",sans-serif;font-size:12.5px;}
+
+/* ===== Merged Cell (ref: 01.供应链商品池) ===== */
+.product-thumb{width:60px;height:60px;border-radius:var(--radius-sm);background:#e8e6e2;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;color:var(--text-muted);margin-right:10px;vertical-align:middle;}
+.product-thumb.hidden{display:none;}
+.spu-merged-cell{display:flex;align-items:flex-start;gap:8px;}
+.spu-merged-cell .checkbox{margin-top:2px;flex-shrink:0;}
+.spu-merged-cell .expand-arrow{flex-shrink:0;margin-top:2px;display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;color:var(--text-muted);cursor:pointer;transition:transform .2s ease;}
+.spu-merged-cell .expand-arrow.expanded{transform:rotate(90deg);}
+.spu-lines{flex:1;min-width:0;}
+.spu-line{line-height:1.5;font-size:13px;}
+.spu-line.name-line{font-weight:600;color:var(--text-primary);display:flex;align-items:center;gap:4px;min-width:0;}
+.name-ellipsis{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.spu-line.code-line{font-family:"Microsoft YaHei",sans-serif;font-size: 13px;color:var(--text-secondary);}
+.spu-line.code-line .code-label{font-family:"Microsoft YaHei",sans-serif;font-size:13px;color:var(--text-muted);margin-right:4px;}
+.spu-line.cat-line{color:var(--text-muted);}
+.spu-line.tag-line{display:flex;gap:6px;align-items:center;margin-top:2px;}
+
+/* SKU merged cell */
+.sku-merged-cell{display:flex;align-items:flex-start;gap:8px;}
+.sku-merged-cell .checkbox{margin-top:2px;flex-shrink:0;}
+.sku-spacer{display:inline-block;width:12px;margin-right:6px;flex-shrink:0;}
+.sku-lines{flex:1;min-width:0;}
+.sku-line{line-height:1.5;font-size:13px;}
+.sku-line.name-line{font-weight:500;color:var(--text-primary);display:flex;align-items:center;gap:4px;min-width:0;}
+.sku-line .spec-label{font-size:13px;color:var(--text-muted);margin-right:4px;font-weight:500;}
+.sku-line .spec-val{font-size:13px;color:var(--text-muted);}
+.sku-line .sku-code{font-family:"Microsoft YaHei",sans-serif;font-size: 13px;color:var(--text-secondary);}
+.item-count-tag{display:inline-flex;align-items:center;padding:1px 6px;border-radius:4px;font-size:11.5px;font-weight:500;background:var(--accent-soft);color:var(--text-secondary);}
+
+/* Copy icon button (hover 显现，逻辑参考 A.运营平台 01.供应链商品池) */
+.copy-icon-btn{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;padding:0;border:none;background:transparent;color:var(--text-muted);cursor:pointer;border-radius:4px;flex-shrink:0;transition:color var(--transition),background var(--transition);vertical-align:middle;opacity:0;visibility:hidden;}
+.copy-icon-btn:hover{opacity:1;visibility:visible;color:var(--text-secondary);background:var(--bg-hover);}
+tr:hover .copy-icon-btn{opacity:1;visibility:visible;}
+.copy-icon-btn svg{display:block;pointer-events:none;}
+
+/* Empty State (inside table-panel) */
+.empty-state{display:none;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;color:var(--text-muted);font-size:13px;text-align:center;gap:8px;}
+.empty-state.visible{display:flex;}
+.empty-state .empty-icon{font-size:36px;opacity:.4;}
+
+/* Table Footer (fixed bottom bar) */
+.page-footer-fixed{position:fixed;bottom:0;left:232px;right:0;display:flex;align-items:center;justify-content:space-between;padding:12px 28px;background:#fafaf9;border-top:1px solid var(--border);z-index:100;box-shadow:0 -2px 8px rgba(0,0,0,.06);}
+.page-footer-left{display:flex;align-items:center;gap:12px;}
+.page-footer-right{display:flex;align-items:center;}
+.pagination{display:flex;align-items:center;gap:4px;}
+.pagination .page-btn{width:32px;height:32px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;cursor:pointer;background:var(--bg-surface);color:var(--text-primary);transition:all var(--transition);}
+.pagination .page-btn:hover{border-color:var(--text-muted);}
+.pagination .page-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.pagination .page-btn.disabled{opacity:.35;pointer-events:none;}
+
+/* Row states */
+.row-main{cursor:pointer;}
+.row-main:hover{background:var(--bg-hover);}
+.row-sub{background:#fafaf9;}
+.row-sub td{padding:8px 12px;font-size:12.5px;}
+.row-sub td:first-child{padding-left:18px;}
+.row-sub:hover{background:#f4f3f0;}
+.placeholder-cell{color:var(--text-muted);font-size:12px;}
+
+/* ===== Toast ===== */
+.toast-container{position:fixed;top:24px;right:24px;z-index:200;display:flex;flex-direction:column;gap:8px;}
+.toast{background:var(--bg-sidebar);color:#fff;padding:12px 18px;border-radius:var(--radius);font-size:13px;box-shadow:var(--shadow-lg);animation:toastIn .25s ease;display:flex;align-items:center;gap:8px;}
+@keyframes toastIn{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:translateX(0);}}
+.toast.success{border-left:3px solid var(--green);}
+.toast.info{border-left:3px solid var(--blue);}
+.toast.warn{border-left:3px solid var(--orange);}
+
+/* ===== Modal ===== */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:100;align-items:center;justify-content:center;backdrop-filter:blur(2px);}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--bg-surface);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);width:560px;max-width:94vw;max-height:88vh;overflow:auto;animation:modalIn .18s ease;}
+.modal.wide{width:800px;}
+@keyframes modalIn{from{opacity:0;transform:translateY(8px) scale(.98);}to{opacity:1;transform:translateY(0) scale(1);}}
+.modal-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg-surface);z-index:2;}
+.modal-header h3{font-size:15px;font-weight:600;}
+.modal-close{width:28px;height:28px;border:none;background:none;cursor:pointer;font-size:18px;color:var(--text-muted);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;transition:all var(--transition);}
+.modal-close:hover{background:var(--bg-hover);color:var(--text-primary);}
+.modal-body{padding:16px 20px;font-size:13px;color:var(--text-secondary);line-height:1.6;}
+.modal-footer{padding:14px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;position:sticky;bottom:0;background:var(--bg-surface);}
+
+/* ===== Form ===== */
+.form-group{margin-bottom:14px;}
+.form-group label{display:block;font-size:12.5px;font-weight:500;color:var(--text-primary);margin-bottom:6px;}
+.form-group label .req{color:var(--red);}
+.form-group input[type="text"],.form-group input[type="number"],.form-group select,.form-group textarea{width:100%;height:36px;padding:0 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;background:var(--bg-surface);color:var(--text-primary);outline:none;transition:border-color var(--transition);}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--accent);}
+.form-hint{font-size:11.5px;color:var(--text-muted);margin-top:4px;}
+.form-row{display:flex;gap:12px;}
+.form-row .form-group{flex:1;}
+
+/* ===== Component Picker ===== */
+.component-list{border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;margin-bottom:6px;}
+.component-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--border-light);background:var(--bg-surface);}
+.component-row:last-child{border-bottom:none;}
+.component-row .comp-info{flex:1;min-width:0;}
+.component-row .comp-info .pname{font-size:13px;color:var(--text-primary);font-weight:500;}
+.component-row .comp-info .pcode{font-size:11px;color:var(--text-muted);font-family:"Microsoft YaHei",sans-serif;}
+.component-row input[type="number"]{width:60px;height:30px;padding:0 8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;text-align:center;}
+.component-row select{height:30px;padding:0 8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:inherit;background:var(--bg-surface);}
+.component-row .comp-remove{color:var(--red);cursor:pointer;font-size:18px;width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-sm);transition:background var(--transition);flex-shrink:0;}
+.component-row .comp-remove:hover{background:var(--red-bg);}
+.add-component-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:10px;border:1px dashed var(--border);border-radius:var(--radius-sm);background:var(--bg-input);color:var(--text-secondary);font-size:12.5px;cursor:pointer;transition:all var(--transition);font-family:inherit;}
+.add-component-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--bg-surface);}
+
+/* ===== Mode Card (组合模式单选) ===== */
+.mode-card{display:flex;align-items:center;gap:10px;padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:all var(--transition);background:var(--bg-surface);flex:1;}
+.mode-card input{accent-color:var(--accent);width:16px;height:16px;}
+.mode-card:hover{border-color:var(--text-muted);}
+.mode-card.active{border-color:var(--accent);background:var(--accent-soft);box-shadow:0 0 0 1px var(--accent);}
+.mode-card.readonly{pointer-events:none;}
+.mode-hint{font-size:11.5px;color:var(--text-muted);margin-bottom:8px;padding:8px 12px;background:var(--bg-input);border-radius:var(--radius-sm);border-left:3px solid var(--blue);}
+</style>
+</head>
+<body>
+
+<!-- ===== Sidebar ===== -->
+<aside class="sidebar" id="app-sidebar"></aside>
+<script src="../assets/common-sidebar.js"></script>
+<script src="../assets/common-copy-btn.js"></script>
+
+<!-- ===== Main ===== -->
+<main class="main">
+  <div class="topbar">
+    <div class="breadcrumb">商品管理 / <span>组合商品管理</span></div>
+    <div class="topbar-right">
+      <span style="font-size:12px;color:var(--text-muted);">采购专员</span>
+      <div class="user-avatar">李</div>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- Page Header -->
+    <div class="page-header">
+      <div class="page-header-left">
+        <h1>组合商品管理</h1>
+        <p>将多个供应链SKU组合为套装商品，商品部/采购部进行子件BOM配置以及供应商沟通供货配合度</p>
+      </div>
+      <div>
+        <button class="btn btn-primary" onclick="openCreateModal()">+ 新建组合商品</button>
+      </div>
+    </div>
+
+
+    <!-- Table Panel (ref: 01.供应链商品池) -->
+    <div class="table-panel">
+      <div class="filter-bar">
+        <input type="text" id="fKeyword" placeholder="搜索组合商品名称/编码" oninput="applyFilter()">
+        <select id="fStatus">
+          <option value="">状态: 全部</option>
+          <option value="draft">草稿</option>
+          <option value="pending">待审批</option>
+          <option value="published">已发布</option>
+        </select>
+        <button class="btn-filter" onclick="applyFilter()">查询</button>
+        <button class="btn-reset" onclick="resetFilter()">重置</button>
+        <div class="filter-extra">
+          <button class="btn btn-outline btn-sm" id="btnImageView" onclick="toggleImageView()">无图显示</button>
+          <button class="btn btn-outline btn-sm" id="btnComboExpand" onclick="expandAllCombos()">全部展开 ▾</button>
+        </div>
+      </div>
+
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:420px;"><input type="checkbox" class="checkbox" id="selectAll" onchange="toggleAll(this.checked)" style="margin-right:8px;vertical-align:middle;">商品信息</th>
+              <th style="width:120px;">所属供应链SPU</th>
+              <th style="width:110px;">供应商</th>
+              <th style="width:90px;">供货价</th>
+              <th style="width:120px;">电商参考</th>
+              <th style="width:80px;">库存</th>
+              <th style="width:140px;">发货 / 物流</th>
+              
+              <th style="width:80px;text-align:center;">状态</th>
+              <th style="width:90px;text-align:center;">供货状态</th>
+              <th style="width:140px;">创建人/创建时间</th>
+              <th style="width:140px;">操作</th>
+            </tr>
+          </thead>
+          <tbody id="comboTbody"></tbody>
+        </table>
+        <!-- Empty State -->
+        <div class="empty-state" id="emptyState">
+          <div class="empty-icon">&#128230;</div>
+          <h3 style="font-size:15px;color:var(--text-primary);">暂无匹配的组合商品</h3>
+          <p>请尝试调整筛选条件</p>
+        </div>
+      </div>
+
+      <!-- Bottom Action Bar -->
+      <div class="page-footer-fixed">
+        <div class="page-footer-left">
+          <button class="btn btn-outline btn-sm" onclick="batchExport()">批量导出</button>
+          <div style="font-size:12px;color:var(--text-muted);" id="selectedInfo">已选 0 个组合商品</div>
+        </div>
+        <div class="page-footer-right">
+          <div style="font-size:12px;color:var(--text-muted);margin-right:16px;" id="totalCount">共 0 个组合 · 0 个子件</div>
+          <div class="pagination" id="paginationBar"></div>
+          <div style="display:flex;align-items:center;gap:8px;margin-left:16px;">
+            <span style="font-size:12px;color:var(--text-muted);">每页</span>
+            <select id="pageSizeSelect" onchange="changePageSize()" style="height:28px;padding:0 8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:inherit;background:var(--bg-surface);color:var(--text-primary);cursor:pointer;">
+              <option value="10" selected>10条</option>
+              <option value="20">20条</option>
+              <option value="50">50条</option>
+              <option value="100">100条</option>
+            </select>
+            <span style="font-size:12px;color:var(--text-muted);">跳转至</span>
+            <input type="number" id="jumpPageInput" min="1" value="1" style="width:56px;height:28px;padding:0 8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:inherit;background:var(--bg-surface);color:var(--text-primary);text-align:center;" onkeydown="if(event.key==='Enter')jumpToPage()"/>
+            <span style="font-size:12px;color:var(--text-muted);">页</span>
+            <button onclick="jumpToPage()" style="height:28px;padding:0 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:inherit;background:var(--bg-surface);color:var(--text-primary);cursor:pointer;">跳转</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- ===== Create Modal ===== -->
+<div class="modal-overlay" id="createModal">
+  <div class="modal wide">
+    <div class="modal-header">
+      <h3 id="createModalTitle">新建组合商品</h3>
+      <button class="modal-close" onclick="closeModal('createModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- 组合模式 -->
+      <div class="form-group">
+        <label>组合模式 <span class="req">*</span></label>
+        <div style="display:flex;gap:12px;">
+          <label class="mode-card active" data-mode="combo" onclick="selectMode('combo')">
+            <input type="radio" name="comboMode" value="combo" checked>
+            <div>
+              <div style="font-size:13px;font-weight:600;">组合套装（默认）</div>
+              <div style="font-size:11.5px;color:var(--text-muted);margin-top:2px;">独立SPU，独立售卖</div>
+            </div>
+          </label>
+          <label class="mode-card" data-mode="gift" onclick="selectMode('gift')">
+            <input type="radio" name="comboMode" value="gift">
+            <div>
+              <div style="font-size:13px;font-weight:600;">营销买赠</div>
+              <div style="font-size:11.5px;color:var(--text-muted);margin-top:2px;">挂靠主件，促销专用</div>
+            </div>
+          </label>
+        </div>
+      </div>
+      <!-- 名称 -->
+      <div class="form-group">
+        <label>组合商品名称 <span class="req">*</span></label>
+        <input type="text" id="comboName" placeholder="输入名称，如：3M防护标准套装 / 年度会员尊享礼包">
+      </div>
+      <!-- 子件清单 -->
+      <div class="form-group">
+        <label>子件清单 <span class="req">*</span> <span style="font-weight:400;color:var(--text-muted);float:right;" id="componentSummary"></span></label>
+        <div class="mode-hint" id="modeHint">组合套装：主件为商品主体，配件为同套装内的商品；组合作为独立SPU售卖</div>
+        <div style="overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius-sm);">
+          <table style="font-size:12px;width:100%;min-width:560px;table-layout:fixed;">
+            <colgroup>
+              <col style="width:36px;">
+              <col style="width:auto;">
+              <col style="width:60px;">
+              <col style="width:80px;">
+              <col style="width:50px;">
+            </colgroup>
+            <thead>
+              <tr>
+                <th style="padding:8px 10px;background:#fafaf9;text-align:center;font-weight:500;color:var(--text-muted);border-bottom:1px solid var(--border);">#</th>
+                <th style="padding:8px 10px;background:#fafaf9;text-align:left;font-weight:500;color:var(--text-muted);border-bottom:1px solid var(--border);">商品信息</th>
+                <th style="padding:8px 10px;background:#fafaf9;text-align:center;font-weight:500;color:var(--text-muted);border-bottom:1px solid var(--border);">用量</th>
+                <th style="padding:8px 10px;background:#fafaf9;text-align:center;font-weight:500;color:var(--text-muted);border-bottom:1px solid var(--border);">角色</th>
+                                <th style="padding:8px 10px;background:#fafaf9;text-align:center;font-weight:500;color:var(--text-muted);border-bottom:1px solid var(--border);">操作</th>
+              </tr>
+            </thead>
+            <tbody id="componentList"></tbody>
+          </table>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:8px;" id="addComponentRow">
+          <input type="text" id="supplySkuInput" placeholder="输入供应链SKU添加子件" style="flex:1;height:36px;padding:0 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;" onkeydown="if(event.key==='Enter')addComponent()">
+          <button class="btn btn-primary" onclick="addComponent()">添加</button>
+        </div>
+      </div>
+      <!-- 组合供货价 -->
+      <div class="form-group">
+        <label>组合供货价</label>
+        <input type="text" id="comboPrice" readonly style="background:var(--bg-input);color:var(--text-secondary);">
+        <div class="form-hint">由子件供货价 × 数量自动计算</div>
+      </div>
+      <!-- 组合商品主图 -->
+      <div class="form-group" id="thumbSection">
+        <label>组合商品主图 <span style="font-weight:400;color:var(--text-muted);font-size:11.5px;">（非必填，不上传则复用主件SKU主图）</span></label>
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div id="comboThumbPreview" style="position:relative;width:80px;height:80px;border:1px solid var(--border);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;background:var(--bg-input);color:var(--text-muted);font-size:24px;overflow:hidden;">📦<div id="thumbMask" style="position:absolute;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:6px;text-align:center;font-size:11px;color:#fff;line-height:1.3;">默认主件图</div></div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-outline btn-sm" onclick="document.getElementById('comboThumbInput').click()">📷 上传自定义图片</button>
+              <button class="btn btn-outline btn-sm" id="comboThumbReset" onclick="clearComboThumb()">↺ 重置为默认</button>
+            </div>
+            <input type="file" id="comboThumbInput" accept="image/*" style="display:none;" onchange="onComboThumbChange(this)">
+          </div>
+        </div>
+      </div>
+      <!-- 组合商品详情图 -->
+      <div class="form-group" id="detailImageSection">
+        <label>组合商品详情图 <span style="font-weight:400;color:var(--text-muted);font-size:11.5px;">（非必填，不上传则复用主件SKU详情图）</span></label>
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div id="comboDetailPreview" style="position:relative;width:80px;height:80px;border:1px solid var(--border);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;background:var(--bg-input);color:var(--text-muted);font-size:24px;overflow:hidden;">🖼<div id="detailMask" style="position:absolute;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:6px;text-align:center;font-size:11px;color:#fff;line-height:1.3;">默认主件图</div></div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-outline btn-sm" onclick="document.getElementById('comboDetailInput').click()">📷 上传自定义详情</button>
+              <button class="btn btn-outline btn-sm" onclick="clearComboDetail()">↺ 重置为默认</button>
+            </div>
+            <input type="file" id="comboDetailInput" accept="image/*" style="display:none;" onchange="onComboDetailChange(this)">
+          </div>
+        </div>
+      </div>
+      <!-- 订单发货备注 -->
+      <div class="form-group">
+        <label>订单发货备注 <span style="font-weight:400;color:var(--text-muted);font-size:11.5px;">（选填）</span></label>
+        <textarea id="comboShippingNote" rows="3" placeholder="发货备注信息，如特殊包装要求、发货注意事项等" style="min-height:72px;resize:vertical;"></textarea>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('createModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveCombo()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ========================================
+// COPY HANDLERS (copyIconButton 由 ../assets/common-copy-btn.js 提供)
+// ========================================
+function copyComboCode(code,event){
+  event.stopPropagation();
+  navigator.clipboard.writeText(code).then(function(){toast('已复制供应链SKU: '+code,'success');});
+}
+function copySpuCode(code,event){
+  event.stopPropagation();
+  navigator.clipboard.writeText(code).then(function(){toast('已复制: '+code,'success');});
+}
+function copySupplySkuCode(code,event){
+  event.stopPropagation();
+  navigator.clipboard.writeText(code).then(function(){toast('已复制: '+code,'success');});
+}
+function copyComboName(name,event){
+  event.stopPropagation();
+  navigator.clipboard.writeText(name).then(function(){toast('已复制商品名称: '+name,'success');});
+}
+function copyCompName(name,event){
+  event.stopPropagation();
+  navigator.clipboard.writeText(name).then(function(){toast('已复制SKU名称: '+name,'success');});
+}
+
+// ========================================
+// DATA
+// ========================================
+var expandedCombos = {};
+var showImages = true; // 有图/无图显示切换
+var comboAllExpanded = false; // 全部展开/收起状态
+
+let combos = [
+  {id:'c1',name:'3M防护标准套装',code:'ZDZH-A00001',sku:'HZZH-A00001-001',comboMode:'combo',spuSelf:'ZDZH-A00001',price:'32.00',brand:'3M',catL3:'劳保用品 > 防护口罩 > KN95口罩',status:'published',mode:'mixed',channels:['企业购','零售商城','南航积分商城'],creator:'王芳',created:'2026-06-20 10:00',components:[
+    {mallSku:'S001A00001001',supplySku:'HZ-A00081-001',name:'3M 9001V KN95口罩',spec:'{白,常规}',supplier:'星辰商贸',qty:1,role:'主件',supplyPrice:'15.00',stock:5000,ecomPrice:'129.00',shipping:'顺丰/中通',logisticsNote:'24h内发货',preferred:true},
+    {mallSku:'S004A00003001',supplySku:'HZ-B00002-001',name:'3M护目镜 防雾防尘',spec:'{标准}',supplier:'星辰商贸',qty:1,role:'配件',supplyPrice:'25.00',stock:1200,ecomPrice:'79.00',shipping:'顺丰/中通',logisticsNote:'24h内发货',preferred:true}
+  ]},
+  {id:'c2',name:'3M 夏季清凉防护礼包',code:'ZDZH-A00002',sku:'HZZH-A00002-001',comboMode:'gift',spuAttach:'ZD-A00001',price:'45.00',brand:'3M',catL3:'劳保用品 > 防护口罩 > KN95口罩',status:'published',mode:'lowest',channels:['企业购','零售商城'],creator:'李建国',created:'2026-06-22 14:30',components:[
+    {mallSku:'S001A00001001',supplySku:'HZ-A00001-002',name:'3M 9001V KN95口罩',spec:'{白,常规}',supplier:'恒通供应链',qty:1,role:'主件',supplyPrice:'15.00',stock:5000,ecomPrice:'129.00',shipping:'京东物流',logisticsNote:'48h内发货',preferred:false},
+    {mallSku:'S004A00003002',supplySku:'HZ-C00003-001',name:'舒肤佳湿巾 80抽',spec:'{80抽}',supplier:'鹏程优品',qty:2,role:'赠品',supplyPrice:'5.00',stock:6000,ecomPrice:'12.00',shipping:'韵达/中通',logisticsNote:'24h内发货',preferred:false}
+  ]},
+  {id:'c3',name:'3M 医护工作者防护套组',code:'ZDZH-A00003',sku:'HZZH-A00003-001',comboMode:'combo',spuSelf:'ZDZH-A00003',price:'68.00',brand:'3M',catL3:'劳保用品 > 防护口罩 > KN95口罩',status:'published',mode:'mixed',channels:['南航积分商城'],creator:'王芳',created:'2026-06-25 09:15',components:[
+    {mallSku:'S001A00001002',supplySku:'HZ-A00001-002',name:'3M 9001V KN95口罩',spec:'{蓝,常规}',supplier:'环球优选',qty:1,role:'主件',supplyPrice:'14.00',stock:8000,ecomPrice:'135.00',shipping:'顺丰',logisticsNote:'24h内发货',preferred:true},
+    {mallSku:'S004A00003001',supplySku:'HZ-B00002-001',name:'3M护目镜 防雾防尘',spec:'{标准}',supplier:'星辰商贸',qty:1,role:'配件',supplyPrice:'25.00',stock:1200,ecomPrice:'79.00',shipping:'京东物流',logisticsNote:'48h内发货',preferred:false},
+    {mallSku:'S005A00003001',supplySku:'HZ-D00004-001',name:'一次性医用手套',spec:'{M号}',supplier:'鹏程优品',qty:2,role:'配件',supplyPrice:'8.00',stock:3000,ecomPrice:'19.00',shipping:'圆通/韵达',logisticsNote:'24h内发货',preferred:false}
+  ]},
+  {id:'c4',name:'3M 日常防护便携装',code:'ZDZH-A00004',sku:'HZZH-A00004-001',comboMode:'combo',spuSelf:'ZDZH-A00004',price:'28.00',brand:'3M',catL3:'劳保用品 > 防护口罩 > KN95口罩',status:'draft',mode:'lowest',channels:[],creator:'张敏',created:'2026-06-28 11:00',components:[
+    {mallSku:'S001A00001001',supplySku:'HZ-A00001-002',name:'3M 9001V KN95口罩',spec:'{白,常规}',supplier:'恒通供应链',qty:1,role:'主件',supplyPrice:'15.00',stock:5000,ecomPrice:'129.00',shipping:'京东物流',logisticsNote:'48h内发货',preferred:false},
+    {mallSku:'S004A00003002',supplySku:'HZ-C00003-001',name:'舒肤佳湿巾 80抽',spec:'{80抽}',supplier:'鹏程优品',qty:1,role:'配件',supplyPrice:'5.00',stock:6000,ecomPrice:'12.00',shipping:'韵达/中通',logisticsNote:'24h内发货',preferred:false}
+  ]},
+  {id:'c5',name:'3M 工业防护专业套装',code:'ZDZH-A00005',sku:'HZZH-A00005-001',comboMode:'gift',spuAttach:'ZD-A00001',price:'89.00',brand:'3M',catL3:'劳保用品 > 防护口罩 > KN95口罩',status:'pending',mode:'mixed',channels:[],creator:'李建国',created:'2026-05-10 16:20',components:[
+    {mallSku:'S001A00001001',supplySku:'HZ-A00001-001',name:'3M 9001V KN95口罩',spec:'{白,常规}',supplier:'恒通供应链',qty:1,role:'主件',supplyPrice:'15.00',stock:0,ecomPrice:'129.00',shipping:'顺丰/中通',logisticsNote:'24h内发货',preferred:true},
+    {mallSku:'S004A00003001',supplySku:'HZ-B00002-001',name:'3M护目镜 防雾防尘',spec:'{标准}',supplier:'星辰商贸',qty:1,role:'赠品',supplyPrice:'25.00',stock:1200,ecomPrice:'79.00',shipping:'京东物流',logisticsNote:'48h内发货',preferred:true},
+    {mallSku:'S005A00003001',supplySku:'HZ-D00004-001',name:'一次性医用手套',spec:'{M号}',supplier:'鹏程优品',qty:3,role:'赠品',supplyPrice:'8.00',stock:3000,ecomPrice:'19.00',shipping:'圆通/韵达',logisticsNote:'24h内发货',preferred:false}
+  ]},
+  {id:'c6',name:'天润 家庭营养过年礼包',code:'ZDZH-A00006',sku:'HZZH-A00006-001',comboMode:'combo',spuSelf:'ZDZH-A00006',price:'73.00',brand:'天润',catL3:'食品饮料 > 乳制品 > 牛奶；节日礼盒 > 春节礼盒 > 食品礼包',status:'published',mode:'mixed',channels:['企业购','零售商城'],creator:'王芳',created:'2026-01-15 10:00',components:[
+    {mallSku:'S002A00096001',supplySku:'HZ-A00096-001',name:'天润 新疆纯牛奶200ml*12',spec:'{200ml*12盒}',supplier:'恒通供应链',qty:1,role:'主件',supplyPrice:'45.00',stock:2300,ecomPrice:'79.00',shipping:'中通/圆通',logisticsNote:'24h内发货',preferred:true},
+    {mallSku:'S003A00097001',supplySku:'HZ-A00097-001',name:'北大荒 有机黑木耳200g',spec:'{200g}',supplier:'环球优选',qty:1,role:'配件',supplyPrice:'28.00',stock:3100,ecomPrice:'49.00',shipping:'韵达/中通',logisticsNote:'24h内发货',preferred:false}
+  ]}
+];
+
+const STATUS_MAP = {
+  draft:{label:'草稿',cls:'tag-gray'},
+  pending:{label:'待审批',cls:'tag-orange'},
+  published:{label:'已发布',cls:'tag-green'}
+};
+
+let currentFilter = {keyword:'',status:''};
+var PAGE_SIZE = 10;
+let currentPage = 1;
+var lastTotalPages = 1;
+
+// ========================================
+// SUPPLY SKU POOL (for picking components)
+// ========================================
+const SKU_POOL = [
+  {id:'p1',mallSku:'S001A00001001',supplySku:'HZ-A00001-001',name:'3M 9001V KN95口罩',spec:'{白,常规}',supplier:'星辰商贸',supplyPrice:'15.00',stock:5000,ecomPrice:'129.00',shipping:'顺丰/中通',logisticsNote:'24h内发货'},
+  {id:'p2',mallSku:'S001A00001001',supplySku:'HZ-A00001-002',name:'3M 9001V KN95口罩',spec:'{白,常规}',supplier:'恒通供应链',supplyPrice:'16.80',stock:8000,ecomPrice:'129.00',shipping:'京东物流',logisticsNote:'48h内发货'},
+  {id:'p3',mallSku:'S001A00001002',supplySku:'HZ-A00001-002',name:'3M 9001V KN95口罩',spec:'{蓝,常规}',supplier:'环球优选',supplyPrice:'14.00',stock:8000,ecomPrice:'135.00',shipping:'顺丰',logisticsNote:'24h内发货'},
+  {id:'p4',mallSku:'S004A00003001',supplySku:'HZ-B00002-001',name:'3M护目镜 防雾防尘',spec:'{标准}',supplier:'星辰商贸',supplyPrice:'25.00',stock:1200,ecomPrice:'79.00',shipping:'京东物流',logisticsNote:'48h内发货'},
+  {id:'p5',mallSku:'S004A00003002',supplySku:'HZ-C00003-001',name:'舒肤佳湿巾 80抽',spec:'{80抽}',supplier:'鹏程优品',supplyPrice:'5.00',stock:6000,ecomPrice:'12.00',shipping:'韵达/中通',logisticsNote:'24h内发货'},
+  {id:'p6',mallSku:'S005A00003001',supplySku:'HZ-D00004-001',name:'一次性医用手套',spec:'{M号}',supplier:'鹏程优品',supplyPrice:'8.00',stock:3000,ecomPrice:'19.00',shipping:'圆通/韵达',logisticsNote:'24h内发货'},
+  {id:'p7',mallSku:'S006A00001001',supplySku:'HZ-A00007-001',name:'4K超清智能投影仪',spec:'{标准版}',supplier:'鹏程优品',supplyPrice:'520.00',stock:156,ecomPrice:'899.00',shipping:'顺丰',logisticsNote:'48h内发货'},
+];
+
+let pendingComponents = [];
+let _editingId = null;
+let _configMode = false; // 配置模式 vs 新建/编辑模式
+
+// ========================================
+// RENDER
+// ========================================
+function getFilteredCombos(){
+  return combos.filter(function(c){
+    if(currentFilter.keyword){
+      var kw = currentFilter.keyword.toLowerCase();
+      if(c.name.toLowerCase().indexOf(kw)===-1 && c.code.toLowerCase().indexOf(kw)===-1 && (c.sku||'').toLowerCase().indexOf(kw)===-1) return false;
+    }
+    if(currentFilter.status && c.status!==currentFilter.status) return false;
+    return true;
+  });
+}
+
+function toggleCombo(comboId, event){
+  if(event) event.stopPropagation();
+  expandedCombos[comboId] = !expandedCombos[comboId];
+  renderTable();
+}
+
+function renderTable(){
+  var filtered = getFilteredCombos();
+  var total = filtered.length;
+  var totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  if(currentPage > totalPages) currentPage = totalPages;
+  var start = (currentPage - 1) * PAGE_SIZE;
+  var pageItems = filtered.slice(start, start + PAGE_SIZE);
+
+  var tbody = document.getElementById('comboTbody');
+  var empty = document.getElementById('emptyState');
+  if(total === 0){
+    tbody.innerHTML = '';
+    empty.classList.add('visible');
+  } else {
+    empty.classList.remove('visible');
+    var html = '';
+    pageItems.forEach(function(c){
+      var isExp = expandedCombos[c.id] === true;
+      var st = STATUS_MAP[c.status];
+      var modeLabel = c.mode==='mixed' ? '<span class="tag tag-purple">含指定</span>' : '<span class="tag tag-gray">全部最低价</span>';
+
+      // --- Combo main row (ref: 01 SPU row) ---
+      var supList = c.components.map(function(x){return x.supplier;}).filter(function(v,i,a){return a.indexOf(v)===i;});
+      var supAgg = supList.length===1 ? supList[0] : supList[0]+'<br><span style="font-size:11px;color:var(--text-muted);">等'+supList.length+'个供应商</span>';
+      var spuCode = c.comboMode === 'gift' ? (c.spuAttach || '') : (c.code || '');
+      var spuText = spuCode ? spuCode+copyIconButton("copySpuCode('"+spuCode+"',event)",'复制') : '—';
+      var comboModeTag = c.comboMode === 'gift'
+        ? '<span class="tag tag-purple">营销买赠</span>'
+        : '<span class="tag tag-purple">组合套装</span>';
+      var hasOfflineComp = c.components.some(function(comp){ return comp.stock===0; });
+      var supplyStatus = hasOfflineComp ? '<span class="tag tag-red" style="padding:1px 6px;">已失效</span>' : '<span class="tag tag-green" style="padding:1px 6px;">正常供货</span>';
+      var comboPrice = c.components.reduce(function(s,comp){ return s + parseFloat(comp.supplyPrice||0) * comp.qty; }, 0).toFixed(2);
+      var comboStock = Math.min.apply(null, c.components.map(function(comp){ return Math.floor((comp.stock||0) / comp.qty); }));
+      html += '<tr class="row-main" onclick="toggleCombo(\''+c.id+'\',event)">';
+      // 商品信息 merged cell
+      html += '<td class="spu-merged-cell">';
+      html += '<input type="checkbox" class="checkbox row-check" value="'+c.id+'" onchange="updateSelectedInfo()" onclick="event.stopPropagation()">';
+      html += '<span class="expand-arrow'+(isExp?' expanded':'')+'" onclick="event.stopPropagation();toggleCombo(\''+c.id+'\',event)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>';
+      var cThumbClass = showImages ? 'product-thumb' : 'product-thumb hidden';
+      html += '<span class="'+cThumbClass+'" style="background:#e4dcfc;flex-shrink:0;">Z</span>';
+      html += '<div class="spu-lines">';
+      html += '<div class="spu-line name-line"><span class="name-ellipsis" title="'+c.name.replace(/"/g,'&quot;')+'">'+c.name+'</span>'+copyIconButton("copyComboName('"+c.name.replace(/'/g,"\\'")+"',event)",'复制商品名称')+'</div>';
+      html += '<div class="spu-line code-line"><span class="code-label">供应链SKU：</span>'+(c.sku||c.code)+copyIconButton("copyComboCode('"+(c.sku||c.code)+"',event)",'复制供应链SKU')+'</div>';
+      html += '<div class="spu-line cat-line">'+(c.brand||'—')+'  <span style="color:var(--border);margin:0 6px;">|</span>  '+(c.catL3||'—')+'</div>';
+      var uniqueSkus = c.components.map(function(x){return x.mallSku;}).filter(function(v,i,a){return a.indexOf(v)===i;}).length;
+      var totalQty = c.components.reduce(function(s,x){return s + x.qty;}, 0);
+      html += '<div class="spu-line tag-line">'+comboModeTag+'<span class="item-count-tag">含'+uniqueSkus+'款商品，共'+totalQty+'件</span></div>';
+      html += '</div>';
+      html += '</td>';
+      html += '<td><span style="font-size:12px;">'+spuText+'</span></td>';
+      html += '<td>'+supAgg+'</td>';
+      html += '<td class="price">¥'+comboPrice+'</td>';
+      html += '<td><span class="placeholder-cell" style="color:var(--text-muted);font-size:12px;">—</span></td>';
+      html += '<td><span class="price">'+comboStock.toLocaleString()+'</span></td>';
+      html += '<td><span class="placeholder-cell" style="color:var(--text-muted);font-size:12px;">—</span></td>';
+      var statusTag = c.status==='published' ? '<span class="tag tag-green">已发布</span>' : (c.status==='pending' ? '<span class="tag tag-orange">待审批</span>' : '<span class="tag tag-gray">草稿</span>');
+      html += '<td style="text-align:center;">'+statusTag+'</td>';
+      html += '<td style="text-align:center;">'+supplyStatus+'</td>';
+      html += '<td><div style="font-size:12.5px;">'+(c.creator||'—')+'</div><div style="font-size:12px;color:var(--text-muted);">'+c.created+'</div></td>';
+      var publishBtn = '';
+      if(c.status==='draft'){
+        publishBtn = '<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();submitForApproval(\''+c.id+'\')">提交审批</button>';
+      } else if(c.status==='pending'){
+        publishBtn = '<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();withdrawCombo(\''+c.id+'\')">撤回</button>';
+      } else {
+        publishBtn = '<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();toggleComboStatus(\''+c.id+'\')" style="color:var(--orange);border-color:var(--orange-border);">停用</button>';
+      }
+      var delBtn = c.status==='draft' ? ' <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();deleteCombo(\''+c.id+'\')" style="color:var(--red);border-color:var(--red-border);">删除</button>' : '';
+      html += '<td><button class="btn btn-outline btn-sm" onclick="event.stopPropagation();viewCombo(\''+c.id+'\')">查看</button> '+publishBtn+delBtn+'</td>';
+      html += '</tr>';
+
+      // --- Component sub-rows (ref: 01 SKU row) ---
+      if(isExp){
+        c.components.forEach(function(comp,idx){
+          var firstChar = comp.mallSku.charAt(0); // S or X
+          html += '<tr class="row-sub">';
+          // 商品信息 merged cell (no checkbox, spacer indent)
+          html += '<td class="sku-merged-cell">';
+          html += '<span class="sku-spacer" style="width:40px;margin-right:0;"></span>';
+          var sThumbClass = showImages ? 'product-thumb' : 'product-thumb hidden';
+          html += '<span class="'+sThumbClass+'" style="width:60px;height:60px;font-size:16px;background:#e8e6e2;flex-shrink:0;">'+firstChar+'</span>';
+          html += '<div class="sku-lines">';
+          html += '<div class="sku-line name-line"><span class="name-ellipsis" title="'+comp.name.replace(/"/g,'&quot;')+'">'+comp.name+'</span>'+copyIconButton("copyCompName('"+comp.name.replace(/'/g,"\\'")+"',event)",'复制SKU名称')+'</div>';
+          html += '<div class="sku-line"><span class="spec-label">规格：</span><span class="spec-val">'+(comp.spec||'—')+' <span class="tag tag-blue" style="padding:1px 6px;">'+comp.role+' ×'+comp.qty+'</span></span></div>';
+          html += '<div class="sku-line"><span class="spec-label">供应链SKU：</span><span class="sku-code">'+comp.supplySku+'</span>'+copyIconButton("copySupplySkuCode('"+comp.supplySku+"',event)",'复制供应链SKU')+'</div>';
+          html += '</div>';
+          html += '</td>';
+          var compSpu = 'ZD'+comp.supplySku.split('-').slice(0,2).join('-').replace(/^HZ/,'');
+          html += '<td><span class="code">'+compSpu+'</span>'+copyIconButton("copySupplySkuCode('"+compSpu+"',event)",'复制供应链SPU')+'</td>';
+          html += '<td>'+comp.supplier+(comp.preferred?' <span class="tag tag-green">优选</span>':'')+'</td>';
+          html += '<td class="price">¥'+comp.supplyPrice+'</td>';
+          html += '<td>'+(comp.ecomPrice ? '<div style="font-size:12.5px;">电商价：<span class="price">¥'+comp.ecomPrice+'</span></div><div style="font-size:11px;color:var(--blue);cursor:pointer;" onclick="event.stopPropagation();window.open(\'#\',\'_blank\')">电商链接：点击跳转</div>' : '<span class="placeholder-cell">—</span>')+'</td>';
+          html += '<td><span class="price">'+(comp.stock||0).toLocaleString()+'</span></td>';
+          html += '<td><div style="font-size:13px;">'+(comp.shipping||'—')+'</div><div style="font-size:11.5px;color:var(--text-muted);">'+(comp.logisticsNote||'')+'</div></td>';
+          html += '<td style="text-align:center;"><span style="color:var(--text-muted);font-size:12px;">—</span></td>';
+          html += '<td style="text-align:center;">'+(comp.stock===0?'<span class="tag tag-red" style="padding:1px 6px;">供应商下架</span>':'<span class="tag tag-green" style="padding:1px 6px;">正常供货</span>')+'</td>';
+          html += '<td style="text-align:center;"><span style="color:var(--text-muted);font-size:12px;">—</span></td>';
+          html += '<td><button class="btn btn-outline btn-sm" onclick="event.stopPropagation();window.open(\'04a.供应链商品详情页-原型页面.html\',\'_blank\')">查看</button> <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();toast(\'优选供应商功能待对接\',\'info\')">优选供应商</button></td>';
+          html += '</tr>';
+        });
+      }
+    });
+    tbody.innerHTML = html;
+  }
+  var totalComponents = filtered.reduce(function(s,c){ return s + c.components.length; }, 0);
+  renderPagination(totalPages, total, totalComponents);
+  updateSelectedInfo();
+}
+
+function renderPagination(totalPages,totalCombos,totalComponents){
+  lastTotalPages = totalPages;
+  var bar = document.getElementById('paginationBar');
+  var html = '';
+  // Prev
+  html += '<div class="page-btn'+(currentPage<=1?' disabled':'')+'" onclick="'+(currentPage>1?'goToPage('+(currentPage-1)+')':'')+'"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></div>';
+  // Page numbers
+  var maxBtns = 5;
+  var startP = Math.max(1, currentPage - Math.floor(maxBtns/2));
+  var endP = Math.min(totalPages, startP + maxBtns - 1);
+  if(endP - startP < maxBtns - 1) startP = Math.max(1, endP - maxBtns + 1);
+  for(var i=startP; i<=endP; i++){
+    html += '<div class="page-btn'+(i===currentPage?' active':'')+'" onclick="goToPage('+i+')">'+i+'</div>';
+  }
+  // Next
+  html += '<div class="page-btn'+(currentPage>=totalPages?' disabled':'')+'" onclick="'+(currentPage<totalPages?'goToPage('+(currentPage+1)+')':'')+'"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>';
+  bar.innerHTML = html;
+  document.getElementById('totalCount').textContent = '共 '+totalCombos+' 个组合 · '+totalComponents+' 个子件';
+}
+
+function goToPage(p){
+  currentPage = p;
+  renderTable();
+}
+
+function changePageSize(){
+  PAGE_SIZE = parseInt(document.getElementById('pageSizeSelect').value, 10) || 10;
+  currentPage = 1;
+  renderTable();
+}
+
+function jumpToPage(){
+  var p = parseInt(document.getElementById('jumpPageInput').value, 10);
+  if(!p || p < 1) p = 1;
+  if(p > lastTotalPages) p = lastTotalPages;
+  document.getElementById('jumpPageInput').value = p;
+  goToPage(p);
+}
+
+function updateSelectedInfo(){
+  var count = document.querySelectorAll('.row-check:checked').length;
+  document.getElementById('selectedInfo').textContent = '已选 '+count+' 个组合商品';
+}
+
+// ========================================
+// IMAGE VIEW / EXPAND ALL
+// ========================================
+function toggleImageView(){
+  showImages = !showImages;
+  var btn = document.getElementById('btnImageView');
+  if(btn) btn.textContent = showImages ? '无图显示' : '有图显示';
+  renderTable();
+}
+function expandAllCombos(){
+  comboAllExpanded = !comboAllExpanded;
+  if(comboAllExpanded){
+    combos.forEach(function(c){ expandedCombos[c.id] = true; });
+  } else {
+    expandedCombos = {};
+  }
+  renderTable();
+  updateExpandBtn();
+}
+function updateExpandBtn(){
+  var btn = document.getElementById('btnComboExpand'); if(!btn) return;
+  if(comboAllExpanded && Object.values(expandedCombos).every(function(v){return v;})){ btn.textContent='全部收起 ▴'; comboAllExpanded=true; }
+  else if(Object.values(expandedCombos).every(function(v){return !v;})){ btn.textContent='全部展开 ▾'; comboAllExpanded=false; }
+  else { btn.textContent='全部展开 ▾'; comboAllExpanded=false; }
+}
+
+// ========================================
+// FILTER
+// ========================================
+function applyFilter(){
+  currentFilter.keyword = document.getElementById('fKeyword').value.trim();
+  currentFilter.status = document.getElementById('fStatus').value;
+  currentPage = 1;
+  renderTable();
+}
+
+function resetFilter(){
+  document.getElementById('fKeyword').value = '';
+  document.getElementById('fStatus').value = '';
+  currentFilter = {keyword:'',status:''};
+  currentPage = 1;
+  renderTable();
+}
+
+function toggleAll(checked){
+  document.querySelectorAll('.row-check').forEach(function(cb){ cb.checked = checked; });
+  updateSelectedInfo();
+}
+
+// ========================================
+// BATCH
+// ========================================
+function viewCombo(comboId){
+  window.open('05a.组合商品详情页-原型页面.html?id='+comboId,'_blank');
+}
+function submitForApproval(comboId){
+  var c = combos.find(function(x){ return x.id === comboId; });
+  if(!c) return;
+  c.status = 'pending';
+  toast('已提交审批，等待审核','success');
+  renderTable();
+}
+function withdrawCombo(comboId){
+  var c = combos.find(function(x){ return x.id === comboId; });
+  if(!c) return;
+  c.status = 'draft';
+  toast('已撤回「'+c.name+'」的审批申请','info');
+  renderTable();
+}
+function toggleComboStatus(comboId){
+  var c = combos.find(function(x){ return x.id === comboId; });
+  if(!c) return;
+  if(c.status==='published'){
+    c.status = 'draft';
+    toast('已停用「'+c.name+'」','success');
+    renderTable();
+  }
+}
+function deleteCombo(comboId){
+  var c = combos.find(function(x){ return x.id === comboId; });
+  if(!c) return;
+  if(c.status==='published'){ toast('已发布的组合商品不可删除，请先下架','warn'); return; }
+  if(confirm('确认删除组合商品「'+c.name+'」？')){
+    combos = combos.filter(function(x){ return x.id !== comboId; });
+    renderTable();
+    toast('已删除','success');
+  }
+}
+
+// ========================================
+// CREATE / EDIT MODAL
+// ========================================
+function selectMode(mode){
+  document.querySelectorAll('.mode-card').forEach(function(c){ c.classList.toggle('active', c.dataset.mode === mode); });
+  document.querySelectorAll('input[name="comboMode"]').forEach(function(r){ r.checked = r.value === mode; });
+  var hint = document.getElementById('modeHint');
+  var thumbSection = document.getElementById('thumbSection');
+  if(mode === 'combo'){
+    hint.textContent = '组合套装：主件为商品主体，配件为同套装内的商品；独立SPU，独立售卖';
+    if(thumbSection) thumbSection.style.display = '';
+    var detailSec = document.getElementById('detailImageSection');
+    if(detailSec) detailSec.style.display = '';
+  } else {
+    hint.textContent = '营销买赠：主件为正价商品，配件为赠品；挂靠主件SPU，主图强制继承主件不可自定义';
+    if(thumbSection){ thumbSection.style.display = 'none'; window._comboThumb = null; }
+    var detailSec = document.getElementById('detailImageSection');
+    if(detailSec){ detailSec.style.display = 'none'; window._comboDetail = null; }
+  }
+  renderComponentList();
+}
+
+function onComboThumbChange(input){
+  var file = input.files[0];
+  if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e){
+    var prev = document.getElementById('comboThumbPreview');
+    prev.innerHTML = '<img src="'+e.target.result+'" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius-sm);">';
+    prev.style.borderStyle = 'solid';
+    window._comboThumb = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+function clearComboThumb(){
+  var prev = document.getElementById('comboThumbPreview');
+  prev.innerHTML = '📦<div id="thumbMask" style="position:absolute;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:6px;text-align:center;font-size:11px;color:#fff;line-height:1.3;">默认主件图</div>';
+  prev.style.borderStyle = 'solid';
+  prev.style.background = 'var(--bg-input)';
+  document.getElementById('comboThumbInput').value = '';
+  window._comboThumb = null;
+}
+function onComboDetailChange(input){
+  var file = input.files[0];
+  if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e){
+    var prev = document.getElementById('comboDetailPreview');
+    prev.innerHTML = '<img src="'+e.target.result+'" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius-sm);">';
+    window._comboDetail = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+function clearComboDetail(){
+  var prev = document.getElementById('comboDetailPreview');
+  prev.innerHTML = '🖼<div id="detailMask" style="position:absolute;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:6px;text-align:center;font-size:11px;color:#fff;line-height:1.3;">默认主件图</div>';
+  document.getElementById('comboDetailInput').value = '';
+  window._comboDetail = null;
+}
+
+function openCreateModal(){
+  _editingId = null;
+  _configMode = false;
+  // 恢复模式卡片可点击
+  document.querySelectorAll('.mode-card').forEach(function(card){ card.classList.remove('readonly'); });
+  document.getElementById('addComponentRow').style.display = 'flex';
+  pendingComponents = [];
+  document.getElementById('createModalTitle').textContent = '新建组合商品';
+  document.getElementById('comboName').value = '';
+  clearComboThumb();
+  document.getElementById('comboShippingNote').value = '';
+  document.getElementById('comboPrice').value = '¥0.00';
+  selectMode('combo');
+  renderComponentList();
+  updatePriceHint();
+  document.getElementById('createModal').classList.add('open');
+}
+
+function getRoleOptions(){
+  var mode = document.querySelector('input[name="comboMode"]:checked').value;
+  return mode === 'gift' ? ['主件','赠品'] : ['主件','配件'];
+}
+function renderRoleSelect(comp, idx){
+  var opts = getRoleOptions();
+  var val = (opts.indexOf(comp.role) >= 0) ? comp.role : opts[1];
+  var html = '<select onchange="switchRole('+idx+',this.value)" style="height:28px;padding:0 4px;border:1px solid var(--border);border-radius:4px;font-size:12px;font-family:inherit;">';
+  opts.forEach(function(r){ html += '<option value="'+r+'"'+(val===r?' selected':'')+'>'+r+'</option>'; });
+  html += '</select>';
+  return html;
+}
+
+function renderComponentList(){
+  var list = document.getElementById('componentList');
+  // 配置模式下隐藏操作列表头和底部添加区域
+  var actionThs = document.querySelectorAll('#createModal .modal-body th:last-child');
+  actionThs.forEach(function(th){ th.style.display = _configMode ? 'none' : ''; });
+  var addRow = document.getElementById('addComponentRow');
+  if(addRow) addRow.style.display = _configMode ? 'none' : 'flex';
+  var uniqueCount = pendingComponents.map(function(c){return c.pid;}).filter(function(v,i,a){return a.indexOf(v)===i;}).length;
+  var totalQty = pendingComponents.reduce(function(s,c){return s + (parseInt(c.qty)||1);}, 0);
+  var sum = document.getElementById('componentSummary');
+  if(pendingComponents.length === 0){
+    sum.textContent = '';
+  } else {
+    sum.textContent = '已选'+uniqueCount+'款商品，共'+totalQty+'件';
+  }
+  if(pendingComponents.length === 0){
+    list.innerHTML = '<tr><td colspan="5" style="padding:24px;text-align:center;color:var(--text-muted);font-size:12.5px;">暂未添加子件</td></tr>';
+    return;
+  }
+  // 归一化角色（模式切换后非主件角色可能不存在）
+  var opts = getRoleOptions();
+  pendingComponents.forEach(function(c){ if(opts.indexOf(c.role) < 0 && c.role !== '主件') c.role = opts[1]; });
+  var html = '';
+  pendingComponents.forEach(function(comp, idx){
+    var p = SKU_POOL.find(function(x){ return x.id === comp.pid; });
+    if(!p) return;
+    html += '<tr>';
+    html += '<td style="padding:8px 10px;text-align:center;color:var(--text-muted);border-bottom:1px solid var(--border-light);">'+(idx+1)+'</td>';
+    html += '<td style="padding:8px 10px;border-bottom:1px solid var(--border-light);"><div style="font-size:12.5px;font-weight:500;">'+p.name+'</div><div style="font-size:11px;color:var(--text-muted);">'+p.supplySku+' · '+p.supplier+' · ¥'+p.supplyPrice+' · 库存 '+p.stock.toLocaleString()+'</div></td>';
+    var qtyDisabled = _configMode;
+    html += '<td style="padding:8px 10px;text-align:center;vertical-align:middle;border-bottom:1px solid var(--border-light);"><input type="number" value="'+comp.qty+'" min="1" '+(qtyDisabled?'disabled style="width:56px;height:28px;padding:0 4px;border:1px solid var(--border);border-radius:4px;font-size:13px;text-align:center;background:var(--bg-input);color:var(--text-muted);"':'onchange="updateComp('+idx+',\'qty\',this.value)" style="width:56px;height:28px;padding:0 4px;border:1px solid var(--border);border-radius:4px;font-size:13px;text-align:center;"')+'></td>';
+    html += '<td style="padding:8px 10px;text-align:center;vertical-align:middle;border-bottom:1px solid var(--border-light);">'+(_configMode ? comp.role : renderRoleSelect(comp, idx))+'</td>';
+    if(!_configMode){
+      html += '<td style="padding:8px 10px;text-align:center;vertical-align:middle;border-bottom:1px solid var(--border-light);"><button style="background:none;border:none;color:var(--red);cursor:pointer;font-size:16px;padding:0;" onclick="removeComponent('+idx+')" title="移除">✕</button></td>';
+    }
+    html += '</tr>';
+  });
+  list.innerHTML = html;
+}
+
+function switchRole(idx, val){
+  if(val === '主件'){
+    pendingComponents.forEach(function(c, i){
+      if(i === idx){ c.role = '主件'; }
+      else if(c.role === '主件'){ c.role = '配件'; }
+    });
+  } else {
+    pendingComponents[idx].role = val;
+  }
+  renderComponentList();
+  updatePriceHint();
+}
+
+function updateComp(idx, field, val){
+  pendingComponents[idx][field] = (field === 'qty' ? parseInt(val) || 1 : val);
+  renderComponentList();
+  updatePriceHint();
+}
+
+function removeComponent(idx){
+  if(pendingComponents[idx] && pendingComponents[idx].role === '主件'){
+    toast('主件不可直接删除，请先切换为其他角色','warn');
+    return;
+  }
+  pendingComponents.splice(idx, 1);
+  renderComponentList();
+  updatePriceHint();
+}
+
+function updatePriceHint(){
+  var total = pendingComponents.reduce(function(s, comp){
+    var p = SKU_POOL.find(function(x){ return x.id === comp.pid; });
+    return s + (p ? parseFloat(p.supplyPrice) * (comp.qty || 1) : 0);
+  }, 0);
+  document.getElementById('comboPrice').value = '¥'+total.toFixed(2);
+}
+
+// ========================================
+// ADD COMPONENT
+// ========================================
+function addComponent(){
+  var input = document.getElementById('supplySkuInput');
+  var sku = input.value.trim();
+  if(!sku){ toast('请输入供应链SKU','warn'); return; }
+  // Demo: cycle through pool based on hash of input string
+  var hash = sku.split('').reduce(function(s,c){ return s + c.charCodeAt(0); }, 0);
+  var idx = hash % SKU_POOL.length;
+  var p = SKU_POOL[idx];
+  // 主件已存在则新增的为配件；允许同SKU作为不同子件（如主件×1 + 同SKU×2作为配件）
+  var role = pendingComponents.length === 0 ? '主件' : '配件';
+  pendingComponents.push({pid: p.id, qty: 1, role: role, preferred: false, supplier: p.supplier});
+  input.value = '';
+  renderComponentList();
+  updatePriceHint();
+  toast('已识别并添加: '+p.name+' ('+p.supplySku+')','success');
+}
+
+// ========================================
+// SAVE
+// ========================================
+function saveCombo(){
+  var name = document.getElementById('comboName').value.trim();
+  var priceEl = document.getElementById('comboPrice');
+  var price = priceEl.value.replace('¥','').trim();
+  var comboMode = document.querySelector('input[name="comboMode"]:checked').value;
+  var shippingNote = document.getElementById('comboShippingNote').value.trim();
+  var mainComp = pendingComponents.find(function(c){ return c.role === '主件'; });
+  var mainP = mainComp ? SKU_POOL.find(function(x){ return x.id === mainComp.pid; }) : null;
+  if(!name){ toast('请填写组合商品名称','warn'); return; }
+  if(pendingComponents.length < 1){ toast('请至少添加1个商品','warn'); return; }
+  if(!mainComp){ toast('请设置1个主件','warn'); return; }
+  var totalQty = pendingComponents.reduce(function(s,c){ return s + (parseInt(c.qty)||1); }, 0);
+  if(totalQty < 2){ toast('组合商品至少需2件（当前'+totalQty+'件），可增加主件用量或添加配件','warn'); return; }
+
+  var components = pendingComponents.map(function(comp){
+    var p = SKU_POOL.find(function(x){ return x.id === comp.pid; });
+    return {
+      mallSku: p.mallSku, supplySku: p.supplySku, name: p.name, spec: p.spec,
+      supplier: comp.supplier || p.supplier, qty: comp.qty, role: comp.role,
+      supplyPrice: p.supplyPrice, stock: p.stock, ecomPrice: p.ecomPrice,
+      shipping: p.shipping, logisticsNote: p.logisticsNote,
+      preferred: comp.preferred
+    };
+  });
+
+  var supplyMode = components.some(function(c){ return c.preferred; }) ? 'mixed' : 'lowest';
+  var brand = mainP ? (mainP.name.indexOf('3M')>=0 ? '3M' : '—') : '—';
+  // 营销买赠强制挂靠主件SPU、主图继承主件不可自定义
+  var spuSelf = comboMode === 'combo' ? 'ZDZH-A0000' + (combos.length + 1) : '';
+  var spuAttach = comboMode === 'gift' ? (mainP ? mainP.mallSku.slice(0,-3) : '') : '';
+  var thumb = comboMode === 'gift' ? null : (window._comboThumb || null);
+
+  if(_editingId){
+    var c = combos.find(function(x){ return x.id === _editingId; });
+    c.name = name; c.price = price; c.components = components; c.supplyMode = supplyMode; c.brand = brand;
+    c.comboMode = comboMode; c.thumb = thumb; c.shippingNote = shippingNote;
+    if(spuSelf) c.spuSelf = spuSelf; else delete c.spuSelf;
+    if(spuAttach) c.spuAttach = spuAttach; else delete c.spuAttach;
+    toast('组合商品已更新','success');
+  } else {
+    var newId = 'c' + (combos.length + 1);
+    var newCode = 'ZDZH-A0000' + (combos.length + 1);
+    var newSku = 'HZZH-A0000' + (combos.length + 1) + '-001';
+    var newCombo = {
+      id: newId, name: name, code: newCode, sku: newSku, price: price,
+      brand: brand, catL3: mainP ? '劳保用品 > 防护口罩 > KN95口罩' : '—',
+      status: 'draft', supplyMode: supplyMode, comboMode: comboMode, channels: [],
+      created: new Date().toISOString().slice(0,16).replace('T',' '),
+      components: components, thumb: thumb, shippingNote: shippingNote
+    };
+    if(spuSelf) newCombo.spuSelf = spuSelf;
+    if(spuAttach) newCombo.spuAttach = spuAttach;
+    combos.push(newCombo);
+    toast('组合商品已创建','success');
+  }
+  closeModal('createModal');
+  renderTable();
+}
+
+function closeModal(id){
+  document.getElementById(id).classList.remove('open');
+}
+
+function batchExport(){
+  var selected = [];
+  document.querySelectorAll('.row-check:checked').forEach(function(cb){ selected.push(cb.value); });
+  var items = selected.length > 0 ? selected : combos.map(function(c){ return c.id; });
+  toast('已导出 '+items.length+' 条组合商品（功能待对接）','success');
+}
+
+// ========================================
+// TOAST
+// ========================================
+function toast(msg,type){
+  var t = document.createElement('div');
+  t.className = 'toast '+(type||'info');
+  t.textContent = msg;
+  document.getElementById('toastContainer').appendChild(t);
+  setTimeout(function(){ t.style.opacity='0'; t.style.transition='opacity .3s'; setTimeout(function(){ t.remove(); },300); },2500);
+}
+
+// ========================================
+// INIT
+// ========================================
+document.addEventListener('DOMContentLoaded',function(){
+  renderTable();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>我的收藏 - 苏银豆商城</title>
+<link rel="stylesheet" href="../assets/common.css">
+<style>
+  /* Fix: page-scroll 的 min-height:100vh 会撑高 phone-frame，导致 absolute 的底部栏被顶出视口。
+     锁定 phone-frame 为一屏、让 page-scroll 吃掉中间空间，底部栏即可正常贴底。 */
+  .phone-frame {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .page-scroll {
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* Edit bar */
+  .edit-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-md) 12px;
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--border-divider);
+  }
+  .edit-bar .count {
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+  }
+  .edit-bar .edit-btn {
+    font-size: var(--font-sm);
+    color: var(--primary-start);
+    cursor: pointer;
+  }
+
+  /* Favorite item */
+  .fav-list {
+    padding: var(--space-sm) 0;
+  }
+  /* Swipe wrapper & actions (ref: 购物车) */
+  .fav-item-wrapper {
+    position: relative;
+    overflow: hidden;
+    margin-bottom: var(--space-sm);
+    border-radius: 0;
+    background: var(--card-bg);
+  }
+  .fav-item-wrapper .swipe-actions {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    display: flex;
+    z-index: 0;
+  }
+  .fav-item-wrapper .cart-btn,
+  .fav-item-wrapper .delete-btn {
+    width: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.3;
+    color: var(--card-bg);
+    cursor: pointer;
+    padding: 0 2px;
+  }
+  .fav-item-wrapper .cart-btn { background: var(--warning-color); }
+  .fav-item-wrapper .cart-btn:active { opacity: 0.9; }
+  .fav-item-wrapper .delete-btn { background: var(--price-color); }
+  .fav-item-wrapper .delete-btn:active { opacity: 0.9; }
+  .fav-item {
+    display: flex;
+    align-items: center;
+    background: var(--card-bg);
+    border-radius: 0;
+    padding: var(--space-md);
+    gap: var(--space-md);
+    position: relative;
+    transition: transform 0.2s ease;
+    z-index: 1;
+  }
+  .fav-item .checkbox {
+    width: 20px;
+    height: 20px;
+    border: 1.5px solid var(--text-disabled);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .fav-item .checkbox.checked {
+    background: linear-gradient(135deg, var(--primary-start), var(--price-color));
+    border-color: var(--primary-start);
+  }
+  .fav-item .checkbox.checked::after {
+    content: '';
+    width: 6px;
+    height: 10px;
+    border: 2px solid var(--card-bg);
+    border-top: none;
+    border-left: none;
+    transform: rotate(45deg) translateY(-1px);
+  }
+  .fav-item .checkbox.hidden { display: none; }
+  .fav-item .fav-img {
+    width: 80px;
+    height: 80px;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    flex-shrink: 0;
+    background: var(--bg-input);
+  }
+  .fav-item .fav-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .fav-item .fav-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-width: 0;
+  }
+  .fav-item .fav-name {
+    font-size: var(--font-sm);
+    color: var(--text-color);
+    line-height: 1.4;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-decoration: none;
+    margin-bottom: var(--space-sm);
+  }
+  .fav-item .fav-tags {
+    display: flex;
+    gap: var(--space-xs);
+    margin-bottom: var(--space-sm);
+  }
+  .fav-item .fav-tag {
+    font-size: var(--font-xs);
+    padding: 1px var(--space-xs);
+    border-radius: var(--radius-xs);
+    border: 1px solid var(--primary-start);
+    color: var(--primary-start);
+  }
+  .fav-item .fav-price {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-sm);
+  }
+  .fav-item .price-now {
+    color: var(--price-color);
+    font-size: var(--font-md);
+    font-weight: 700;
+  }
+  .fav-item .price-now .symbol { font-size: var(--font-sm); }
+  .fav-item .price-old {
+    font-size: var(--font-sm);
+    color: var(--text-muted);
+    text-decoration: line-through;
+  }
+  .fav-item .add-cart-btn {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    background: var(--selected-bg);
+    color: var(--primary-start);
+    font-size: var(--font-sm);
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 4px;
+    border: none;
+    line-height: 1.2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .fav-item .add-cart-btn:active { opacity: 0.7; }
+
+  /* Invalid items: bottom strip on image (not full mask) */
+  .fav-item.offshelf .fav-img,
+  .fav-item.soldout .fav-img {
+    position: relative;
+  }
+  .fav-item.offshelf .fav-img::after,
+  .fav-item.soldout .fav-img::after {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 22px;
+    background: rgba(0,0,0,0.55);
+    color: #fff;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: 0.5px;
+  }
+  .fav-item.offshelf .fav-img::after { content: '已失效'; }
+  .fav-item.soldout .fav-img::after { content: '已售罄'; }
+  .fav-item.offshelf .fav-name,
+  .fav-item.offshelf .fav-tags,
+  .fav-item.offshelf .fav-price,
+  .fav-item.soldout .fav-name,
+  .fav-item.soldout .fav-tags,
+  .fav-item.soldout .fav-price,
+  .fav-item.offshelf .price-now,
+  .fav-item.offshelf .price-old,
+  .fav-item.soldout .price-now,
+  .fav-item.soldout .price-old {
+    color: var(--text-tertiary);
+  }
+  .fav-item.offshelf .add-cart-btn,
+  .fav-item.soldout .add-cart-btn {
+    display: none;
+  }
+  .fav-item.offshelf .offshelf-text,
+  .fav-item.soldout .soldout-text {
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+  }
+  .fav-item.offshelf .checkbox,
+  .fav-item.soldout .checkbox {
+    display: flex;
+  }
+  .fav-item.offshelf .checkbox.hidden,
+  .fav-item.soldout .checkbox.hidden {
+    display: none;
+  }
+
+  /* Floating cart button */
+  .float-cart {
+    position: absolute;
+    right: 17px;
+    bottom: 72px;
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, var(--primary-start), var(--price-color));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 14px rgba(238, 10, 36, 0.35);
+    cursor: pointer;
+    z-index: 200;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    cursor: grab;
+  }
+  .float-cart:active { transform: scale(0.92); }
+  .float-cart.dragging { cursor: grabbing; }
+  .float-cart svg { width: 24px; height: 24px; color: var(--card-bg); display: block; }
+  .float-cart .float-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: var(--vip-gold-light);
+    color: var(--price-color);
+    font-size: var(--font-sm);
+    font-weight: 700;
+    min-width: 18px;
+    height: 18px;
+    line-height: 18px;
+    border-radius: var(--radius-md);
+    text-align: center;
+    padding: 0 var(--space-xs);
+  }
+  .float-cart.bounce {
+    animation: cartBounce 0.4s ease;
+  }
+  @keyframes cartBounce {
+    0%   { transform: scale(1); }
+    30%  { transform: scale(1.25); }
+    50%  { transform: scale(0.9); }
+    70%  { transform: scale(1.1); }
+    100% { transform: scale(1); }
+  }
+
+  /* Flying image */
+  .fly-img {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid var(--primary-start);
+    overflow: hidden;
+    z-index: 999;
+    pointer-events: none;
+    opacity: 1;
+  }
+  .fly-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .fly-img.flying {
+    transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0.6;
+  }
+
+  /* Empty state */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px var(--space-xl);
+    color: var(--text-tertiary);
+  }
+  .empty-state svg {
+    width: 80px;
+    height: 80px;
+    color: var(--text-disabled);
+    margin-bottom: var(--space-lg);
+  }
+  .empty-state .empty-text {
+    font-size: var(--font-base);
+    margin-bottom: var(--space-lg);
+  }
+  .empty-state .go-shopping {
+    background: linear-gradient(135deg, var(--primary-start), var(--price-color));
+    color: var(--card-bg);
+    font-size: var(--font-sm);
+    padding: var(--space-sm) 24px;
+    border-radius: var(--radius-xl);
+    cursor: pointer;
+  }
+
+  /* Bottom action bar */
+  .action-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-width: 375px;
+    margin: 0 auto;
+    background: var(--card-bg);
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-md) 12px;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom));
+    z-index: 100;
+  }
+  .action-bar .select-all {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    cursor: pointer;
+  }
+  .action-bar .select-all .checkbox {
+    width: 20px;
+    height: 20px;
+    border: 1.5px solid var(--text-disabled);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .action-bar .select-all .checkbox.checked {
+    background: linear-gradient(135deg, var(--primary-start), var(--price-color));
+    border-color: var(--primary-start);
+  }
+  .action-bar .select-all .checkbox.checked::after {
+    content: '';
+    width: 6px;
+    height: 10px;
+    border: 2px solid var(--card-bg);
+    border-top: none;
+    border-left: none;
+    transform: rotate(45deg) translateY(-1px);
+  }
+  .action-bar .select-all span { font-size: var(--font-sm); color: var(--text-color); }
+  .action-bar .delete-btn {
+    background: var(--price-color);
+    color: var(--card-bg);
+    font-size: var(--font-sm);
+    padding: var(--space-sm) 20px;
+    border-radius: var(--radius-xl);
+    cursor: pointer;
+  }
+  .action-bar .delete-btn:active { opacity: 0.85; }
+  .action-bar .delete-btn.disabled {
+    background: var(--text-light);
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+<div class="phone-frame">
+
+  <!-- Sub-page Navigation -->
+  <div class="sub-nav">
+    <div class="status-bar dark">
+      <span class="time">09:41</span>
+      <div class="icons">
+        <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+      </div>
+    </div>
+    <div class="nav-bar">
+      <div class="back-btn" onclick="history.back()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <span class="nav-title">我的收藏</span>
+      <div class="capsule-btn"><img src="../assets/icons/小程序按钮.svg" alt=""></div>
+    </div>
+  </div>
+
+  <!-- Edit Bar -->
+  <div class="edit-bar">
+    <span class="count">共 <span id="totalCount">4</span> 件商品</span>
+    <span class="edit-btn" id="editBtn">管理</span>
+  </div>
+
+  <!-- Scrollable Content -->
+  <div class="page-scroll" style="padding-bottom: 128px;">
+    <div class="fav-list" id="favList"></div>
+  </div>
+
+  <!-- Bottom Action Bar -->
+  <div class="action-bar" id="actionBar" style="display: none; bottom: 56px;">
+    <div class="select-all" id="selectAll">
+      <div class="checkbox"></div>
+      <span>全选</span>
+    </div>
+    <div class="delete-btn disabled" id="deleteBtn">删除</div>
+  </div>
+
+  <!-- Floating Cart Button -->
+  <div class="float-cart" id="floatCart">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
+    <span class="float-badge" id="floatBadge">3</span>
+  </div>
+
+  <!-- Bottom Tab Bar -->
+  <div class="tab-bar">
+    <a href="10.首页-原型页面.html" class="tab-item">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      <span>首页</span>
+    </a>
+    <a href="11.分类-原型页面.html" class="tab-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      <span>分类</span>
+    </a>
+    <a href="30.购物车-原型页面.html" class="tab-item">
+      <div class="cart-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
+        <span class="badge">3</span>
+      </div>
+      <span>购物车</span>
+    </a>
+    <div class="tab-item active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+      <span>收藏</span>
+    </div>
+    <a href="70.个人中心-原型页面.html" class="tab-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span>我的</span>
+    </a>
+  </div>
+
+</div>
+<script src="../assets/auth.js"></script>
+<script src="../assets/auth-guard.js"></script>
+<script src="../assets/common.js"></script>
+<script>
+(function() {
+  var isEditing = false;
+  var selectedItems = new Set();
+
+  // Favorite items data
+  var favItems = [
+    { id: 1, name: '日本进口保温杯 不锈钢真空便携水杯500ml', price: '68', original: '168', tag: '爆款', img: '../assets/unsplash/1602143407151-7111542de6e8.jpg' },
+    { id: 2, name: '无线蓝牙降噪耳机 迷你入耳式超长续航', price: '89', original: '299', tag: '新品', img: '../assets/unsplash/1505740420928-5e560c06d30e.jpg' },
+    { id: 3, name: '时尚运动鞋 透气网面跑步鞋轻便缓震', price: '159', original: '459', tag: '限时', img: '../assets/unsplash/1542291026-7eec264c27ff.jpg' },
+    { id: 4, name: '智能手表 多功能运动健康监测手环', price: '199', original: '599', tag: '爆款', img: '../assets/unsplash/1523275335684-37898b6baf30.jpg' },
+    { id: 5, name: '便携式迷你充电宝 20000mAh大容量', price: '59', original: '159', tag: '爆款', img: '../assets/unsplash/1609091839311-d5365f9ff1c5.jpg', offshelf: true },
+    { id: 6, name: '潮流太阳眼镜 防紫外线偏光墨镜', price: '128', original: '298', tag: '爆款', img: '../assets/unsplash/1572635196237-14b3f281503f.jpg', soldout: true }
+  ];
+
+  // Count only non-offshelf items
+  document.getElementById('totalCount').textContent = favItems.length;
+
+  // Edit button
+  var editBtn = document.getElementById('editBtn');
+  var actionBar = document.getElementById('actionBar');
+
+  editBtn.addEventListener('click', function() {
+    isEditing = !isEditing;
+    editBtn.textContent = isEditing ? '完成' : '管理';
+    actionBar.style.display = isEditing ? 'flex' : 'none';
+    renderList();
+  });
+
+  // Select all
+  var selectAll = document.getElementById('selectAll');
+  selectAll.addEventListener('click', function() {
+    var checkbox = this.querySelector('.checkbox');
+
+    if (selectedItems.size === favItems.length) {
+      selectedItems.clear();
+      checkbox.classList.remove('checked');
+    } else {
+      favItems.forEach(function(item) { selectedItems.add(item.id); });
+      checkbox.classList.add('checked');
+    }
+    renderList();
+    updateDeleteBtn();
+  });
+
+  // Delete button
+  var deleteBtn = document.getElementById('deleteBtn');
+  deleteBtn.addEventListener('click', function() {
+    if (selectedItems.size > 0) {
+      favItems = favItems.filter(function(item) { return !selectedItems.has(item.id); });
+      selectedItems.clear();
+      document.getElementById('totalCount').textContent = favItems.length;
+      renderList();
+      updateDeleteBtn();
+      selectAll.querySelector('.checkbox').classList.remove('checked');
+    }
+  });
+
+  function updateDeleteBtn() {
+    deleteBtn.classList.toggle('disabled', selectedItems.size === 0);
+    deleteBtn.textContent = selectedItems.size > 0 ? '删除(' + selectedItems.size + ')' : '删除';
+  }
+
+  function renderList() {
+    var list = document.getElementById('favList');
+    if (favItems.length === 0) {
+      list.innerHTML = '<div class="empty-state">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>' +
+        '<div class="empty-text">暂无收藏商品</div>' +
+        '<a href="10.首页-原型页面.html" class="go-shopping">去逛逛</a>' +
+      '</div>';
+      return;
+    }
+
+    var html = '';
+    favItems.forEach(function(item) {
+      var isChecked = selectedItems.has(item.id);
+      if (item.offshelf || item.soldout) {
+        var invalidClass = item.offshelf ? 'offshelf' : 'soldout';
+        var invalidHref = item.offshelf ? '21.商品详情-原型页面.html?reason=offshelf' : '21.商品详情-原型页面.html?reason=soldout';
+        var invalidLabel = item.offshelf ? '已下架' : '已售罄';
+        var invalidLabelClass = item.offshelf ? 'offshelf-text' : 'soldout-text';
+        var swipeHtml = '<div class="swipe-actions">' +
+          '<div class="delete-btn" data-id="' + item.id + '">删除</div>' +
+          '</div>';
+        html += '<div class="fav-item-wrapper" data-id="' + item.id + '">' +
+          swipeHtml +
+          '<div class="fav-item ' + invalidClass + '" data-id="' + item.id + '">' +
+          '<div class="checkbox ' + (isEditing ? '' : 'hidden') + (isChecked ? ' checked' : '') + '" data-id="' + item.id + '"></div>' +
+          '<a href="' + invalidHref + '" class="fav-img"><img src="' + item.img + '" alt="' + item.name + '"></a>' +
+          '<div class="fav-info">' +
+            '<a href="' + invalidHref + '" class="fav-name">' + item.name + '</a>' +
+            '<div class="fav-tags"><span class="fav-tag">' + item.tag + '</span></div>' +
+            '<div class="fav-price">' +
+              '<span class="price-now"><span class="symbol">&yen;</span>' + item.price + '</span>' +
+              '<span class="price-old">&yen;' + item.original + '</span>' +
+            '</div>' +
+          '</div>' +
+          '<span class="' + invalidLabelClass + '">' + invalidLabel + '</span>' +
+          '</div>' +
+        '</div>';
+      } else {
+        var swipeHtml = '<div class="swipe-actions">' +
+          '<div class="cart-btn" data-id="' + item.id + '">加入购物车</div>' +
+          '<div class="delete-btn" data-id="' + item.id + '">删除</div>' +
+          '</div>';
+        html += '<div class="fav-item-wrapper" data-id="' + item.id + '">' +
+          swipeHtml +
+          '<div class="fav-item">' +
+          '<div class="checkbox ' + (isEditing ? '' : 'hidden') + (isChecked ? ' checked' : '') + '" data-id="' + item.id + '"></div>' +
+          '<a href="21.商品详情-原型页面.html" class="fav-img"><img src="' + item.img + '" alt="' + item.name + '"></a>' +
+          '<div class="fav-info">' +
+            '<a href="21.商品详情-原型页面.html" class="fav-name">' + item.name + '</a>' +
+            '<div class="fav-tags"><span class="fav-tag">' + item.tag + '</span></div>' +
+            '<div class="fav-price">' +
+              '<span class="price-now"><span class="symbol">&yen;</span>' + item.price + '</span>' +
+              '<span class="price-old">&yen;' + item.original + '</span>' +
+            '</div>' +
+          '</div>' +
+          '<div class="add-cart-btn" data-id="' + item.id + '" data-img="' + item.img + '">加入购物车</div>' +
+          '</div>' +
+        '</div>';
+      }
+    });
+    list.innerHTML = html;
+
+    // Bind checkbox events
+    document.querySelectorAll('.fav-item .checkbox').forEach(function(cb) {
+      cb.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var id = parseInt(this.dataset.id);
+        if (!id) return;
+        if (selectedItems.has(id)) {
+          selectedItems.delete(id);
+          this.classList.remove('checked');
+        } else {
+          selectedItems.add(id);
+          this.classList.add('checked');
+        }
+        updateDeleteBtn();
+        var allCheckbox = selectAll.querySelector('.checkbox');
+        allCheckbox.classList.toggle('checked', selectedItems.size === favItems.length);
+      });
+    });
+
+    // Bind add-to-cart with fly animation
+    document.querySelectorAll('.add-cart-btn').forEach(function(btn) {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        flyToCart(this);
+      });
+    });
+
+    // Bind swipe action buttons
+    document.querySelectorAll('.fav-item-wrapper .cart-btn').forEach(function(el) {
+      el.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var wrapper = this.closest('.fav-item-wrapper');
+        flyToCart(null, wrapper.querySelector('.fav-img img'));
+      });
+    });
+    document.querySelectorAll('.fav-item-wrapper .delete-btn').forEach(function(el) {
+      el.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var id = parseInt(this.dataset.id);
+        var wrapper = this.closest('.fav-item-wrapper');
+        removeFavItem(id, wrapper);
+      });
+    });
+
+    bindSwipeEvents();
+  }
+
+  function removeFavItem(id, wrapper) {
+    favItems = favItems.filter(function(item) { return item.id !== id; });
+    selectedItems.delete(id);
+    document.getElementById('totalCount').textContent = favItems.length;
+    wrapper.style.transition = 'height 0.2s, margin 0.2s, opacity 0.2s';
+    wrapper.style.height = wrapper.offsetHeight + 'px';
+    requestAnimationFrame(function() {
+      wrapper.style.height = '0px';
+      wrapper.style.marginBottom = '0px';
+      wrapper.style.opacity = '0';
+      wrapper.style.overflow = 'hidden';
+    });
+    setTimeout(function() {
+      renderList();
+      updateDeleteBtn();
+      selectAll.querySelector('.checkbox').classList.toggle('checked', selectedItems.size === favItems.length);
+    }, 220);
+  }
+
+  // Swipe to reveal actions (ref: 购物车)
+  function bindSwipeEvents() {
+    var currentSwipe = null;
+    var startX = 0;
+
+    document.querySelectorAll('.fav-item-wrapper').forEach(function(wrapper) {
+      var favItem = wrapper.querySelector('.fav-item');
+      // 阈值 = 操作层实际宽度（失效/售罄仅删除 72px，正常双按钮 144px）
+      var DELETE_WIDTH = wrapper.querySelector('.swipe-actions').offsetWidth;
+
+      // Touch events
+      favItem.addEventListener('touchstart', function(e) {
+        if (currentSwipe && currentSwipe !== favItem) {
+          currentSwipe.style.transform = 'translateX(0)';
+        }
+        currentSwipe = favItem;
+        startX = e.touches[0].clientX;
+        favItem.style.transition = 'none';
+      });
+
+      favItem.addEventListener('touchmove', function(e) {
+        var diff = e.touches[0].clientX - startX;
+        var offset = Math.min(0, Math.max(-DELETE_WIDTH, diff));
+        favItem.style.transform = 'translateX(' + offset + 'px)';
+      });
+
+      favItem.addEventListener('touchend', function(e) {
+        favItem.style.transition = 'transform 0.2s ease';
+        var diff = e.changedTouches[0].clientX - startX;
+        if (diff < -DELETE_WIDTH / 2) {
+          favItem.style.transform = 'translateX(-' + DELETE_WIDTH + 'px)';
+        } else {
+          favItem.style.transform = 'translateX(0)';
+          currentSwipe = null;
+        }
+      });
+
+      // Mouse events (for desktop preview)
+      var mouseDown = false;
+      favItem.addEventListener('mousedown', function(e) {
+        if (e.target.closest('.add-cart-btn') || e.target.closest('.checkbox') || e.target.closest('a')) return;
+        if (currentSwipe && currentSwipe !== favItem) {
+          currentSwipe.style.transition = 'transform 0.2s ease';
+          currentSwipe.style.transform = 'translateX(0)';
+        }
+        currentSwipe = favItem;
+        mouseDown = true;
+        startX = e.clientX;
+        favItem.style.transition = 'none';
+        e.preventDefault();
+      });
+
+      document.addEventListener('mousemove', function(e) {
+        if (!mouseDown) return;
+        var diff = e.clientX - startX;
+        var offset = Math.min(0, Math.max(-DELETE_WIDTH, diff));
+        favItem.style.transform = 'translateX(' + offset + 'px)';
+      });
+
+      document.addEventListener('mouseup', function(e) {
+        if (!mouseDown) return;
+        mouseDown = false;
+        favItem.style.transition = 'transform 0.2s ease';
+        var diff = e.clientX - startX;
+        if (diff < -DELETE_WIDTH / 2) {
+          favItem.style.transform = 'translateX(-' + DELETE_WIDTH + 'px)';
+        } else {
+          favItem.style.transform = 'translateX(0)';
+          currentSwipe = null;
+        }
+      });
+    });
+  }
+
+  // Cart count
+  var cartCount = 3;
+
+  function flyToCart(btn, imgEl) {
+    var frame = document.querySelector('.phone-frame');
+    var favItem = btn ? btn.closest('.fav-item') : null;
+    if (!imgEl) imgEl = favItem.querySelector('.fav-img img');
+    var cartEl = document.getElementById('floatCart');
+    var badgeEl = document.getElementById('floatBadge');
+
+    // Get positions relative to phone-frame
+    var frameRect = frame.getBoundingClientRect();
+    var imgRect = imgEl.getBoundingClientRect();
+    var cartRect = cartEl.getBoundingClientRect();
+
+    // Create flying clone
+    var fly = document.createElement('div');
+    fly.className = 'fly-img';
+    fly.innerHTML = '<img src="' + imgEl.src + '">';
+    frame.appendChild(fly);
+
+    // Start position (relative to frame)
+    var startX = imgRect.left - frameRect.left + imgRect.width / 2 - 20;
+    var startY = imgRect.top - frameRect.top + imgRect.height / 2 - 20;
+    fly.style.left = startX + 'px';
+    fly.style.top = startY + 'px';
+
+    // Force reflow
+    fly.offsetHeight;
+
+    // End position (relative to frame)
+    var endX = cartRect.left - frameRect.left + cartRect.width / 2 - 20;
+    var endY = cartRect.top - frameRect.top + cartRect.height / 2 - 20;
+
+    // Animate
+    fly.classList.add('flying');
+    fly.style.left = endX + 'px';
+    fly.style.top = endY + 'px';
+    fly.style.width = '20px';
+    fly.style.height = '20px';
+    fly.style.opacity = '0.3';
+
+    fly.addEventListener('transitionend', function() {
+      fly.remove();
+      // Bounce cart button
+      cartEl.classList.remove('bounce');
+      cartEl.offsetHeight;
+      cartEl.classList.add('bounce');
+      // Update badge
+      cartCount++;
+      badgeEl.textContent = cartCount;
+    });
+  }
+
+  // Float cart drag: 拖拽移动 + 松手吸边；位移小于阈值视为点击跳转购物车
+  (function() {
+    var cart = document.getElementById('floatCart');
+    var frame = document.querySelector('.phone-frame');
+    var SIZE = 50, EDGE = 17, TOP_MIN = 96, BOTTOM_GAP = 60;
+    var dragging = false, moved = false;
+    var startX = 0, startY = 0, originLeft = 0, originTop = 0;
+
+    function pinToXY() {
+      var fr = frame.getBoundingClientRect();
+      var cr = cart.getBoundingClientRect();
+      cart.style.right = 'auto';
+      cart.style.bottom = 'auto';
+      cart.style.left = (cr.left - fr.left) + 'px';
+      cart.style.top = (cr.top - fr.top) + 'px';
+    }
+
+    function down(x, y) {
+      dragging = true;
+      moved = false;
+      startX = x;
+      startY = y;
+      pinToXY();
+      originLeft = parseFloat(cart.style.left);
+      originTop = parseFloat(cart.style.top);
+      cart.classList.add('dragging');
+    }
+
+    function move(x, y) {
+      if (!dragging) return;
+      var dx = x - startX, dy = y - startY;
+      if (Math.abs(dx) > 6 || Math.abs(dy) > 6) moved = true;
+      var fr = frame.getBoundingClientRect();
+      var left = Math.max(0, Math.min(fr.width - SIZE, originLeft + dx));
+      var top = Math.max(TOP_MIN, Math.min(fr.height - SIZE - BOTTOM_GAP, originTop + dy));
+      cart.style.left = left + 'px';
+      cart.style.top = top + 'px';
+    }
+
+    function up() {
+      if (!dragging) return;
+      dragging = false;
+      cart.classList.remove('dragging');
+      if (!moved) {
+        location.href = '30.购物车-原型页面.html';
+        return;
+      }
+      // 吸边：中心点在左半区贴左，否则贴右
+      var fr = frame.getBoundingClientRect();
+      var left = parseFloat(cart.style.left);
+      var snapLeft = left + SIZE / 2 < fr.width / 2 ? EDGE : fr.width - SIZE - EDGE;
+      cart.style.transition = 'left 0.3s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+      cart.style.left = snapLeft + 'px';
+      setTimeout(function() { cart.style.transition = ''; }, 320);
+    }
+
+    // Mouse (desktop preview)
+    cart.addEventListener('mousedown', function(e) {
+      e.preventDefault();
+      down(e.clientX, e.clientY);
+    });
+    document.addEventListener('mousemove', function(e) { move(e.clientX, e.clientY); });
+    document.addEventListener('mouseup', up);
+
+    // Touch
+    cart.addEventListener('touchstart', function(e) {
+      down(e.touches[0].clientX, e.touches[0].clientY);
+    }, { passive: true });
+    document.addEventListener('touchmove', function(e) {
+      if (!dragging) return;
+      e.preventDefault();
+      move(e.touches[0].clientX, e.touches[0].clientY);
+    }, { passive: false });
+    document.addEventListener('touchend', up);
+  })();
+
+  renderList();
+})();
+</script>
+<script src="../assets/theme-switcher.js"></script>
+</body>
+</html>

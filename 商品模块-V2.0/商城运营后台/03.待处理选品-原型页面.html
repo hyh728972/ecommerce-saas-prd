@@ -1,0 +1,1710 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>待处理选品中心 - 商城运营平台</title>
+<!-- B端统一字体：微软雅黑 -->
+<style>
+:root {
+  /* ---- Palette ---- */
+  --bg-app: #f4f3f0;
+  --bg-sidebar: #1e1e22;
+  --bg-surface: #ffffff;
+  --bg-hover: #f7f6f4;
+  --bg-input: #f9f8f7;
+  --border: #e6e4e0;
+  --border-light: #f0eeeb;
+  --text-primary: #1a1a1c;
+  --text-secondary: #6b6b70;
+  --text-muted: #99999d;
+  --text-sidebar: #c4c4c9;
+  --text-sidebar-active: #ffffff;
+  --accent: #2d2d33;
+  --accent-soft: #f0eeeb;
+  --red: #da3e3a;
+  --red-bg: #fef4f3;
+  --red-border: #fcd9d7;
+  --orange: #d97706;
+  --orange-bg: #fffbf0;
+  --orange-border: #fde8c4;
+  --blue: #2563eb;
+  --blue-bg: #f5f8ff;
+  --blue-border: #d4e0fc;
+  --gray: #6b7280;
+  --gray-bg: #f8f8f7;
+  --gray-border: #e8e6e3;
+  --dark-gray: #4b4b52;
+  --dark-gray-bg: #f5f4f3;
+  --dark-gray-border: #e0dedb;
+  --radius-sm: 4px;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.04);
+  --shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-lg: 0 4px 16px rgba(0,0,0,.10), 0 2px 6px rgba(0,0,0,.04);
+  --transition: 160ms ease;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: "Microsoft YaHei", sans-serif;
+  background: var(--bg-app);
+  color: var(--text-primary);
+  display: flex;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---- Sidebar ---- */
+.sidebar {
+  width: 232px;
+  min-width: 232px;
+  background: var(--bg-sidebar);
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  z-index: 10;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+.sidebar-brand {
+  padding: 20px 20px 28px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.sidebar-brand .logo {
+  font-size: 17px;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: -.02em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sidebar-brand .logo svg { flex-shrink: 0; }
+.sidebar-brand .sub {
+  font-size: 11px;
+  color: var(--text-sidebar);
+  margin-top: 2px;
+  letter-spacing: .02em;
+}
+.sidebar-nav {
+  flex: 1;
+  padding: 12px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.nav-section-label { font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: rgba(255,255,255,.25); padding: 14px 10px 6px; display: flex; align-items: center; gap: 4px; cursor: pointer; user-select: none; }
+.nav-section-label:hover { color: rgba(255,255,255,.45); }
+.section-arrow { font-size: 8px; transition: transform .2s ease; flex-shrink: 0; }
+.nav-section.collapsed .section-arrow { transform: rotate(-90deg); }
+.nav-section.collapsed .nav-section-items { display: none; }
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 6px;
+  color: var(--text-sidebar);
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: all var(--transition);
+  text-decoration: none;
+  letter-spacing: .01em;
+}
+.nav-item:hover { background: rgba(255,255,255,.05); color: #fff; }
+.nav-item.active {
+  background: rgba(255,255,255,.10);
+  color: #fff;
+  font-weight: 500;
+}
+.nav-item .badge {
+  margin-left: auto;
+  background: var(--red);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 7px;
+  border-radius: 10px;
+  min-width: 20px;
+  text-align: center;
+  line-height: 18px;
+}
+.nav-icon { width: 18px; height: 18px; opacity: .55; flex-shrink: 0; }
+.nav-item.active .nav-icon { opacity: 1; }
+
+/* ---- Main ---- */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.topbar {
+  height: 52px;
+  min-height: 52px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 28px;
+  gap: 16px;
+  z-index: 5;
+}
+.topbar .breadcrumb {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  letter-spacing: .01em;
+}
+.topbar .breadcrumb span { color: var(--text-primary); font-weight: 500; }
+.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 16px; }
+.topbar-right .user-avatar {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: #e6e4e0; font-size: 12px; font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-secondary);
+}
+
+/* ---- Content ---- */
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 28px;
+  padding-bottom: 70px;
+}
+.page-header { margin-bottom: 20px; }
+.page-header h1 { font-size: 22px; font-weight: 600; letter-spacing: -.02em; }
+.page-header p { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+
+/* ---- Tabs ---- */
+.tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 20px;
+}
+.tab {
+  padding: 10px 22px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: all var(--transition);
+  letter-spacing: .01em;
+}
+.tab:hover { color: var(--text-primary); }
+.tab.active { color: var(--text-primary); border-bottom-color: var(--accent); }
+.tab .count {
+  display: inline-block;
+  background: var(--accent-soft);
+  color: var(--text-secondary);
+  font-size: 11px;
+  padding: 1px 8px;
+  border-radius: 10px;
+  margin-left: 6px;
+  font-weight: 500;
+}
+.tab.active .count { background: var(--accent); color: #fff; }
+
+/* ---- Filter Bar ---- */
+.filter-bar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+.filter-bar .filter-group { position: relative; }
+.filter-bar select,
+.filter-bar input {
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-family: inherit;
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color var(--transition);
+  min-width: 140px;
+}
+.filter-bar input[type="text"] { width: 220px; }
+.filter-bar input[type="date"] { width: 140px; }
+.filter-bar input[type="text"]::placeholder { color: var(--text-muted); }
+.filter-bar select { min-width: 150px; }
+.filter-bar select:focus,
+.filter-bar input:focus { border-color: var(--accent); }
+.filter-bar .date-sep,
+.filter-bar .sep { color: var(--text-muted); font-size: 12px; }
+.table-panel {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.table-panel > .filter-bar { margin-bottom: 0; border: none; border-bottom: 1px solid var(--border); border-radius: 0; }
+.table-panel > .table-wrap { border: none; border-radius: 0; background: transparent; }
+
+/* Multi-select dropdown */
+
+.filter-bar .btn-filter {
+  height: 36px;
+  padding: 0 16px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  font-weight: 500;
+  transition: opacity var(--transition);
+}
+.filter-bar .btn-filter:hover { opacity: .88; }
+.filter-bar .btn-reset {
+  height: 36px;
+  padding: 0 14px;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.filter-bar .btn-reset:hover { border-color: var(--text-muted); color: var(--text-primary); }
+
+/* ---- Table ---- */
+.table-wrap {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+}
+.table-scroll { }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  table-layout: fixed;
+}
+thead th {
+  background: #fafaf9;
+  text-align: left;
+  padding: 11px 16px;
+  font-weight: 500;
+  font-size: 12px;
+  color: var(--text-muted);
+  letter-spacing: .02em;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+thead th:first-child { padding-left: 20px; width: 40px; }
+tbody td {
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--border-light);
+  vertical-align: middle;
+}
+tbody td:first-child { padding-left: 20px; width: 40px; }
+tbody tr { transition: background var(--transition); }
+tbody tr:hover { background: var(--bg-hover); }
+tbody tr:last-child td { border-bottom: none; }
+
+/* Checkbox */
+.checkbox { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
+
+/* Tag */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 100px;
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: .01em;
+  white-space: nowrap;
+}
+.tag-duplicate { background: var(--gray-bg); color: var(--gray); border: 1px solid var(--gray-border); }
+.tag-profit { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+.tag-supplier { background: var(--orange-bg); color: var(--orange); border: 1px solid var(--orange-border); }
+.tag-conflict { background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue-border); }
+.tag-cost { background: var(--orange-bg); color: var(--orange); border: 1px solid var(--orange-border); }
+.tag-outage { background: var(--dark-gray-bg); color: var(--dark-gray); border: 1px solid var(--dark-gray-border); }
+.tag-list-push { background: var(--gray-bg); color: var(--gray); border: 1px solid var(--gray-border); }
+.tag-channel-import { background: var(--gray-bg); color: var(--gray); border: 1px solid var(--gray-border); }
+.tag-inspection { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+.tag-code-conflict { background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue-border); }
+.tag-approving { background: var(--orange-bg); color: var(--orange); border: 1px dashed var(--orange-border); }
+/* 审批中记录：操作按钮置灰不可用 */
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+
+.product-name { font-weight: 500; }
+.product-name .sku { font-family:"Microsoft YaHei",sans-serif; font-size: 11px; color: var(--text-muted); margin-left: 6px; font-weight: 400; }
+.cell-ellipsis { max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cell-product { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; min-width: 0; }
+.cell-product .product-line { display: flex; align-items: center; gap: 4px; min-width: 0; max-width: 100%; }
+.cell-product .product-name { min-width: 0; }
+.mono { font-family:"Microsoft YaHei",sans-serif; font-size: 12px; }
+
+/* 供货来源（供应商 + 供应链SKU 堆叠，与商城订单列表一致） */
+.supply-stack { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.supply-name { font-size: 13px; font-weight: 500; color: var(--text-primary); line-height: 1.35; white-space: nowrap; }
+.supply-sku-line { display: flex; align-items: center; gap: 4px; font-size: 11.5px; color: var(--text-muted); line-height: 1.35; white-space: nowrap; }
+.supply-sku-line .mono { font-family:"Microsoft YaHei",sans-serif; font-size: 11px; color: var(--text-secondary); flex-shrink: 0; }
+.copy-icon-btn { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; padding: 0; border: none; background: transparent; color: var(--text-muted); cursor: pointer; border-radius: 4px; flex-shrink: 0; transition: color var(--transition), background var(--transition); opacity: 0; visibility: hidden; }
+.copy-icon-btn:hover { opacity: 1; visibility: visible; color: var(--text-secondary); background: var(--bg-hover); }
+tr:hover .copy-icon-btn { opacity: 1; visibility: visible; }
+.copy-icon-btn svg { display: block; pointer-events: none; }
+.price { font-family:"Microsoft YaHei",sans-serif; font-size: 12.5px; }
+.price.negative { color: var(--red); }
+.reason {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+}
+td.cell-reason { vertical-align: middle; }
+.time { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+
+/* Action buttons */
+.actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.btn {
+  display: inline-flex; align-items: center;
+  padding: 5px 12px; border-radius: var(--radius-sm);
+  font-size: 12px; font-family: inherit;
+  cursor: pointer; border: 1px solid transparent;
+  transition: all var(--transition);
+  white-space: nowrap;
+  font-weight: 500;
+}
+.btn-sm { padding: 4px 10px; font-size: 11.5px; }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { opacity: .85; }
+.btn-outline { border-color: var(--border); color: var(--text-primary); background: var(--bg-surface); }
+.btn-outline:hover { border-color: var(--text-muted); background: var(--bg-hover); }
+.btn-danger { color: var(--red); border-color: var(--red-border); background: var(--red-bg); }
+.btn-danger:hover { background: #fde8e7; }
+.btn-ghost { color: var(--text-secondary); background: transparent; padding: 5px 8px; }
+.btn-ghost:hover { color: var(--text-primary); background: var(--bg-hover); }
+
+/* ---- Footer (batch + pagination) — fixed ---- */
+.page-footer-fixed {
+  position: fixed;
+  bottom: 0;
+  left: 232px;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 28px;
+  background: #fafaf9;
+  border-top: 1px solid var(--border);
+  z-index: 100;
+  box-shadow: 0 -2px 8px rgba(0,0,0,.06);
+}
+.page-footer-left { display: flex; align-items: center; gap: 12px; }
+.page-footer-right { display: flex; align-items: center; }
+.pagination { display: flex; align-items: center; gap: 4px; }
+.pagination .page-btn {
+  width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  font-size: 12px; cursor: pointer; background: var(--bg-surface);
+  color: var(--text-primary); transition: all var(--transition);
+}
+.pagination .page-btn:hover { border-color: var(--text-muted); }
+.pagination .page-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.pagination .page-btn.disabled { opacity: .35; pointer-events: none; }
+
+/* ---- Empty State ---- */
+.empty-state {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+}
+.empty-state.visible { display: flex; }
+.empty-state .empty-icon { font-size: 48px; margin-bottom: 16px; opacity: .4; }
+.empty-state h3 { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+.empty-state p { font-size: 13px; color: var(--text-muted); }
+
+/* ---- Modal ---- */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.35);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(2px);
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  width: 440px;
+  max-width: 90vw;
+  overflow: hidden;
+  animation: modalIn .18s ease;
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(8px) scale(.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.modal-header {
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.modal-header h3 { font-size: 15px; font-weight: 600; }
+.modal-close {
+  width: 28px; height: 28px; border: none; background: none;
+  cursor: pointer; font-size: 18px; color: var(--text-muted);
+  border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center;
+  transition: all var(--transition);
+}
+.modal-close:hover { background: var(--bg-hover); color: var(--text-primary); }
+.modal-body { padding: 20px 24px; }
+.modal-body .form-group { margin-bottom: 16px; }
+#priceModal > .modal, #forceListModal > .modal { display: flex; flex-direction: column; height: 500px; }
+#priceModal .modal-body, #forceListModal .modal-body { overflow-y: auto; flex: 1; min-height: 0; }
+.modal-body .form-group:last-child { margin-bottom: 0; }
+.modal-body label {
+  display: block; font-size: 12.5px; font-weight: 500;
+  margin-bottom: 6px; color: var(--text-secondary);
+}
+.modal-body input[type="text"],
+.modal-body input[type="password"],
+.modal-body input[type="number"],
+.modal-body textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color var(--transition);
+}
+.modal-body input:focus,
+.modal-body textarea:focus { border-color: var(--accent); }
+.modal-body textarea { resize: vertical; min-height: 70px; }
+.modal-body .hint { font-size: 11.5px; color: var(--text-muted); margin-top: 4px; }
+.modal-body .price-preview {
+  background: #f9f8f7;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  margin-top: 8px;
+}
+.modal-body .warning-box {
+  background: #fff8f7;
+  border: 1px solid #fdd9d5;
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  font-size: 12.5px;
+  color: #b53a35;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.compare-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.compare-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+.compare-card h4 {
+  font-size: 13px; font-weight: 600; margin-bottom: 14px;
+  padding-bottom: 10px; border-bottom: 1px solid var(--border-light);
+}
+.compare-card.new { border-color: #d4e0fc; background: #fafbff; }
+.compare-card.new h4 { color: var(--blue); }
+.compare-card .row {
+  display: flex; justify-content: space-between; padding: 6px 0;
+  font-size: 13px; color: var(--text-secondary);
+}
+.compare-card .row .val { font-weight: 500; color: var(--text-primary); font-family:"Microsoft YaHei",sans-serif; font-size: 12.5px; }
+.compare-card .row .val.better { color: #16a34a; }
+
+/* Toast */
+.toast-container {
+  position: fixed; top: 24px; right: 24px;
+  z-index: 200;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.toast {
+  background: var(--bg-sidebar);
+  color: #fff;
+  padding: 12px 18px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  box-shadow: var(--shadow-lg);
+  animation: toastIn .25s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+@keyframes toastIn {
+  from { opacity:0; transform: translateX(20px); }
+  to { opacity:1; transform: translateX(0); }
+}
+.toast.success { border-left: 3px solid #16a34a; }
+.toast.info { border-left: 3px solid var(--blue); }
+
+/* ---- Responsive ---- */
+@media (max-width: 1200px) {
+  .sidebar { width: 200px; min-width: 200px; }
+  .content { padding: 20px; }
+  .page-footer-fixed { left: 200px; }
+  table { font-size: 12px; }
+  .btn { padding: 4px 10px; font-size: 11px; }
+}
+</style>
+</head>
+<body>
+
+<aside class="sidebar" id="app-sidebar"></aside>
+<script src="../assets/common-sidebar.js"></script>
+
+<!-- Main Content -->
+<div class="main">
+  <!-- Top Bar -->
+  <div class="topbar">
+    <div class="breadcrumb">选品管理 / <span>待处理选品</span></div>
+    <div class="topbar-right">
+      <span style="font-size:12px;color:var(--text-muted);">运营专员</span>
+      <div class="user-avatar">李</div>
+    </div>
+  </div>
+
+  <!-- Content Area -->
+  <div class="content">
+    <div class="page-header">
+      <h1>待处理选品中心</h1>
+      <p>集中处理异常选品数据，快速清洗、修正并推进商品上架</p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <div class="tab active" data-tab="pending">
+        待处理<span class="count">20</span>
+      </div>
+      <div class="tab" data-tab="closed">
+        已关闭
+      </div>
+    </div>
+
+    <div class="table-panel">
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+      <select id="fType" class="filter-group">
+        <option value="">问题类型: 全部</option>
+        <option value="duplicate">重复数据</option>
+        <option value="profit">利润预警</option>
+        <option value="supplier">供应商优化</option>
+        <option value="conflict">渠道冲突</option>
+        <option value="cost">成本变动</option>
+        <option value="outage">断供提醒</option>
+        <option value="codeConflict">编码冲突</option>
+      </select>
+      <input type="text" id="fKeyword" placeholder="商品信息 / 供应链SKU / 商城SKU / 供应商" class="filter-group">
+      <select id="fChannel" class="filter-group">
+        <option>目标商城: 全部</option>
+        <option>锦程员工福利商城</option>
+        <option>锦程积分商城</option>
+        <option>泡泡玛特官方商城</option>
+        <option>蓝海分销商城</option>
+      </select>
+      <select id="fSource" class="filter-group" style="min-width:130px;">
+        <option>来源类型: 全部</option>
+        <option>清单推品</option>
+        <option>渠道导入</option>
+        <option>存量巡检</option>
+      </select>
+      <input type="text" id="fDateFrom" placeholder="起始日期" class="filter-group" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'">
+      <span class="date-sep">—</span>
+      <input type="text" id="fDateTo" placeholder="结束日期" class="filter-group" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'">
+      <button class="btn-filter" onclick="renderTable()">查询</button>
+      <button class="btn-reset" onclick="resetFilter()">重置</button>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrap">
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th><input type="checkbox" class="checkbox" id="selectAll" onchange="toggleSelectAll(this)"></th>
+              <th style="width:100px;">问题类型</th>
+              <th style="width:240px;">商品信息</th>
+              <th style="width:140px;">目标商城</th>
+              <th style="width:250px;">供货来源</th>
+              <th style="width:90px;">供货价</th>
+              <th style="width:90px;">渠道价</th>
+              <th style="width:100px;">来源类型</th>
+              <th style="min-width:180px;">异常详情</th>
+              <th style="width:130px;">产生时间</th>
+              <th style="width:200px;">操作</th>
+            </tr>
+          </thead>
+          <tbody id="pendingTableBody">
+            <!-- Rows injected by JS -->
+          </tbody>
+        </table>
+        <!-- Empty state (hidden by default) -->
+        <div class="empty-state" id="pendingEmpty">
+          <div class="empty-icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" stroke-width="1.2"/><polyline points="8 12 11 15 16 9" stroke-width="1.2"/></svg></div>
+          <h3>太棒了！当前没有需要您处理的选品任务</h3>
+          <p>去选品清单看看有没有新的选品机会吧</p>
+        </div>
+      <div class="page-footer-fixed">
+        <div class="page-footer-left">
+          <button class="btn btn-outline btn-sm" onclick="batchConfirm()" id="btnBatchConfirm">批量确认</button>
+          <button class="btn btn-outline btn-sm" onclick="batchExport('pending')" id="btnBatchExport">批量导出</button>
+          <div style="font-size:12px;color:var(--text-muted);" id="selectedInfo">已选 0 项</div>
+        </div>
+        <div class="page-footer-right">
+          <div style="font-size:12px;color:var(--text-muted);margin-right:16px;" id="totalCount">共 0 条</div>
+          <div class="pagination" id="paginationBar"></div>
+          <div style="display:flex;align-items:center;gap:8px;margin-left:16px;">
+            <span style="font-size:12px;color:var(--text-muted);">每页</span>
+            <select id="pageSizeSelect" onchange="changePageSize()" style="height:28px;padding:0 8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:inherit;background:var(--bg-surface);color:var(--text-primary);cursor:pointer;">
+              <option value="10">10条</option>
+              <option value="20" selected>20条</option>
+              <option value="50">50条</option>
+              <option value="100">100条</option>
+            </select>
+            <span style="font-size:12px;color:var(--text-muted);">跳转至</span>
+            <input type="number" id="jumpPageInput" min="1" value="1" style="width:56px;height:28px;padding:0 8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:inherit;background:var(--bg-surface);color:var(--text-primary);text-align:center;" onkeydown="if(event.key==='Enter')jumpToPage()"/>
+            <span style="font-size:12px;color:var(--text-muted);">页</span>
+            <button onclick="jumpToPage()" style="height:28px;padding:0 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:inherit;background:var(--bg-surface);color:var(--text-primary);cursor:pointer;">跳转</button>
+          </div>
+        </div>
+      </div>
+      </div>
+    </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modals -->
+<!-- 修改价格 Modal -->
+<div class="modal-overlay" id="priceModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>申请上架</h3>
+      <button class="modal-close" onclick="closeModal('priceModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>商品名称</label>
+        <div style="font-size:13px;font-weight:500;" id="priceModalProduct">—</div>
+      </div>
+      <div class="form-group">
+        <label>当前供货价</label>
+        <div class="mono" style="font-size:14px;" id="priceModalSupply">—</div>
+      </div>
+      <div class="form-group">
+        <label>新渠道价</label>
+        <input type="number" id="priceModalInput" placeholder="请输入新渠道价" step="0.01" min="0" oninput="updatePricePreview()">
+        <div class="hint">改回高于供货价即正常上架；维持或低于供货价将进入负利润定价申请</div>
+      </div>
+      <div class="price-preview" id="pricePreview" style="display:none;">
+        毛利预估：<span id="pricePreviewValue">—</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('priceModal')">取消</button>
+      <button class="btn btn-primary" onclick="submitPriceChange()">确认</button>
+    </div>
+  </div>
+</div>
+
+<!-- 负利润定价申请 Modal -->
+<div class="modal-overlay" id="forceListModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>负利润定价申请</h3>
+      <button class="modal-close" onclick="closeModal('forceListModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="margin-bottom:12px;">
+        <div style="font-size:13px;font-weight:600;" id="forceListProductName">—</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:2px;" id="forceListProductInfo">—</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;font-size:13px;">
+        <div><div style="font-size:11.5px;color:var(--text-muted);">供货价</div><div style="font-weight:500;" id="forceListSupply">—</div></div>
+        <div>
+          <div style="font-size:11.5px;color:var(--text-muted);">申请渠道价 <span style="color:#da3e3a;">*</span></div>
+          <input type="number" id="forceListChannelPrice" min="0" step="0.01" placeholder="请输入" oninput="updateForceListPreview()" style="width:100%;margin-top:2px;height:32px;padding:0 8px;border:1px solid var(--border);border-radius:4px;font-size:13px;font-family:"Microsoft YaHei",sans-serif;">
+        </div>
+        <div><div style="font-size:11.5px;color:var(--text-muted);">单件亏损</div><div style="font-weight:500;color:#da3e3a;" id="forceListLoss">—</div></div>
+        <div><div style="font-size:11.5px;color:var(--text-muted);">毛利率</div><div style="font-weight:500;color:#da3e3a;" id="forceListMargin">—</div></div>
+      </div>
+      <div class="warning-box" style="margin-top:12px;">
+        <span style="font-size:18px;">⚠</span>
+        <div>
+          <strong>渠道价低于供货价（负利润）</strong>
+          <div style="margin-top:2px;">提交后将生成负利润定价申请，审批通过后生效；该渠道商品暂设为不可售。</div>
+        </div>
+      </div>
+      <div style="margin-top:12px;">
+        <div style="font-size:12.5px;font-weight:500;color:var(--text-secondary);margin-bottom:6px;">申请原因（必填）</div>
+        <textarea id="forceListReason" rows="3" placeholder="请填写负利润定价的申请原因，如战略补贴、清仓等" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:4px;font-size:13px;font-family:inherit;resize:vertical;"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer" style="justify-content:space-between;">
+      <button class="btn btn-outline" onclick="backToPriceList()">上一步</button>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-outline" onclick="closeModal('forceListModal')">取消</button>
+        <button class="btn btn-primary" onclick="submitForceList()">提交申请</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 忽略删除确认 Modal -->
+<div class="modal-overlay" id="ignoreDeleteModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>确认忽略并删除</h3>
+      <button class="modal-close" onclick="closeModal('ignoreDeleteModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:13px;color:var(--text-secondary);">
+        该记录将被<strong>软删除</strong>并从系统中移除，此操作不可恢复。
+      </div>
+      <div style="margin-top:8px;font-size:12.5px;color:var(--text-muted);" id="ignoreDeleteInfo">—</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('ignoreDeleteModal')">取消</button>
+      <button class="btn btn-danger" onclick="submitIgnoreDelete()">确认删除</button>
+    </div>
+  </div>
+</div>
+
+<!-- 商品对比 Modal -->
+<div class="modal-overlay" id="compareModal">
+  <div class="modal" style="width:720px;max-width:94vw;">
+    <div class="modal-header">
+      <h3 id="cmpTitle">商品对比 — 渠道冲突处理</h3>
+      <button class="modal-close" onclick="closeModal('compareModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="compare-cards">
+        <div class="compare-card new">
+          <h4 id="cmpLeftH"><span style="display:inline-flex;align-items:center;gap:3px;background:var(--blue-bg);color:var(--blue);font-size:11px;font-weight:600;padding:2px 8px;border-radius:100px;vertical-align:middle;">NEW</span> 新选品（待上架）</h4>
+          <div class="row"><span>供应链SKU</span><span class="val" id="cmpLSku">HZ-A00009-001-DF</span></div>
+          <div class="row"><span>商品名称</span><span class="val" id="cmpLProd">夏季纯棉圆领T恤</span></div>
+          <div class="row"><span>供货价</span><span class="val better" id="cmpLSupply">¥85.00 ✓</span></div>
+          <div class="row"><span>渠道价</span><span class="val better" id="cmpLChannel">¥129.00 ✓</span></div>
+          <div class="row"><span>供应商</span><span class="val" id="cmpLSupplier">星辰商贸</span></div>
+          <div class="row"><span>划线价</span><span class="val" id="cmpLMark">¥199.00</span></div>
+        </div>
+        <div class="compare-card">
+          <h4 id="cmpRightH"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/></svg> 商城现有品（在售中）</h4>
+          <div class="row"><span>供应链SKU</span><span class="val" id="cmpRSku">HZ-A00001-002-DF</span></div>
+          <div class="row"><span>商品名称</span><span class="val" id="cmpRProd">夏季纯棉圆领T恤</span></div>
+          <div class="row"><span>供货价</span><span class="val" id="cmpRSupply">¥92.00</span></div>
+          <div class="row"><span>渠道价</span><span class="val" id="cmpRChannel">¥119.00</span></div>
+          <div class="row"><span>供应商</span><span class="val" id="cmpRSupplier">星辰商贸</span></div>
+          <div class="row"><span>划线价</span><span class="val" id="cmpRMark">¥189.00</span></div>
+        </div>
+      </div>
+      <div id="cmpConclusion" style="padding:14px 16px;background:#f8fdf6;border-radius:var(--radius);font-size:12.5px;color:#16a34a;margin-top:16px;">
+        ✓ 新选品在供货价和渠道价上均占优势，建议替换现有品
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="cancelCompareListing()">放弃上架</button>
+      <button class="btn btn-outline" onclick="submitCompareChange()">现品改价</button>
+      <button class="btn btn-primary" id="cmpReplaceBtn" onclick="submitReplaceListing()">替换上架</button>
+    </div>
+  </div>
+</div>
+
+<!-- 替换上架确认 Modal -->
+<div class="modal-overlay" id="replaceConfirmModal">
+  <div class="modal" style="width:520px;">
+    <div class="modal-header">
+      <h3>替换上架确认</h3>
+      <button class="modal-close" onclick="closeModal('replaceConfirmModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="warning-box">
+        <span style="font-size:18px;">⚠</span>
+        <div>
+          <strong>确认以新选品替换渠道现有品？</strong>
+          <div style="margin-top:4px;font-size:12px;color:var(--text-secondary);">渠道现有品将被下架，新选品进入定价推品流程。此操作不可撤销。</div>
+        </div>
+      </div>
+      <div style="margin-top:14px;font-size:13px;color:var(--text-secondary);line-height:1.6;">
+        <div>· 渠道现有品将立即下架</div>
+        <div>· 新选品进入定价推品配置页</div>
+        <div>· 供应链数据不受影响</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="backToCompare()">上一步</button>
+      <button class="btn btn-primary" onclick="confirmReplaceListing()">确认，进入定价</button>
+    </div>
+  </div>
+</div>
+
+<!-- 申请指定 Modal -->
+<div class="modal-overlay" id="approvalModal">
+  <div class="modal" style="width:760px;max-width:94vw;">
+    <div class="modal-header">
+      <h3>供应商指定申请</h3>
+      <button class="modal-close" onclick="closeModal('approvalModal')">✕</button>
+    </div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:16px;">
+      <!-- 商品信息 -->
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--text-primary);" id="approvalProductName">—</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:2px;" id="approvalProductInfo">—</div>
+      </div>
+      <!-- 已选供应商 -->
+      <div style="font-size:13px;color:var(--text-secondary);line-height:1.8;">
+        <div>已选供应商：<span style="font-weight:600;color:var(--text-primary);" id="approvalSelectedSupplier">—</span></div>
+        <div>供货价：<span style="font-weight:500;" id="approvalSelectedPrice">—</span><span style="font-size:12px;color:var(--orange);" id="approvalPriceNote"></span></div>
+        <div id="approvalDiffLine" style="color:var(--red);font-size:12px;">差价：<span id="approvalDiff">—</span></div>
+        <div>供应链推荐：<span style="font-weight:500;color:var(--blue);" id="approvalRecommended">—</span></div>
+      </div>
+      <!-- 指定理由 -->
+      <div>
+        <div style="font-size:13px;font-weight:500;color:var(--text-primary);margin-bottom:8px;padding-top:8px;border-top:1px solid var(--border-light);">为什么不选最低价/优选？</div>
+        <div style="font-size:12.5px;font-weight:500;color:var(--text-secondary);margin-bottom:6px;">指定理由（必填）</div>
+        <textarea id="approvalReason" rows="4" placeholder="请详细说明不选最低价供应商或优选供应商的业务理由..."></textarea>
+      </div>
+      <!-- 不可售提示 -->
+      <div class="warning-box" style="margin-top:0;"><span>&#9888;</span><div id="approvalSubmitTip">提交后该渠道商品将暂时设为不可售，OA审批通过后切换指定供应商并自动恢复可售</div></div>
+      <!-- 参考数据 -->
+      <div>
+        <div style="font-size:12.5px;font-weight:500;color:var(--text-muted);margin-bottom:8px;">参考数据（系统自动汇总）</div>
+        <div style="overflow-x:auto;">
+          <table style="font-size:12px;width:100%;min-width:696px;table-layout:fixed;">
+            <colgroup>
+              <col style="width:160px;">
+              <col style="width:90px;">
+              <col style="width:100px;">
+              <col style="width:90px;">
+              <col style="width:78px;">
+              <col style="width:100px;">
+              <col style="width:78px;">
+            </colgroup>
+            <thead>
+              <tr>
+                <th style="padding:8px 10px;background:#fafaf9;text-align:left;font-weight:500;color:var(--text-muted);border-bottom:1px solid var(--border);white-space:nowrap;">供应商</th>
+                <th style="padding:8px 10px;background:#fafaf9;text-align:right;font-weight:500;color:var(--text-muted);border-bottom:1px solid var(--border);white-space:nowrap;">供货价</th>
+                <th style="padding:8px 10px;background:#fafaf9;text-align:left;font-weight:500;color:var(--text-muted);border-bottom:1px solid var(--border);white-space:nowrap;">发货物流</th>
+                <th style="padding:8px 10px;background:#fafaf9;text-align:right;font-weight:500;color:var(--text-muted);border-bottom:1px solid var(--border);white-space:nowrap;">订单量</th>
+                <th style="padding:8px 10px;background:#fafaf9;text-align:right;font-weight:500;color:var(--text-muted);border-bottom:1px solid var(--border);white-space:nowrap;">售后率</th>
+                <th style="padding:8px 10px;background:#fafaf9;text-align:left;font-weight:500;color:var(--text-muted);border-bottom:1px solid var(--border);white-space:nowrap;">结算方式</th>
+                <th style="padding:8px 10px;background:#fafaf9;text-align:left;font-weight:500;color:var(--text-muted);border-bottom:1px solid var(--border);white-space:nowrap;">状态</th>
+              </tr>
+            </thead>
+            <tbody id="approvalRefTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('approvalModal')">取消</button>
+      <button class="btn btn-primary" onclick="submitApproval()">提交审批</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="../assets/common-datetime.js"></script>
+<script src="../assets/common-copy-btn.js"></script>
+<script src="../assets/mock-backend/database.js"></script>
+<script src="../assets/mock-backend/api.js"></script>
+<script>
+// ---- Data: 从模拟后端接口获取 (assets/mock-backend/) ----
+var pendingData = MallAPI.pending.list();
+var tagClassMap = MallAPI.pending.tagClassMap();
+var sourceTypeTagClassMap = MallAPI.pending.sourceTypeTagClassMap();
+
+// ---- Supplier Reference Data (for 申请指定 modal) ----
+var supplierRefData = MallAPI.pending.supplierRef();
+
+// ---- Render Table ----
+
+// 供货来源单元格：供应商（上）+ 供应链SKU（下，带复制按钮），与商城订单列表一致
+function supplySourceCell(row) {
+  if (!row.supplier && !row.sku) return '<span style="color:var(--text-muted);">—</span>';
+  var supplier = row.supplier ? '<div class="supply-name">' + row.supplier + '</div>' : '';
+  var sku = row.sku
+    ? '<div class="supply-sku-line"><span>供应链SKU：</span><span class="mono">' + row.sku + '</span>'
+      + copyIconButton("copyText('" + row.sku + "','供应链SKU已复制',event)", '复制供应链SKU')
+      + '</div>'
+    : '';
+  return '<div class="supply-stack">' + supplier + sku + '</div>';
+}
+function copyText(text, doneMsg, e) {
+  if (e) e.stopPropagation();
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function(){ showToast('success', doneMsg); }).catch(function(){ showToast('info', text); });
+  } else { showToast('info', text); }
+}
+
+function renderActionButtons(actions, rowId, disabled) {
+  const map = {
+    confirm: `<button class="btn btn-ghost btn-sm" onclick="doConfirm(${rowId})">确认</button>`,
+    accept: `<button class="btn btn-primary btn-sm" onclick="doAccept(${rowId})">接受并更新</button>`,
+    forceDelist: `<button class="btn btn-outline btn-sm" onclick="doForceDelist(${rowId})">强制下架</button>`,
+    compare: `<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();showCompareModal(${rowId})">商品对比</button>`,
+    switch: `<button class="btn btn-primary btn-sm" onclick="doSwitch(${rowId})">一键切换最优</button>`,
+    approval: `<button class="btn btn-outline btn-sm" onclick="doApproval(${rowId})">申请指定</button>`,
+    editPrice: `<button class="btn btn-primary btn-sm" onclick="openPriceModal(${rowId})">修改价格</button>`,
+    applyList: `<button class="btn btn-primary btn-sm" onclick="openPriceModal(${rowId})">申请上架</button>`,
+    cancelList: `<button class="btn btn-outline btn-sm" onclick="cancelListing(${rowId})">放弃上架</button>`,
+    ignore: `<button class="btn btn-outline btn-sm" onclick="openIgnoreDelete(${rowId})">忽略删除</button>`,
+    resubmit: `<button class="btn btn-primary btn-sm" onclick="doResubmit(${rowId})">重新提交</button>`,
+    confirmMerge: `<button class="btn btn-primary btn-sm" onclick="doConfirmMerge(${rowId})">确认合并</button>`,
+  };
+  return actions.map(a => {
+    var btn = map[a] || '';
+    if (disabled && btn) btn = btn.replace('<button ', '<button disabled title="该记录审批中，操作按钮暂不可用" ');
+    return btn;
+  }).join('');
+}
+
+// 商品名称：品牌 + 商品名 + 规格（与供应链商品池 SKU 名称一致）；占位行(—)原样返回
+function productName(row) {
+  if (!row.product || row.product === '—') return row.product || '—';
+  var name = row.product;
+  // product 已含品牌前缀时不再重复拼接
+  if (row.brand && name.indexOf(row.brand) !== 0) name = row.brand + ' ' + name;
+  return row.spec ? name + ' ' + row.spec : name;
+}
+
+function renderTable() {
+  var kw = (document.getElementById('fKeyword').value || '').trim().toLowerCase();
+  var ch = document.getElementById('fChannel').value;
+  var chVal = (ch && ch.indexOf('全部') < 0) ? ch : '';
+  var src = document.getElementById('fSource').value;
+  var srcVal = (src && src.indexOf('全部') < 0) ? src : '';
+  var dFrom = document.getElementById('fDateFrom').value;
+  var dTo = document.getElementById('fDateTo').value;
+  var typeVal = document.getElementById('fType').value;
+  var filtered = pendingData.filter(function(row) {
+    if (typeVal && row.type !== typeVal) return false;
+    if (kw && String(row.product || '').toLowerCase().indexOf(kw) < 0 && String(row.sku || '').toLowerCase().indexOf(kw) < 0 && String(row.mallSku || '').toLowerCase().indexOf(kw) < 0 && String(row.supplier || '').toLowerCase().indexOf(kw) < 0) return false;
+    if (chVal && row.channel !== chVal) return false;
+    if (srcVal && row.sourceType !== srcVal) return false;
+    if (dFrom && String(row.time || '').slice(0, 10) < dFrom) return false;
+    if (dTo && String(row.time || '').slice(0, 10) > dTo) return false;
+    return true;
+  });
+  const tbody = document.getElementById('pendingTableBody');
+  if (filtered.length === 0) {
+    tbody.innerHTML = '';
+    document.getElementById('pendingEmpty').classList.add('visible');
+    var tbl = document.querySelector('table');
+    if (tbl) tbl.style.display = 'none';
+    renderPagination(1, 0);
+  } else {
+    document.getElementById('pendingEmpty').classList.remove('visible');
+    var tbl2 = document.querySelector('table');
+    if (tbl2) tbl2.style.display = '';
+    var totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+    var pageRows = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+    tbody.innerHTML = pageRows.map(row => `
+    <tr>
+      <td><input type="checkbox" class="checkbox row-check" data-id="${row.id}" onchange="updateSelection()"></td>
+      <td><span class="tag ${tagClassMap[row.type]}">${row.typeLabel}</span>${row.approving ? ' <span class="tag tag-approving">审批中</span>' : ''}</td>
+      <td><div class="cell-product"><div class="product-line"><span class="product-name cell-ellipsis" title="${productName(row)}">${productName(row)}</span>${row.product && row.product !== '—' ? copyIconButton(`copyText('${productName(row).replace(/'/g,"\\'")}','商品名称已复制',event)`,'复制商品名称') : ''}</div>${row.mallSku ? `<div class="supply-sku-line"><span>商城SKU：</span><span class="mono">${row.mallSku}</span>${copyIconButton(`copyText('${row.mallSku}','商城SKU已复制',event)`,'复制商城SKU')}</div>` : (row.product && row.product !== '—' ? `<div class="supply-sku-line">商城SKU：—</div>` : ``)}</div></td>
+              <td><span class="cell-ellipsis" title="${row.type === 'codeConflict' ? '—' : (row.channel || '—')}">${row.type === 'codeConflict' ? '—' : (row.channel || '—')}</span></td>
+              <td>${row.type === 'codeConflict' ? '<span style="color:var(--text-muted);">—</span>' : supplySourceCell(row)}</td>
+              <td class="price">${row.type === 'codeConflict' ? '—' : row.supplyPrice}</td>
+      <td class="price ${row.type === 'profit' ? 'negative' : ''}">${row.type === 'codeConflict' ? '—' : row.channelPrice}</td>
+      <td><span class="tag ${sourceTypeTagClassMap[row.sourceType] || 'tag-list-push'}">${row.sourceType || '—'}</span></td>
+      <td class="cell-reason"><div class="reason" title="${row.reason}">${row.reason}</div></td>
+      <td class="time">${formatDateTime(row.time)}</td>
+      <td><div class="actions">${renderActionButtons(row.actions, row.id, row.approving)}</div></td>
+    </tr>
+  `).join('');
+  renderPagination(totalPages, filtered.length);
+  }
+}
+
+// ---- 分页 ----
+var currentPage = 1;
+var PAGE_SIZE = 20;
+var lastTotalPages = 1;
+function renderPagination(totalPages, totalCount) {
+  lastTotalPages = totalPages;
+  var bar = document.getElementById('paginationBar');
+  var html = '';
+  // Prev
+  html += '<div class="page-btn' + (currentPage <= 1 ? ' disabled' : '') + '" onclick="' + (currentPage > 1 ? 'goToPage('+(currentPage-1)+')' : '') + '"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></div>';
+  // Page numbers
+  var maxBtns = 5;
+  var startP = Math.max(1, currentPage - Math.floor(maxBtns/2));
+  var endP = Math.min(totalPages, startP + maxBtns - 1);
+  if (endP - startP < maxBtns - 1) startP = Math.max(1, endP - maxBtns + 1);
+  for (var i = startP; i <= endP; i++) {
+    html += '<div class="page-btn' + (i === currentPage ? ' active' : '') + '" onclick="goToPage('+i+')">'+i+'</div>';
+  }
+  // Next
+  html += '<div class="page-btn' + (currentPage >= totalPages ? ' disabled' : '') + '" onclick="' + (currentPage < totalPages ? 'goToPage('+(currentPage+1)+')' : '') + '"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>';
+  bar.innerHTML = html;
+  document.getElementById('totalCount').textContent = '共 ' + totalCount + ' 条';
+}
+function isClosedTabActive() { var t = document.querySelector('.tab.active'); return !!(t && t.dataset.tab === 'closed'); }
+function goToPage(p) {
+  currentPage = p;
+  if (isClosedTabActive()) showClosedTab(); else renderTable();
+  var t = document.querySelector('.table-wrap table'); if (t) t.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function changePageSize() { PAGE_SIZE = parseInt(document.getElementById('pageSizeSelect').value, 10) || 10; currentPage = 1; if (isClosedTabActive()) showClosedTab(); else renderTable(); }
+function jumpToPage() { var p = parseInt(document.getElementById('jumpPageInput').value, 10); if (!p || p < 1) p = 1; if (p > lastTotalPages) p = lastTotalPages; document.getElementById('jumpPageInput').value = p; goToPage(p); }
+
+// ---- Dropdown & Filter ----
+function resetFilter() {
+  document.getElementById('fKeyword').value = '';
+  document.getElementById('fType').selectedIndex = 0;
+  document.getElementById('fChannel').selectedIndex = 0;
+  document.getElementById('fSource').selectedIndex = 0;
+  ['fDateFrom', 'fDateTo'].forEach(function(id) { var el = document.getElementById(id); el.value = ''; el.type = 'text'; });
+  renderTable();
+}
+function resetClosedFilter() {
+  document.getElementById('cfKeyword').value = '';
+  document.getElementById('cfType').selectedIndex = 0;
+  document.getElementById('cfSource').selectedIndex = 0;
+  ['cfDateFrom', 'cfDateTo'].forEach(function(id) { var el = document.getElementById(id); el.value = ''; el.type = 'text'; });
+  showClosedTab();
+}
+
+renderTable();
+updateTabBadge();
+
+// ---- Selection ----
+function toggleSelectAll(el) {
+  document.querySelectorAll('.row-check').forEach(cb => cb.checked = el.checked);
+  updateSelection();
+}
+function updateSelection() {
+  const count = document.querySelectorAll('.row-check:checked').length;
+  document.getElementById('selectedInfo').textContent = `已选 ${count} 项`;
+}
+
+// ---- Tab Switch ----
+const theadRow = document.querySelector('thead tr');
+const filterBar = document.querySelector('.filter-bar');
+const pendingTheadHTML = theadRow.innerHTML;
+const pendingFilterHTML = filterBar.innerHTML;
+const closedTheadHTML = `<th><input type="checkbox" class="checkbox" id="selectAllClosed" onchange="toggleSelectAll(this)"></th>
+  <th style="width:100px;">问题类型</th>
+  <th style="width:240px;">商品信息</th>
+  <th style="width:140px;">目标商城</th>
+  <th style="width:250px;">供货来源</th>
+  <th style="width:90px;">供货价</th>
+  <th style="width:90px;">渠道价</th>
+  <th style="width:100px;">来源类型</th>
+  <th style="min-width:180px;">异常详情</th>
+  <th style="width:130px;">产生时间</th>
+  <th style="width:130px;">处理时间</th>
+  <th style="width:130px;">操作方式</th>
+  <th style="width:100px;">操作人</th>`;
+const closedFilterHTML = `<select id="cfType" class="filter-group">
+    <option value="">问题类型: 全部</option>
+    <option value="duplicate">重复数据</option>
+    <option value="profit">利润预警</option>
+    <option value="supplier">供应商优化</option>
+    <option value="conflict">渠道冲突</option>
+    <option value="cost">成本变动</option>
+    <option value="outage">断供提醒</option>
+    <option value="codeConflict">编码冲突</option>
+  </select>
+  <select id="cfSource" class="filter-group" style="min-width:130px;">
+    <option>来源类型: 全部</option>
+    <option>清单推品</option>
+    <option>渠道导入</option>
+	    <option>存量巡检</option>
+	  
+  </select>
+  <input type="text" id="cfKeyword" placeholder="商品信息 / 供应链SKU / 商城SKU / 供应商" class="filter-group">
+  <input type="text" id="cfDateFrom" placeholder="起始日期" class="filter-group" style="width:120px;" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'">
+  <span style="color:var(--text-muted);font-size:12px;">—</span>
+  <input type="text" id="cfDateTo" placeholder="结束日期" class="filter-group" style="width:120px;" onfocus="this.type='date'" onblur="if(!this.value)this.type='text'">
+  <button class="btn-filter" onclick="showClosedTab()">查询</button>
+  <button class="btn-reset" onclick="resetClosedFilter()">重置</button>`;
+
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', function() {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    this.classList.add('active');
+    const tabName = this.dataset.tab;
+    currentPage = 1;
+    if (tabName === 'pending') {
+      document.querySelector('.table-wrap').style.display = '';
+      filterBar.innerHTML = pendingFilterHTML;
+      filterBar.style.display = '';
+      theadRow.innerHTML = pendingTheadHTML;
+      document.querySelector('.page-footer-fixed .page-footer-left').innerHTML = origBatchHTML;
+      renderTable();
+    } else {
+      filterBar.innerHTML = closedFilterHTML;
+      filterBar.style.display = '';
+      theadRow.innerHTML = closedTheadHTML;
+      showClosedTab();
+    }
+  });
+});
+
+function showClosedTab() {
+  const tbody = document.getElementById('pendingTableBody');
+  // 已关闭数据统一走模拟后端公共库 (与"待处理"Tab同源)
+  const closedData = MallAPI.pending.closedList();
+  var kw = (document.getElementById('cfKeyword').value || '').trim().toLowerCase();
+  var src = document.getElementById('cfSource').value;
+  var srcVal = (src && src.indexOf('全部') < 0) ? src : '';
+  var dFrom = document.getElementById('cfDateFrom').value;
+  var dTo = document.getElementById('cfDateTo').value;
+  var typeVal = document.getElementById('cfType').value;
+  var closedFiltered = closedData.filter(function(r) {
+    if (typeVal && r.type !== typeVal) return false;
+    if (kw && String(r.product || '').toLowerCase().indexOf(kw) < 0 && String(r.sku || '').toLowerCase().indexOf(kw) < 0 && String(r.supplier || '').toLowerCase().indexOf(kw) < 0) return false;
+    if (srcVal && r.sourceType !== srcVal) return false;
+    if (dFrom && String(r.processedTime || '').slice(0, 10) < dFrom) return false;
+    if (dTo && String(r.processedTime || '').slice(0, 10) > dTo) return false;
+    return true;
+  });
+  var closedTotalPages = Math.max(1, Math.ceil(closedFiltered.length / PAGE_SIZE));
+  if (currentPage > closedTotalPages) currentPage = closedTotalPages;
+  if (currentPage < 1) currentPage = 1;
+  tbody.innerHTML = closedFiltered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE).map((r, idx) => `
+    <tr>
+      <td><input type="checkbox" class="checkbox row-check" data-closed-idx="${idx}" onchange="updateSelection()"></td>
+      <td><span class="tag ${tagClassMap[r.type]}">${r.typeLabel}</span></td>
+      <td><div class="cell-product"><div class="product-line"><span class="product-name cell-ellipsis" title="${productName(r)}">${productName(r)}</span>${r.product && r.product !== '—' ? copyIconButton(`copyText('${productName(r).replace(/'/g,"\\'")}','商品名称已复制',event)`,'复制商品名称') : ''}</div>${r.mallSku ? `<div class="supply-sku-line"><span>商城SKU：</span><span class="mono">${r.mallSku}</span>${copyIconButton(`copyText('${r.mallSku}','商城SKU已复制',event)`,'复制商城SKU')}</div>` : (r.product && r.product !== '—' ? `<div class="supply-sku-line">商城SKU：—</div>` : ``)}</div></td>
+      <td><span class="cell-ellipsis" title="${r.type === 'codeConflict' ? '—' : (r.channel || '—')}">${r.type === 'codeConflict' ? '—' : (r.channel || '—')}</span></td>
+      <td>${r.type === 'codeConflict' ? '<span style="color:var(--text-muted);">—</span>' : supplySourceCell(r)}</td>
+      <td class="price">${r.type === 'codeConflict' ? '—' : (r.supplyPrice || '—')}</td>
+      <td class="price">${r.type === 'codeConflict' ? '—' : (r.channelPrice || '—')}</td>
+              <td><span class="tag ${sourceTypeTagClassMap[r.sourceType] || 'tag-list-push'}">${r.sourceType || '—'}</span></td>
+      <td class="cell-reason"><div class="reason" title="${r.reason || '—'}">${r.reason || '—'}</div></td>
+      <td class="time">${formatDateTime(r.createdTime)}</td>
+      <td class="time">${formatDateTime(r.processedTime)}</td>
+      <td><span style="font-size:12.5px;color:var(--text-secondary);">${r.method}</span></td>
+      <td><span style="font-size:12px;color:var(--text-muted);">${r.operator}</span></td>
+    </tr>
+  `).join('');
+  renderPagination(closedTotalPages, closedFiltered.length);
+  document.getElementById('selectedInfo').textContent = '已选 0 项';
+  document.querySelector('.page-footer-fixed .page-footer-left').innerHTML = '<button class="btn btn-outline btn-sm" onclick="batchExport(\'closed\')">批量导出</button><button class="btn btn-danger btn-sm" onclick="batchDelete()">批量删除</button><div style="font-size:12px;color:var(--text-muted);" id="selectedInfo">已选 0 项</div>';
+}
+// Keep original batch actions for pending tab restore
+const origBatchHTML = document.querySelector('.page-footer-fixed .page-footer-left').innerHTML;
+
+// ---- Actions ----
+function doConfirm(id) {
+  const row = pendingData.find(r => r.id === id);
+  showToast('info', `已确认：${row.product} 的断供提醒`);
+  removeRow(id);
+}
+
+function doAccept(id) {
+  const row = pendingData.find(r => r.id === id);
+  showToast('success', `已接受成本更新：${row.product}，即将跳转定价页面`);
+  removeRow(id);
+}
+
+function doForceDelist(id) {
+  const row = pendingData.find(r => r.id === id);
+  showToast('info', `已强制下架：${row.product}`);
+  removeRow(id);
+}
+
+function doSwitch(id) {
+  const row = pendingData.find(r => r.id === id);
+  showToast('success', `已切换至最优供应商：${row.product}，即将跳转定价页面`);
+  removeRow(id);
+}
+
+function doResubmit(id) {
+  const row = pendingData.find(r => r.id === id);
+  const dups = pendingData.filter(r => r.sku === row.sku);
+  showToast('success', `已重新提交：${row.product}（保留本条），清除其他 ${dups.length - 1} 条重复数据`);
+  dups.forEach(r => removeRow(r.id));
+}
+function doConfirmMerge(id) {
+  const row = pendingData.find(r => r.id === id);
+  showToast('success', `编码冲突已合并：${row.product} → 已并入主SPU，渠道定价已迁移`);
+  removeRow(id);
+}
+
+function doApproval(id) {
+  const row = pendingData.find(r => r.id === id);
+  if (!row) return;
+  openApprovalModal(row);
+}
+
+function openApprovalModal(row) {
+  // Populate product info (two-line layout)
+  var ref = supplierRefData[row.sku];
+  var spuCode = ref ? ref.spuCode : row.sku;
+  var spec = ref ? ref.spec : '';
+  var specStr = spec ? ' {' + spec + '}' : '';
+  document.getElementById('approvalProductName').textContent = productName(row);
+  document.getElementById('approvalProductInfo').innerHTML = '商城: ' + (row.channel || '—') + ' | 商城SKU: ' + spuCode + specStr;
+
+  // Populate supplier info
+  document.getElementById('approvalSelectedSupplier').textContent = ref ? ref.selectedSupplier : row.supplier;
+  var selPrice = ref ? ref.selectedPrice : row.supplyPrice;
+  document.getElementById('approvalSelectedPrice').textContent = selPrice;
+
+  // Find lowest and preferred
+  var priceNoteEl = document.getElementById('approvalPriceNote');
+  var recommendedEl = document.getElementById('approvalRecommended');
+  var diffLineEl = document.getElementById('approvalDiffLine');
+  var diffEl = document.getElementById('approvalDiff');
+  var noteParts = [];
+  var lowestSupplier = null;
+  var preferredSupplier = null;
+
+  if (ref && ref.suppliers) {
+    // Find lowest price supplier
+    var lowestPrice = null;
+    ref.suppliers.forEach(function(s) {
+      var p = parseFloat(s.price.replace('¥','').replace(',',''));
+      if (lowestPrice === null || p < lowestPrice) {
+        lowestPrice = p;
+        lowestSupplier = s;
+      }
+      if (s.isPreferred) preferredSupplier = s;
+    });
+
+    var selPriceNum = parseFloat(selPrice.replace('¥','').replace(',',''));
+    if (lowestSupplier && lowestSupplier.name !== ref.selectedSupplier && lowestPrice < selPriceNum) {
+      noteParts.push('非最低价，最低价为' + lowestSupplier.name + ' ' + lowestSupplier.price);
+      var diff = (selPriceNum - lowestPrice).toFixed(2);
+      diffEl.textContent = '¥' + diff;
+      diffLineEl.style.display = '';
+    } else {
+      diffEl.textContent = '—';
+      diffLineEl.style.display = 'none';
+    }
+    if (noteParts.length > 0) {
+      priceNoteEl.textContent = '（' + noteParts.join('；') + '）';
+    } else {
+      priceNoteEl.textContent = '';
+    }
+
+    if (preferredSupplier) {
+      recommendedEl.textContent = preferredSupplier.name + '（优选，' + preferredSupplier.price + '）';
+    } else {
+      recommendedEl.textContent = '暂无推荐';
+    }
+
+    // Render reference table
+    var tbodyHtml = '';
+    ref.suppliers.forEach(function(s) {
+      var badges = [];
+      if (s.isPreferred) badges.push('优选');
+      if (s.isLowest) badges.push('最低价');
+      if (s.name === ref.selectedSupplier) badges.push('已选');
+      var badgeHtml = badges.map(function(b) {
+        var cls = b === '优选' ? 'background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-border);'
+                : b === '最低价' ? 'background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;'
+                : 'background:var(--orange-bg);color:var(--orange);border:1px solid var(--orange-border);';
+        return '<span style="display:inline-block;padding:0 6px;border-radius:100px;font-size:10px;font-weight:500;margin-left:4px;' + cls + '">' + b + '</span>';
+      }).join('');
+      var isSelected = s.name === ref.selectedSupplier;
+      var statusTagStyle = s.status === '合作中'
+        ? 'background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;'
+        : 'background:var(--gray-bg);color:var(--gray);border:1px solid var(--gray-border);';
+      var statusHtml = '<span style="display:inline-block;padding:0 6px;border-radius:100px;font-size:10px;font-weight:500;' + statusTagStyle + '">' + s.status + '</span>';
+      tbodyHtml += '<tr' + (isSelected ? ' style="background:#fffbf0;"' : '') + '>'
+        + '<td style="padding:8px 10px;border-bottom:1px solid var(--border-light);font-weight:' + (isSelected ? '500' : '400') + ';white-space:nowrap;">' + s.name + badgeHtml + '</td>'
+        + '<td style="padding:8px 10px;text-align:right;border-bottom:1px solid var(--border-light);font-family:"Microsoft YaHei",sans-serif;font-size:12px;white-space:nowrap;">' + s.price + '</td>'
+        + '<td style="padding:8px 10px;border-bottom:1px solid var(--border-light);white-space:nowrap;">' + s.shipping + '</td>'
+        + '<td style="padding:8px 10px;text-align:right;border-bottom:1px solid var(--border-light);white-space:nowrap;">' + s.orderVolume + '</td>'
+        + '<td style="padding:8px 10px;text-align:right;border-bottom:1px solid var(--border-light);white-space:nowrap;">' + s.afterSale + '</td>'
+        + '<td style="padding:8px 10px;border-bottom:1px solid var(--border-light);white-space:nowrap;">' + s.settlement + '</td>'
+        + '<td style="padding:8px 10px;border-bottom:1px solid var(--border-light);white-space:nowrap;">' + statusHtml + '</td>'
+        + '</tr>';
+    });
+    document.getElementById('approvalRefTable').innerHTML = tbodyHtml;
+  }
+
+  // Clear previous reason
+  document.getElementById('approvalReason').value = '';
+
+  // 按来源类型区分提交提示：在售商品（存量巡检）提交后暂不可售；推品流程商品尚未上架
+  document.getElementById('approvalSubmitTip').textContent = row.sourceType === '存量巡检'
+    ? '提交后该渠道商品将暂时设为不可售，OA审批通过后切换指定供应商并自动恢复可售'
+    : '提交后本条记录保留在待处理列表并标记"审批中"，OA审批通过后切换为指定供应商并进入定价推品配置页';
+
+  // Track current row
+  window._approvalRowId = row.id;
+
+  openModal('approvalModal');
+}
+
+function submitApproval() {
+  var reason = document.getElementById('approvalReason').value.trim();
+  if (!reason) {
+    showToast('info', '请填写指定理由');
+    return;
+  }
+  var rowId = window._approvalRowId;
+  var row = pendingData.find(r => r.id === rowId);
+  closeModal('approvalModal');
+  if (row) {
+    // 记录保留在待处理列表，标记审批中，操作按钮置灰（PRD 3.3 申请指定）
+    row.approving = true;
+    renderTable();
+    showToast('success', '已生成指定供应商申请：' + row.product + '，本条记录保留并标记审批中（演示）');
+  }
+}
+
+// ---- Modals ----
+let currentRowId = null;
+
+function openPriceModal(id) {
+  currentRowId = id;
+  const row = pendingData.find(r => r.id === id);
+  document.getElementById('priceModalProduct').textContent = row.product;
+  document.getElementById('priceModalSupply').textContent = row.supplyPrice;
+  document.getElementById('priceModalInput').value = parseFloat(String(row.channelPrice||'').replace('¥','').replace(',','')) || '';
+  updatePricePreview();
+  openModal('priceModal');
+}
+function updatePricePreview() {
+  const val = parseFloat(document.getElementById('priceModalInput').value);
+  const preview = document.getElementById('pricePreview');
+  if (!isNaN(val) && val > 0) {
+    preview.style.display = 'block';
+    const row = pendingData.find(r => r.id === currentRowId);
+    const supply = parseFloat(row.supplyPrice.replace('¥',''));
+    const margin = ((val - supply) / val * 100).toFixed(1);
+    document.getElementById('pricePreviewValue').textContent = margin >= 0 ? `+${margin}% ✓` : `${margin}% ⚠`;
+    document.getElementById('pricePreviewValue').style.color = margin >= 0 ? '#16a34a' : 'var(--red)';
+  } else {
+    preview.style.display = 'none';
+  }
+}
+function submitPriceChange() {
+  const val = document.getElementById('priceModalInput').value;
+  if (!val || parseFloat(val) <= 0) return;
+  const row = pendingData.find(r => r.id === currentRowId);
+  const supply = parseFloat(row.supplyPrice.replace('¥',''));
+  if (parseFloat(val) < supply) {
+    closeModal('priceModal');
+    openForceListModal(currentRowId, val);
+    showToast('info', '渠道价低于供货价（负利润），已转为负利润定价申请');
+    return;
+  }
+  showToast('success', `渠道价已更新：${row.product} → ¥${val}，即将跳转定价推品配置页正常模式`);
+  closeModal('priceModal');
+  removeRow(currentRowId);
+  setTimeout(() => { window.location.href = '02a.定价推品配置页-原型页面.html?mode=normal'; }, 800);
+}
+
+function openForceListModal(id, presetPrice) {
+  currentRowId = id;
+  const row = pendingData.find(r => r.id === id);
+  if (row) {
+    document.getElementById('forceListProductName').textContent = row.product;
+    document.getElementById('forceListProductInfo').textContent = '商城: ' + (row.channel || '—') + ' | 商城SKU: ' + (row.sku || '—');
+    document.getElementById('forceListSupply').textContent = row.supplyPrice;
+  }
+  document.getElementById('forceListChannelPrice').value = presetPrice || '';
+  document.getElementById('forceListReason').value = '';
+  updateForceListPreview();
+  openModal('forceListModal');
+}
+function updateForceListPreview() {
+  const row = pendingData.find(r => r.id === currentRowId);
+  if (!row) return;
+  const supply = parseFloat(row.supplyPrice.replace('¥',''));
+  const val = parseFloat(document.getElementById('forceListChannelPrice').value);
+  const lossEl = document.getElementById('forceListLoss');
+  const marginEl = document.getElementById('forceListMargin');
+  if (!isNaN(val) && val > 0) {
+    lossEl.textContent = '¥' + (supply - val).toFixed(2);
+    marginEl.textContent = (((val - supply) / val) * 100).toFixed(1) + '%';
+  } else {
+    lossEl.textContent = '—';
+    marginEl.textContent = '—';
+  }
+}
+function submitForceList() {
+  const val = parseFloat(document.getElementById('forceListChannelPrice').value);
+  if (!val || val <= 0) { showToast('info', '请输入申请渠道价'); return; }
+  const reason = document.getElementById('forceListReason').value.trim();
+  if (!reason) { showToast('info', '请填写申请原因'); return; }
+  const row = pendingData.find(r => r.id === currentRowId);
+  showToast('success', `已生成负利润定价申请：${row.product}（申请渠道价 ¥${val}），审批中（演示）`);
+  closeModal('forceListModal');
+  removeRow(currentRowId);
+}
+function cancelListing(id) {
+  const row = pendingData.find(r => r.id === id);
+  if (!row) return;
+  showToast('success', `已放弃上架：${row.product}`);
+  removeRow(id);
+}
+function backToPriceList() {
+  closeModal('forceListModal');
+  openModal('priceModal');
+}
+
+function openIgnoreDelete(id) {
+  currentRowId = id;
+  const row = pendingData.find(r => r.id === id);
+  document.getElementById('ignoreDeleteInfo').textContent = `商品：${row.product} (${row.sku})`;
+  openModal('ignoreDeleteModal');
+}
+function submitIgnoreDelete() {
+  const row = pendingData.find(r => r.id === currentRowId);
+  showToast('info', `已忽略并删除：${row.product}`);
+  closeModal('ignoreDeleteModal');
+  removeRow(currentRowId);
+}
+
+function setVal(id, text, better) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = text;
+  el.classList.toggle('better', !!better);
+}
+function showCompareModal(id) {
+  window._compareId = id;
+  const row = pendingData.find(r => r.id === id);
+  const isDup = !!(row && row.reason && row.reason.indexOf('重复推品') > -1);
+  const conc = document.getElementById('cmpConclusion');
+  const replaceBtn = document.getElementById('cmpReplaceBtn');
+  if (isDup) {
+    // 重复推品：同一商品复查，去掉“替换上架”
+    document.getElementById('cmpTitle').textContent = '商品对比 — 重复推品复查';
+    document.getElementById('cmpLeftH').textContent = '本次推品（待上架）';
+    document.getElementById('cmpRightH').textContent = (row.channel || '商城') + '现有在售（同一商品）';
+    setVal('cmpLSku', row.sku);
+    setVal('cmpLProd', row.product);
+    setVal('cmpLSupply', row.supplyPrice);
+    setVal('cmpLChannel', row.channelPrice);
+    setVal('cmpLSupplier', row.supplier);
+    setVal('cmpLMark', '—');
+    setVal('cmpRSku', row.sku);
+    setVal('cmpRProd', row.product);
+    setVal('cmpRSupply', row.supplyPrice);
+    setVal('cmpRChannel', row.channelPrice);
+    setVal('cmpRSupplier', '与本次推品同一商品');
+    setVal('cmpRMark', '—');
+    conc.textContent = '该商品已在目标商城上架，本次为重复推品（同SKU）。请复查是否需改价或调整；如无需改动，可放弃本次推品。';
+    conc.style.background = '#f6f8fa';
+    conc.style.color = 'var(--text-secondary)';
+    if (replaceBtn) replaceBtn.style.display = 'none';
+  } else {
+    // 同款冲突：恢复原始演示数据
+    document.getElementById('cmpTitle').textContent = '商品对比 — 渠道冲突处理';
+    document.getElementById('cmpLeftH').innerHTML = '<span style="display:inline-flex;align-items:center;gap:3px;background:var(--blue-bg);color:var(--blue);font-size:11px;font-weight:600;padding:2px 8px;border-radius:100px;vertical-align:middle;">NEW</span> 新选品（待上架）';
+    document.getElementById('cmpRightH').innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/></svg> ' + (row.channel || '商城') + '现有品（在售中）';
+    setVal('cmpLSku', 'HZ-A00009-001-DF');
+    setVal('cmpLProd', '夏季纯棉圆领T恤');
+    setVal('cmpLSupply', '¥85.00 ✓', true);
+    setVal('cmpLChannel', '¥129.00 ✓', true);
+    setVal('cmpLSupplier', '星辰商贸');
+    setVal('cmpLMark', '¥199.00');
+    setVal('cmpRSku', 'HZ-A00083-001-DF');
+    setVal('cmpRProd', '夏季纯棉圆领T恤');
+    setVal('cmpRSupply', '¥92.00');
+    setVal('cmpRChannel', '¥119.00');
+    setVal('cmpRSupplier', '恒通供应链');
+    setVal('cmpRMark', '¥189.00');
+    conc.textContent = '✓ 新选品在供货价和渠道价上均占优势，建议替换现有品';
+    conc.style.background = '#f8fdf6';
+    conc.style.color = '#16a34a';
+    if (replaceBtn) replaceBtn.style.display = '';
+  }
+  openModal('compareModal');
+}
+function cancelCompareListing() {
+  closeModal('compareModal');
+  cancelListing(window._compareId);
+}
+function submitCompareChange() {
+  closeModal('compareModal');
+  var id = window._compareId;
+  const row = pendingData.find(r => r.id === id);
+  if (row) {
+    showToast('success', `已提交现品改价：${row.product}`);
+    removeRow(id);
+  }
+}
+function submitReplaceListing() {
+  closeModal('compareModal');
+  openModal('replaceConfirmModal');
+}
+function backToCompare() {
+  closeModal('replaceConfirmModal');
+  openModal('compareModal');
+}
+function confirmReplaceListing() {
+  closeModal('replaceConfirmModal');
+  var id = window._compareId;
+  const row = pendingData.find(r => r.id === id);
+  if (row) {
+    showToast('success', `已提交替换上架：${row.product} — 现有品已下架，新选品进入定价推品`);
+    removeRow(id);
+    setTimeout(() => { window.location.href = '02a.定价推品配置页-原型页面.html?mode=normal'; }, 800);
+  }
+}
+
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+// Click overlay to close modal
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', function(e) {
+    if (e.target === this) closeModal(this.id);
+  });
+});
+
+// ---- Toast ----
+function showToast(type, msg) {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.textContent = msg;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(20px)';
+    toast.style.transition = 'all .2s ease';
+    setTimeout(() => toast.remove(), 200);
+  }, 2200);
+}
+
+// ---- Helpers ----
+function removeRow(id) {
+  const idx = pendingData.findIndex(r => r.id === id);
+  if (idx > -1) {
+    pendingData.splice(idx, 1);
+    renderTable();
+    updateTabBadge();
+    if (pendingData.length === 0) {
+      document.getElementById('pendingEmpty').classList.add('visible');
+      document.querySelector('table').style.display = 'none';
+    }
+  }
+}
+function updateTabBadge() {
+  const count = pendingData.length;
+  const badge = document.querySelector('.tab.active .count');
+  if (badge) badge.textContent = count;
+  const sidebarBadge = document.querySelector('.nav-item.active .badge');
+  if (sidebarBadge) sidebarBadge.textContent = count;
+}
+function batchConfirm() {
+  const checked = document.querySelectorAll('.row-check:checked');
+  if (checked.length === 0) { showToast('info', '请至少选择一项'); return; }
+  if (!confirm(`是否将这些待处理选品（${checked.length}条）加入已关闭？`)) return;
+  checked.forEach(cb => removeRow(parseInt(cb.dataset.id)));
+  showToast('success', `已批量确认 ${checked.length} 项，已移入已关闭Tab`);
+}
+function batchExport(source) {
+  let records;
+  if (source === 'pending') {
+    const checked = document.querySelectorAll('.row-check:checked');
+    if (checked.length === 0) { showToast('info', '请至少选择一项'); return; }
+    records = [];
+    checked.forEach(cb => {
+      const row = pendingData.find(r => r.id === parseInt(cb.dataset.id));
+      if (row) records.push(row);
+    });
+  } else {
+    // closed tab — simplified simulation
+    const checked = document.querySelectorAll('.row-check:checked');
+    if (checked.length === 0) { showToast('info', '请至少选择一项'); return; }
+    records = checked; // closed data is rendered inline, count is sufficient
+  }
+  const count = records.length;
+  if (count > 500) {
+    showToast('info', `已勾选 ${count} 条，数据量较大，系统将在后台生成文件并通过站内消息推送下载链接`);
+    return;
+  }
+  // Simulate CSV download (prototype)
+  if (source === 'pending') {
+    const header = '商品名称,供应链SKU,异常类型,异常详情,目标商城,产生时间\n';
+    const csv = header + records.map(r =>
+      `"${r.product}","${r.sku}","${r.typeLabel}","${r.reason.replace(/"/g, '""')}","—","${formatDateTime(r.time)}"`
+    ).join('\n');
+    const blob = new Blob(['﻿' + csv], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const now = new Date();
+    const ts = now.getFullYear() + String(now.getMonth()+1).padStart(2,'0') + String(now.getDate()).padStart(2,'0') + '_' + String(now.getHours()).padStart(2,'0') + String(now.getMinutes()).padStart(2,'0') + String(now.getSeconds()).padStart(2,'0');
+    a.href = url;
+    a.download = `待处理选品导出_${ts}.xlsx`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+  showToast('success', `已导出 ${count} 条记录`);
+  document.querySelectorAll('.row-check:checked').forEach(cb => cb.checked = false);
+  updateSelection();
+}
+function batchDelete() {
+  const checked = document.querySelectorAll('.row-check:checked');
+  if (checked.length === 0) { showToast('info', '请至少选择一项'); return; }
+  if (!confirm(`确认物理删除 ${checked.length} 条归档记录？此操作不可恢复。`)) return;
+  showToast('info', `已批量删除 ${checked.length} 条记录`);
+}
+
+// ---- Keyboard ----
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
+  }
+});
+</script>
+</body>
+</html>

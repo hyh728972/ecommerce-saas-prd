@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>商城订单列表 - 商城运营平台</title>
+<style>
+:root {
+  --bg-app:#f4f3f0; --bg-sidebar:#1e1e22; --bg-surface:#ffffff; --bg-hover:#f7f6f4; --bg-input:#f9f8f7;
+  --border:#e6e4e0; --border-light:#f0eeeb;
+  --text-primary:#1a1a1c; --text-secondary:#6b6b70; --text-muted:#99999d; --text-sidebar:#c4c4c9;
+  --accent:#2d2d33; --accent-soft:#f0eeeb;
+  --blue:#2563eb; --blue-bg:#f5f8ff; --blue-border:#d4e0fc;
+  --red:#da3e3a; --red-bg:#fef4f3; --red-border:#fcd9d7;
+  --green:#16a34a; --green-bg:#f4fdf6; --green-border:#c6f0d4;
+  --orange:#d97706; --orange-bg:#fffbf0; --orange-border:#fde8c4;
+  --purple:#7c3aed; --purple-bg:#faf8ff; --purple-border:#e4dcfc;
+  --gray:#6b7280; --gray-bg:#f8f8f7; --gray-border:#e8e6e3;
+  --radius-sm:4px; --radius:8px; --radius-lg:12px;
+  --shadow:0 1px 3px rgba(0,0,0,.06); --shadow-lg:0 4px 16px rgba(0,0,0,.10);
+  --transition:160ms ease;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:"Microsoft YaHei",sans-serif;background:var(--bg-app);color:var(--text-primary);display:flex;min-height:100vh;-webkit-font-smoothing:antialiased;}
+.sidebar{width:232px;min-width:232px;background:var(--bg-sidebar);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;z-index:10;}
+.sidebar-brand{padding:20px 20px 28px;border-bottom:1px solid rgba(255,255,255,.06);}
+.sidebar-brand .logo{font-size:17px;font-weight:600;color:#fff;letter-spacing:-.02em;display:flex;align-items:center;gap:10px;}
+.sidebar-brand .sub{font-size:11px;color:var(--text-sidebar);margin-top:2px;}
+.sidebar-nav{flex:1;padding:12px 10px;display:flex;flex-direction:column;gap:2px;}
+.nav-section-label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.25);padding:14px 10px 6px;display:flex;align-items:center;gap:4px;cursor:pointer;user-select:none;}
+.nav-section-label:hover{color:rgba(255,255,255,.45);}
+.section-arrow{font-size:8px;transition:transform .2s ease;flex-shrink:0;}
+.nav-section.collapsed .section-arrow{transform:rotate(-90deg);}
+.nav-section.collapsed .nav-section-items{display:none;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:6px;color:var(--text-sidebar);font-size:13.5px;cursor:pointer;transition:all var(--transition);text-decoration:none;letter-spacing:.01em;}
+.nav-item:hover{background:rgba(255,255,255,.05);color:#fff;}
+.nav-item.active{background:rgba(255,255,255,.10);color:#fff;font-weight:500;}
+.nav-icon{width:18px;height:18px;opacity:.55;flex-shrink:0;}
+.nav-item.active .nav-icon{opacity:1;}
+.nav-item .badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:600;padding:1px 7px;border-radius:10px;min-width:20px;text-align:center;line-height:18px;}
+.main{flex:1;display:flex;flex-direction:column;min-width:0;}
+.topbar{height:52px;min-height:52px;background:var(--bg-surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 28px;gap:16px;z-index:5;}
+.topbar .breadcrumb{font-size:12.5px;color:var(--text-muted);letter-spacing:.01em;}
+.topbar .breadcrumb span{color:var(--text-primary);font-weight:500;}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:16px;}
+.user-avatar{width:30px;height:30px;border-radius:50%;background:#e6e4e0;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);}
+.content{flex:1;display:flex;flex-direction:column;padding:24px 28px;padding-bottom:70px;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;gap:16px;}
+.page-header h1{font-size:22px;font-weight:600;letter-spacing:-.02em;}
+.page-header p{font-size:13px;color:var(--text-muted);margin-top:2px;}
+.page-header-actions{display:flex;gap:8px;align-items:center;flex-shrink:0;}
+.export-dropdown{position:relative;}
+.export-dropdown .action-menu{min-width:180px;right:0;left:auto;}
+.stats-row{display:flex;gap:14px;margin-bottom:20px;}
+.stat-card{flex:1;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;display:flex;align-items:center;gap:14px;min-width:0;overflow:visible;}
+.stat-icon{width:42px;height:42px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.stat-icon.blue{background:var(--blue-bg);color:var(--blue);}
+.stat-icon.green{background:var(--green-bg);color:var(--green);}
+.stat-icon.orange{background:var(--orange-bg);color:var(--orange);}
+.stat-icon.red-bg{background:var(--red-bg);color:var(--red);}
+.stat-card>div:not(.stat-icon){min-width:0;overflow:visible;}
+.stat-value{font-size:22px;font-weight:600;letter-spacing:-.02em;line-height:1.2;white-space:nowrap;overflow:visible;}
+.stat-label{font-size:12px;color:var(--text-muted);margin-top:1px;}
+.table-panel{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-lg);display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;}
+.filter-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:12px 16px;background:var(--bg-surface);}
+.table-panel>.filter-bar{margin-bottom:0;border:none;border-bottom:1px solid var(--border);border-radius:var(--radius-lg) var(--radius-lg) 0 0;}
+.filter-bar input,.filter-bar select{height:36px;padding:0 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;background:var(--bg-surface);color:var(--text-primary);outline:none;transition:border-color var(--transition);}
+.filter-bar input[type="text"]{width:220px;}
+.filter-bar input.filter-keyword{width:320px;}
+.filter-bar input::placeholder{color:var(--text-muted);}
+.filter-bar select{min-width:150px;}
+.filter-bar > input:focus,.filter-bar > select:focus,.time-range:focus-within{border-color:var(--accent);}
+.time-range{position:relative;display:inline-flex;align-items:center;width:220px;height:36px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:0 12px;background:var(--bg-surface);cursor:pointer;transition:border-color var(--transition);}
+.time-range-label{font-size:13px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;user-select:none;}
+.time-range.has-value .time-range-label{color:var(--text-primary);}
+.time-range-pickers{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none;}
+.btn-filter{height:36px;padding:0 16px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);font-size:13px;font-family:inherit;cursor:pointer;font-weight:500;transition:opacity var(--transition);}
+.btn-filter:hover{opacity:.88;}
+.btn-reset{height:36px;padding:0 14px;background:transparent;color:var(--text-secondary);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;cursor:pointer;transition:all var(--transition);}
+.btn-reset:hover{border-color:var(--text-muted);color:var(--text-primary);}
+.filter-bar .filter-extra{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.btn{display:inline-flex;align-items:center;padding:5px 12px;border-radius:var(--radius-sm);font-size:12px;font-family:inherit;cursor:pointer;border:1px solid transparent;transition:all var(--transition);white-space:nowrap;font-weight:500;gap:5px;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{opacity:.88;}
+.btn-outline{border-color:var(--border);color:var(--text-primary);background:var(--bg-surface);}
+.btn-outline:hover{border-color:var(--text-muted);background:var(--bg-hover);}
+.btn-sm{padding:4px 10px;font-size:11.5px;}
+.table-wrap{flex:1;display:flex;flex-direction:column;min-height:0;}
+.table-scroll{overflow-x:auto;flex:1;}
+table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:13px;min-width:1660px;}
+thead th{background:#fafaf9;text-align:left;padding:12px 14px;font-weight:500;font-size:12px;color:var(--text-muted);letter-spacing:.02em;border-bottom:1px solid var(--border);white-space:nowrap;}
+thead th:first-child,tbody td:first-child{padding-left:20px;}
+tbody td{padding:13px 14px;border-bottom:1px solid var(--border-light);vertical-align:middle;}
+tbody tr{transition:background var(--transition);}
+tbody tr.order-item-row:hover{background:var(--bg-hover);}
+tbody tr.order-item-row:hover td,
+tbody tr.order-item-row:hover td:first-child{background:var(--bg-hover);}
+tbody tr.order-header-row:hover{background:transparent;}
+tbody tr.order-header-row td{padding:0;border-bottom:none;background:#f5f5f4;vertical-align:middle;}
+tbody tr.order-header-row:hover td{background:#eeede9;}
+tbody tr.order-block-last td{border-bottom:1px solid var(--border);}
+.order-header-row:not(:first-child) td{border-top:6px solid var(--bg-app);}
+.order-header-bar{display:flex;align-items:center;gap:0;flex-wrap:nowrap;padding:10px 20px;background:transparent;font-size:12.5px;}
+.order-header-bar .oh-item{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;flex:0 0 auto;padding-right:16px;min-width:0;box-sizing:border-box;}
+.order-header-bar .oh-item .oh-value{overflow:hidden;text-overflow:ellipsis;min-width:0;}
+.order-header-bar .oh-col-mainno{width:188px;flex-basis:188px;}
+.order-header-bar .oh-code-line{display:inline-flex;align-items:center;gap:2px;overflow:visible;flex-shrink:0;max-width:calc(100% - 56px);}
+.order-header-bar .oh-code-line .mono{overflow:hidden;text-overflow:ellipsis;min-width:0;}
+.order-header-bar .oh-col-count{width:124px;flex-basis:124px;}
+.order-header-bar .oh-col-time{width:164px;flex-basis:164px;}
+.order-header-bar .oh-col-mall{width:164px;flex-basis:164px;}
+.order-header-bar .oh-col-customer{width:164px;flex-basis:164px;}
+.order-header-bar .oh-col-amount{width:320px;flex-basis:320px;overflow:visible;}
+.order-header-bar .oh-col-amount .oh-value.price-total{flex-shrink:0;overflow:visible;text-overflow:unset;}
+.order-header-bar .oh-col-amount .price-total-note{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;}
+.order-header-bar .oh-col-freight{width:84px;flex-basis:84px;padding-right:0;}
+.order-header-bar .oh-col-remark{flex:1 1 160px;min-width:120px;max-width:240px;padding-right:0;}
+.order-header-bar .oh-label{color:var(--text-muted);font-size:12px;flex-shrink:0;}
+.order-header-bar .oh-value{color:var(--text-primary);font-weight:500;}
+.order-header-bar .oh-check{display:inline-flex;align-items:center;flex:0 0 16px;width:16px;margin-right:8px;}
+.order-header-bar .oh-expand{display:inline-flex;align-items:center;flex:0 0 12px;width:12px;margin-right:12px;}
+.order-header-bar.collapsible{cursor:pointer;}
+.expand-arrow{display:inline-flex;align-items:center;justify-content:center;transition:transform var(--transition);color:var(--text-muted);}
+.expand-arrow.expanded{transform:rotate(90deg);}
+.order-header-row.order-block-last td{border-bottom:1px solid var(--border);}
+.order-header-bar .oh-remark{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.order-header-row td.order-header-actions-cell{padding:10px 14px;}
+.order-item-row td{vertical-align:top;padding-top:12px;padding-bottom:12px;}
+.order-item-row td:first-child{background:#fafaf9;border-right:1px solid var(--border-light);}
+.order-item-row td:nth-child(2){overflow:hidden;}
+.product-detail-stack{display:flex;flex-direction:column;gap:3px;min-width:0;overflow:hidden;}
+.product-name-link{color:var(--blue);font-weight:500;font-size:13px;line-height:1.35;cursor:default;display:flex;align-items:center;gap:4px;min-width:0;overflow:hidden;}
+.product-name-link>*{flex-shrink:0;}
+.product-name-link>.name-ellipsis{flex:1 1 0;}
+.name-ellipsis{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.product-spec-inline{font-size:11.5px;color:var(--text-muted);font-weight:400;}
+.sup-tag{background:var(--accent-soft);color:var(--text-secondary);border:1px solid var(--border);border-radius:100px;padding:1px 8px;font-size:11px;white-space:nowrap;flex-shrink:0;}
+.combo-fold-link{color:var(--blue);font-size:12px;cursor:pointer;user-select:none;line-height:1.35;}
+.combo-fold-link:hover{text-decoration:underline;}
+.product-meta-line{font-size:11.5px;color:var(--text-muted);line-height:1.4;}
+.product-meta-line .mono{color:var(--text-secondary);}
+.placeholder-cell{color:var(--text-muted);font-size:12px;}
+.waybill-stack{display:flex;flex-direction:column;gap:3px;min-width:0;}
+.waybill-express{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:500;color:var(--text-primary);line-height:1.35;}
+.waybill-no-line{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text-muted);line-height:1.35;}
+.waybill-no-line .mono{font-family:"Microsoft YaHei",sans-serif;font-size:11.5px;color:var(--text-secondary);}
+.supply-stack{display:flex;flex-direction:column;gap:4px;min-width:0;}
+.supply-name{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:500;color:var(--text-primary);line-height:1.35;white-space:nowrap;}
+.supply-sku-line{display:flex;align-items:center;gap:4px;font-size:11.5px;color:var(--text-muted);line-height:1.35;white-space:nowrap;}
+.supply-sku-line .mono{font-family:"Microsoft YaHei",sans-serif;font-size:11px;color:var(--text-secondary);flex-shrink:0;}
+.copy-icon-btn{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;padding:0;border:none;background:transparent;color:var(--text-muted);cursor:pointer;border-radius:4px;flex-shrink:0;transition:color var(--transition),background var(--transition);opacity:0;visibility:hidden;}
+.copy-icon-btn:hover{opacity:1;visibility:visible;color:var(--text-secondary);background:var(--bg-hover);}
+	tr:hover .copy-icon-btn{opacity:1;visibility:visible;}
+.copy-icon-btn svg{display:block;pointer-events:none;}
+.checkbox{width:16px;height:16px;accent-color:var(--accent);cursor:pointer;flex-shrink:0;}
+.mono{font-family:"Microsoft YaHei",sans-serif;font-size:11.5px;}
+.product-cell{display:flex;align-items:flex-start;gap:10px;min-width:0;overflow:hidden;}
+.product-cell>.product-detail-stack{flex:1;min-width:0;}
+.product-thumb{width:48px;height:48px;border-radius:var(--radius-sm);background:var(--accent-soft);flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--text-muted);}
+.price{font-family:"Microsoft YaHei",sans-serif;font-weight:500;color:var(--text-primary);}
+.price-total{font-weight:600;color:var(--text-primary);white-space:nowrap;}
+.price-discount{color:var(--orange);font-weight:500;}
+.price-total-note{font-size:11px;color:var(--text-muted);font-weight:400;font-family:inherit;}
+.tag{display:inline-flex;align-items:center;padding:2px 10px;border-radius:100px;font-size:11.5px;font-weight:500;letter-spacing:.01em;white-space:nowrap;border:1px solid transparent;}
+.tag-pending{background:var(--orange-bg);color:var(--orange);border-color:var(--orange-border);}
+.tag-paid{background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border);}
+.tag-shipped{background:var(--green-bg);color:var(--green);border-color:var(--green-border);}
+.tag-completed,.tag-cancelled{background:var(--gray-bg);color:var(--gray);border-color:var(--gray-border);}
+.tag-after-none{background:var(--gray-bg);color:var(--gray);border-color:var(--gray-border);}
+.tag-after-active{background:var(--orange-bg);color:var(--orange);border-color:var(--orange-border);}
+.tag-after-done{background:var(--green-bg);color:var(--green);border-color:var(--green-border);}
+.ship-time-cell{min-width:120px;}
+.ship-time{display:inline-block;font-size:12.5px;font-weight:500;line-height:1.35;cursor:default;color:var(--text-primary);}
+.ship-time-warning{color:var(--orange);}
+.ship-time-overdue{color:var(--red);}
+.actions{display:flex;align-items:center;gap:8px;white-space:nowrap;flex-wrap:wrap;}
+.actions .action-link{color:var(--blue);font-size:12.5px;cursor:pointer;text-decoration:none;background:transparent;border:none;padding:0;font-family:inherit;}
+.order-header-actions-cell .actions .action-link{font-size:12.5px;}
+.actions .action-link:hover{text-decoration:underline;}
+.action-menu{display:none;position:absolute;right:0;top:calc(100% + 4px);background:#fff;border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow-lg);min-width:120px;z-index:20;}
+.action-menu.open{display:block;}
+.action-menu button{display:block;width:100%;text-align:left;padding:8px 12px;border:none;background:none;font-size:12.5px;cursor:pointer;font-family:inherit;}
+.action-menu button:hover{background:var(--bg-hover);}
+.page-footer-fixed{position:fixed;bottom:0;left:232px;right:0;display:flex;align-items:center;justify-content:space-between;padding:12px 28px;background:#fafaf9;border-top:1px solid var(--border);z-index:100;box-shadow:0 -2px 8px rgba(0,0,0,.06);}
+.page-footer-left{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.page-footer-right{display:flex;align-items:center;}
+.pagination{display:flex;align-items:center;gap:4px;}
+.pagination .page-btn{min-width:32px;width:32px;height:32px;padding:0;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-surface);cursor:pointer;font-size:12px;color:var(--text-primary);transition:all var(--transition);}
+.pagination .page-btn:hover{border-color:var(--text-muted);}
+.pagination .page-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.pagination .page-btn.disabled{opacity:.35;pointer-events:none;}
+@media (max-width:900px){.page-footer-fixed{left:0;}.stats-row{flex-wrap:wrap;}.stat-card{min-width:calc(50% - 7px);}}
+.toast-container{position:fixed;top:24px;right:24px;z-index:200;display:flex;flex-direction:column;gap:8px;}
+.toast{background:var(--bg-sidebar);color:#fff;padding:12px 18px;border-radius:var(--radius);font-size:13px;box-shadow:var(--shadow-lg);}
+.toast.success{border-left:3px solid var(--green);}
+.toast.info{border-left:3px solid var(--blue);}
+.ops-remark-cell{max-width:120px;font-size:12.5px;color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:300;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--bg-surface);border-radius:var(--radius-lg);width:100%;max-width:440px;box-shadow:var(--shadow-lg);}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);}
+.modal-header h3{font-size:15px;font-weight:600;}
+.modal-close{background:none;border:none;font-size:16px;color:var(--text-muted);cursor:pointer;padding:4px;}
+.modal-body{padding:20px;}
+.modal-body .form-group{margin-bottom:14px;}
+.modal-body .form-group:last-child{margin-bottom:0;}
+.modal-body label{display:block;font-size:12px;color:var(--text-muted);margin-bottom:6px;}
+.modal-body textarea{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;resize:vertical;outline:none;}
+.modal-body textarea:focus{border-color:var(--accent);}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;padding:14px 20px;border-top:1px solid var(--border);}
+</style>
+</head>
+<body>
+
+<aside class="sidebar" id="app-sidebar"></aside>
+<script src="../assets/common-sidebar.js"></script>
+
+<div class="main">
+  <div class="topbar">
+    <div class="breadcrumb">订单监控 / <span>商城订单列表</span></div>
+    <div class="topbar-right">
+      <span style="font-size:12px;color:var(--text-muted);">运营专员</span>
+      <div class="user-avatar">李</div>
+    </div>
+  </div>
+  <div class="content">
+    <div class="page-header">
+      <div>
+        <h1>商城订单列表</h1>
+        <p>集中管理各品牌商城交易订单；子订单按商品拆分（同商品多件合并一行），主订单汇总支付与收货信息</p>
+      </div>
+      <div class="page-header-actions">
+        <button class="btn btn-primary" onclick="showToast('info','演示：跳转导入线下订单页')">+ 导入线下订单</button>
+        <div class="export-dropdown">
+          <button class="btn btn-outline" onclick="toggleExportMenu(event)">全量订单导出 ▾</button>
+          <div class="action-menu" id="fullExportMenu">
+            <button type="button" onclick="exportAllOrders(event)">导出全部订单</button>
+            <button type="button" onclick="exportFilteredOrders(event)">导出全部筛选订单</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-icon blue"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+        <div><div class="stat-value" id="statOrderTotal">—</div><div class="stat-label">订单总数</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
+        <div><div class="stat-value" id="statAmountTotal">—</div><div class="stat-label">订单总金额（不含退款金额）</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon orange"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
+        <div><div class="stat-value" id="statOrder7d">—</div><div class="stat-label">近7天订单数</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon red-bg"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+        <div><div class="stat-value" id="statAmount7d">—</div><div class="stat-label">近7天订单金额（不含退款金额）</div></div>
+      </div>
+    </div>
+    <div class="table-panel">
+      <div class="filter-bar">
+        <input type="text" id="fKeyword" class="filter-keyword" placeholder="主/子订单号 / 商品名称 / 商城SKU / 收货人手机号 / 姓名">
+        <select id="fStatus">
+          <option value="">订单状态: 全部</option>
+          <option value="pending">待付款</option>
+          <option value="paid">待发货</option>
+          <option value="shipped">已发货</option>
+          <option value="completed">已完成</option>
+          <option value="cancelled">已关闭</option>
+        </select>
+        <select id="fAfterSale">
+          <option value="">售后状态: 全部</option>
+          <option value="none">无售后</option>
+          <option value="refund">退款申请中</option>
+          <option value="exchange">换货处理中</option>
+          <option value="done">售后完成</option>
+        </select>
+        <select id="fMall">
+          <option value="">所属商城: 全部</option>
+          <option>锦程员工福利商城</option>
+          <option>锦程积分商城</option>
+          <option>泡泡玛特官方商城</option>
+          <option>泡泡玛特企业购</option>
+          <option>社区公益点</option>
+        </select>
+        <select id="fSupplier">
+          <option value="">供应商: 全部</option>
+          <option>星辰商贸</option>
+          <option>博源供应链</option>
+          <option>华茂通</option>
+          <option>恒通供应链</option>
+          <option>环球优选</option>
+          <option>数字服务商A</option>
+        </select>
+        <div class="time-range" id="timeRangeBox" onclick="focusTimeRange(event)" title="选择下单时间范围">
+          <span class="time-range-label" id="fTimeRangeLabel">开始时间-结束时间</span>
+          <div class="time-range-pickers">
+            <input type="date" id="fDateStart" onchange="updateTimeRangeLabel()">
+            <input type="time" id="fTimeStart" step="1" onchange="updateTimeRangeLabel()">
+            <input type="date" id="fDateEnd" onchange="updateTimeRangeLabel()">
+            <input type="time" id="fTimeEnd" step="1" onchange="updateTimeRangeLabel()">
+          </div>
+        </div>
+        <button class="btn-filter" onclick="applyFilters()">查询</button>
+        <button class="btn-reset" onclick="resetFilters()">重置</button>
+        <div class="filter-extra">
+          <button class="btn btn-outline btn-sm" id="btnExpandAll" onclick="expandAllOrders()">全部展开 ▾</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:40px"><input type="checkbox" class="checkbox" id="selectAll" onchange="toggleSelectAll(this.checked)"></th>
+                <th style="min-width:320px;width:auto;">订单信息</th>
+                <th style="width:230px">供货来源</th>
+                <th style="width:90px">销售单价</th>
+                <th style="width:70px">数量</th>
+                <th style="width:90px">金额小计</th>
+                <th style="width:90px">订单状态</th>
+                <th style="width:130px">剩余发货时间</th>
+                <th style="width:170px">物流运单</th>
+                <th style="width:100px">售后状态</th>
+                <th style="width:120px">运营备注</th>
+                <th style="width:150px">操作</th>
+              </tr>
+            </thead>
+            <tbody id="orderTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="page-footer-fixed">
+    <div class="page-footer-left">
+      <button class="btn btn-outline btn-sm" onclick="batchUrgeShip()">批量催办</button>
+      <button class="btn btn-outline btn-sm" onclick="exportSelected()">导出订单</button>
+      <div style="font-size:12px;color:var(--text-muted);white-space:nowrap;" id="selectedInfo">已选 0 笔子订单 | 商品总数 0 件 | 订单总额 ¥0.00 | 待发货 0 笔</div>
+    </div>
+    <div class="page-footer-right">
+      <div style="font-size:12px;color:var(--text-muted);margin-right:16px;" id="totalCount">共 0 个主订单</div>
+      <div class="pagination" id="paginationBar"></div>
+      <div style="display:flex;align-items:center;gap:8px;margin-left:16px;">
+        <span style="font-size:12px;color:var(--text-muted);">每页</span>
+        <select id="pageSizeSelect" onchange="changePageSize()" style="height:28px;padding:0 8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:inherit;background:var(--bg-surface);color:var(--text-primary);cursor:pointer;">
+          <option value="10" selected>10条</option>
+          <option value="20">20条</option>
+          <option value="50">50条</option>
+          <option value="100">100条</option>
+        </select>
+        <span style="font-size:12px;color:var(--text-muted);">跳转至</span>
+        <input type="number" id="jumpPageInput" min="1" value="1" style="width:56px;height:28px;padding:0 8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:inherit;background:var(--bg-surface);color:var(--text-primary);text-align:center;" onkeydown="if(event.key==='Enter')jumpToPage()"/>
+        <span style="font-size:12px;color:var(--text-muted);">页</span>
+        <button onclick="jumpToPage()" style="height:28px;padding:0 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:inherit;background:var(--bg-surface);color:var(--text-primary);cursor:pointer;">跳转</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<div class="modal-overlay" id="opsRemarkModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>运营备注</h3>
+      <button type="button" class="modal-close" onclick="closeOpsRemarkModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label id="opsRemarkNoLabel">订单号</label>
+        <div id="opsRemarkNo" class="mono" style="font-size:13px;color:var(--text-primary);"></div>
+      </div>
+      <div class="form-group">
+        <label>备注内容</label>
+        <textarea id="opsRemarkInput" rows="4" placeholder="请输入运营备注"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-outline btn-sm" onclick="closeOpsRemarkModal()">取消</button>
+      <button type="button" class="btn btn-primary btn-sm" onclick="saveOpsRemark()">保存</button>
+    </div>
+  </div>
+</div>
+
+<script src="../assets/common-copy-btn.js"></script>
+<script>
+function showToast(type,msg){var c=document.getElementById('toastContainer');var t=document.createElement('div');t.className='toast '+type;t.textContent=msg;c.appendChild(t);setTimeout(function(){t.remove();},2500);}
+
+var STATUS_MAP={
+  pending:{label:'待付款',cls:'tag-pending'},
+  paid:{label:'待发货',cls:'tag-paid'},
+  shipped:{label:'已发货',cls:'tag-shipped'},
+  completed:{label:'已完成',cls:'tag-completed'},
+  cancelled:{label:'已关闭',cls:'tag-cancelled'}
+};
+var AFTER_MAP={
+  none:{label:'无售后',cls:'tag-after-none'},
+  refund:{label:'退款申请中',cls:'tag-after-active'},
+  exchange:{label:'换货处理中',cls:'tag-after-active'},
+  done:{label:'售后完成',cls:'tag-after-done'}
+};
+// 全局统计（原型 Mock，不受列表筛选影响；正式环境由接口聚合）
+var orderStatsMeta={
+  totalCount:12846,
+  totalAmount:4285600.00,
+  count7d:328,
+  amount7d:186420.00
+};
+var orderData=[
+  {mainNo:'ORD20260824014',mall:'锦程员工福利商城',orderTime:'2026-08-24 18:03',customer:{name:'林悦',phone:'138****7799'},totalAmount:365.00,freight:0,couponDiscount:0,pointsOffset:0,remark:'给孩子的暑期课',items:[
+    {subNo:'ORD2026082401401',type:'virtual',brand:'学而思',name:'在线教育VIP年卡',model:'EDU-VIP-12M',spec:'12个月',qty:1,price:365.00,skuMall:'X001A00001001',skuLogistics:'HZXN-A00001-001-KM',supplier:'数字服务商A',status:'paid',afterSale:'none',opsRemark:'集采池空，接口取卡中'}
+  ]},
+  {mainNo:'ORD20260824015',mall:'锦程积分商城',orderTime:'2026-08-24 12:38',customer:{name:'罗成',phone:'136****3355'},totalAmount:29.90,freight:0,couponDiscount:0,pointsOffset:10.00,remark:'',items:[
+    {subNo:'ORD2026082401501',type:'combo',comboMode:'combo',comboName:'3M 防护标准套装',name:'3M 防护标准套装',qty:1,price:39.90,skuMall:'C001A00001001',status:'paid',afterSale:'none',components:[
+      {role:'主件',brand:'3M',name:'9001V KN95口罩',spec:'白色,常规',qty:1,skuLogistics:'HZ-A00081-001-DF',supplier:'星辰商贸',status:'shipped',express:'中通快递',waybill:'ZTO2408150001'},
+      {role:'配件',brand:'3M',name:'9001V KN95口罩',spec:'蓝色,常规',qty:1,skuLogistics:'HZ-A00001-002-DF',supplier:'恒通供应链',status:'paid'},
+      {role:'配件',brand:'3M',name:'9001V KN95口罩',spec:'白色,常规',qty:1,skuLogistics:'HZ-A00081-001-DF',supplier:'星辰商贸',status:'shipped',express:'中通快递',waybill:'ZTO2408150002'}
+    ]}
+  ]},
+  {mainNo:'ORD20260824016',mall:'锦程员工福利商城',orderTime:'2026-08-24 09:16',customer:{name:'周宁',phone:'137****4410'},totalAmount:59.00,freight:0,couponDiscount:0,pointsOffset:0,remark:'',items:[
+    {subNo:'ORD2026082401601',type:'combo',comboMode:'gift',comboName:'3M 夏季清凉防护礼包',name:'3M 夏季清凉防护礼包',qty:1,price:59.00,skuMall:'C001A00003001',status:'shipped',afterSale:'none',components:[
+      {role:'主件',brand:'3M',name:'9001V KN95口罩',spec:'白色,常规',qty:1,skuLogistics:'HZ-A00081-001-DF',supplier:'星辰商贸',status:'shipped',express:'中通快递',waybill:'ZTO2408160001'},
+      {role:'赠品',brand:'舒肤佳',name:'湿巾',spec:'80抽',qty:2,skuLogistics:'HZ-A00104-001-DF',supplier:'星辰商贸',status:'shipped',express:'中通快递',waybill:'ZTO2408160001'}
+    ]}
+  ]},
+  {mainNo:'ORD20260323001',mall:'锦程员工福利商城',orderTime:'2026-03-23 14:30',customer:{name:'张三',phone:'138****8888'},totalAmount:270.00,freight:10.00,couponDiscount:15.00,pointsOffset:10.00,remark:'请尽快发货，谢谢',items:[
+    {subNo:'ORD2026032300101',brand:'杯具熊',name:'不锈钢保温杯',model:'CUP-330',spec:'500ml 银色',qty:1,price:68.00,skuMall:'S001A00004001',skuLogistics:'HZ-A00004-001-DF',supplier:'星辰商贸',status:'shipped',afterSale:'none',express:'圆通快递',waybill:'YT11881899999',opsRemark:'已催供应商发货'},
+    {subNo:'ORD2026032300102',brand:'蕉内',name:'夏季纯棉圆领T恤',model:'TEE-210',spec:'白色 M',qty:2,price:45.00,skuMall:'S001A00002001',skuLogistics:'HZ-A00081-001-DF',supplier:'星辰商贸',status:'shipped',afterSale:'none',express:'顺丰速运',waybill:'SF1234567890123',opsRemark:''},
+    {subNo:'ORD2026032300103',brand:'几素',name:'便携迷你USB风扇',model:'FAN-330',spec:'薄荷绿',qty:1,price:28.00,skuMall:'S001A00012001',skuLogistics:'HZ-A00008-001-DF',supplier:'博源供应链',status:'paid',afterSale:'none',opsRemark:'待仓库拣货'},
+    {subNo:'ORD2026032300104',brand:'妙洁',name:'厨房懒人抹布',model:'CL-3R',spec:'3卷装 30×30cm',qty:3,price:19.00,skuMall:'S001A00013001',skuLogistics:'HZ-A00012-001-DF',supplier:'华茂通',status:'paid',afterSale:'none'},
+    {subNo:'ORD2026032300105',brand:'双立人',name:'不锈钢削皮器',model:'PL-105',spec:'经典款',qty:1,price:42.00,skuMall:'S001A00015001',skuLogistics:'HZ-A00015-001-DF',supplier:'星辰商贸',status:'paid',afterSale:'none'}
+  ]},
+  {mainNo:'ORD20260322018',mall:'锦程积分商城',orderTime:'2026-03-22 09:15',customer:{name:'李四',phone:'139****6621'},totalAmount:366.00,freight:0,couponDiscount:0,pointsOffset:12.00,remark:'',items:[
+    {subNo:'ORD20260322018',brand:'云麦',name:'智能蓝牙体脂秤',model:'SCALE-200',spec:'白色',qty:2,price:189.00,skuMall:'S001A00003001',skuLogistics:'HZ-A00003-001-DF',supplier:'恒通供应链',status:'shipped',afterSale:'none',express:'中通快递',waybill:'ZTO8829100456'}
+  ]},
+  {mainNo:'ORD20260321007',mall:'泡泡玛特官方商城',orderTime:'2026-03-21 16:48',customer:{name:'王芳',phone:'136****2209'},totalAmount:513.00,freight:8.00,couponDiscount:30.00,pointsOffset:0,remark:'客户要求分开发货',items:[
+    {subNo:'ORD2026032100701',brand:'倍思',name:'无线降噪耳机',model:'BUD-990',spec:'黑色',qty:1,price:279.00,skuMall:'S001A00008001',skuLogistics:'HZ-A00010-001-DF',supplier:'星辰商贸',status:'shipped',afterSale:'refund',express:'圆通快递',waybill:'YT11881899999',opsRemark:'客户申请退款，跟进中'},
+    {subNo:'ORD2026032100702',brand:'谢裕大',name:'有机绿茶礼盒装',model:'TEA-200',spec:'200g',qty:2,price:128.00,skuMall:'S001A00009001',skuLogistics:'HZ-A00021-001-DF',supplier:'环球优选',status:'paid',afterSale:'none'}
+  ]},
+  {mainNo:'ORD20260320003',mall:'社区公益点',orderTime:'2026-03-20 11:05',customer:{name:'赵敏',phone:'137****9012'},totalAmount:182.00,freight:6.00,couponDiscount:0,pointsOffset:4.00,remark:'',items:[
+    {subNo:'ORD20260320003',brand:'奥康',name:'男士商务休闲皮鞋',model:'SHOE-552',spec:'黑色42码',qty:2,price:90.00,skuMall:'S001A00006001',skuLogistics:'HZ-A00006-001-DF',supplier:'博源供应链',status:'completed',afterSale:'done',express:'圆通快递',waybill:'YT11881899999'}
+  ]},
+  {mainNo:'ORD20260319011',mall:'泡泡玛特企业购',orderTime:'2026-03-19 20:22',customer:{name:'陈浩',phone:'135****7780'},totalAmount:365.00,freight:0,couponDiscount:0,pointsOffset:0,remark:'等待用户支付',items:[
+    {subNo:'ORD20260319011',type:'virtual',brand:'学而思',name:'在线教育VIP年卡',model:'EDU-VIP-12M',spec:'12个月',qty:1,price:365.00,skuMall:'X001A00001001',skuLogistics:'HZXN-A00001-001-KM',supplier:'数字服务商A',status:'pending',afterSale:'none'}
+  ]}
+];
+
+var filteredOrders=orderData.slice();
+var selectedSubs=new Set();
+var expandedOrders=new Set();
+var expandedComboSubs=new Set();
+var allOrdersExpanded=false;
+var ORDER_COLS=12;
+var currentPage=1;
+var PAGE_SIZE=10;
+var lastTotalPages=1;
+var opsRemarkEditingSubNo='';
+var SHIP_PROMISE_HOURS=24;
+var shipTimeTimer=null;
+
+function isCollapsibleOrder(order){return order.items.length>0;}
+
+function expandArrowHtml(expanded){
+  return '<span class="expand-arrow'+(expanded?' expanded':'')+'"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>';
+}
+
+function fmtMoney(n){return '¥'+n.toFixed(2);}
+function fmtStatMoney(n){return '¥'+n.toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function renderOrderStats(){
+  document.getElementById('statOrderTotal').textContent=orderStatsMeta.totalCount.toLocaleString('zh-CN');
+  document.getElementById('statAmountTotal').textContent=fmtStatMoney(orderStatsMeta.totalAmount);
+  document.getElementById('statOrder7d').textContent=orderStatsMeta.count7d.toLocaleString('zh-CN');
+  document.getElementById('statAmount7d').textContent=fmtStatMoney(orderStatsMeta.amount7d);
+}
+function orderDiscountTotal(order){return (order.couponDiscount||0)+(order.pointsOffset||0);}
+function orderGrossAmount(order){return order.totalAmount+orderDiscountTotal(order);}
+function amountHeaderItem(order){
+  var discount=orderDiscountTotal(order);
+  var html='<span class="oh-item oh-col-amount"><span class="oh-label">订单总金额</span><span class="oh-value price price-total">'+fmtMoney(orderGrossAmount(order))+'</span>';
+  if(discount>0){
+    var parts=[];
+    if(order.couponDiscount>0)parts.push('优惠券 '+fmtMoney(order.couponDiscount));
+    if(order.pointsOffset>0)parts.push('积分 '+fmtMoney(order.pointsOffset));
+    html+='<span class="price-total-note" title="含优惠 -¥'+discount.toFixed(2)+'（'+parts.join(' · ')+'）">，含优惠<span class="price-discount">-¥'+discount.toFixed(2)+'</span>（'+parts.join(' · ')+'）</span>';
+  }
+  return html+'</span>';
+}
+function tagHtml(map,key){var t=map[key]||{label:key,cls:'tag-after-none'};return '<span class="tag '+t.cls+'">'+t.label+'</span>';}
+function itemOrderStatusCell(item){
+  return '<td>'+tagHtml(STATUS_MAP,item.status)+'</td>';
+}
+
+function afterSaleCell(item){
+  var as=item.afterSale||'none';
+  if(as==='none')return '<td><span class="placeholder-cell">—</span></td>';
+  return '<td>'+tagHtml(AFTER_MAP,as)+'</td>';
+}
+
+function comboComponents(item){
+  return (item&&item.components)||[];
+}
+function comboSpecText(comps){
+  return comps.map(function(c){
+    var n=(c.brand?c.brand+' ':'')+c.name+(c.spec?' '+c.spec:'');
+    return (c.role||'子件')+'('+n+')×'+(c.qty||1);
+  }).join(' + ');
+}
+function isComboExpanded(subNo){
+  return expandedComboSubs.has(subNo);
+}
+function toggleComboExpand(subNo,e){
+  if(e)e.stopPropagation();
+  if(expandedComboSubs.has(subNo))expandedComboSubs.delete(subNo);
+  else expandedComboSubs.add(subNo);
+  renderTable();
+}
+function comboFoldLink(item,expanded){
+  return '<span class="combo-fold-link" onclick="toggleComboExpand(\''+item.subNo+'\',event)">'+(expanded?'收起 ▴':'展开 ▾')+'</span>';
+}
+function waybillBlock(express,waybill,role){
+  var html='<div class="waybill-stack">';
+  html+='<div class="waybill-express">'+(role?'<span class="sup-tag">'+role+'</span> ':'')+express+'</div>';
+  html+='<div class="waybill-no-line"><span class="mono">'+waybill+'</span>'
+    +copyIconButton("copyWaybill('"+waybill+"',event)",'复制运单号')
+    +'</div></div>';
+  return html;
+}
+function logisticsCell(item){
+  if(item.type==='virtual'){
+    if(item.status==='pending')return '<td><span class="placeholder-cell">—</span></td>';
+    return '<td><div class="waybill-stack"><div class="waybill-express">卡密发放</div></div></td>';
+  }
+  var comps=comboComponents(item);
+  if(comps.length){
+    var exp=isComboExpanded(item.subNo);
+    if(!exp){
+      var shipped=comps.filter(function(c){return c.express&&c.waybill;});
+      var summary=shipped.length?shipped[0].express:'—';
+      if(shipped.length>1)summary+=' 等'+shipped.length+'单';
+      return '<td><div class="waybill-stack"><div class="waybill-express">'+summary+'</div>'+comboFoldLink(item,false)+'</div></td>';
+    }
+    var blocks=[];
+    comps.forEach(function(c){
+      if(c.express&&c.waybill)blocks.push(waybillBlock(c.express,c.waybill,c.role));
+      else blocks.push('<div class="waybill-stack"><div class="waybill-express"><span class="sup-tag">'+c.role+'</span></div><span class="placeholder-cell">—</span></div>');
+    });
+    return '<td>'+blocks.join('<div style="height:8px"></div>')+comboFoldLink(item,true)+'</td>';
+  }
+  if(!item.express||!item.waybill)return '<td><span class="placeholder-cell">—</span></td>';
+  return '<td>'+waybillBlock(item.express,item.waybill)+'</td>';
+}
+
+function copyText(text,doneMsg,e){
+  if(e)e.stopPropagation();
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(function(){showToast('success',doneMsg);}).catch(function(){showToast('info',text);});
+  }else showToast('info',text);
+}
+function copyWaybill(no,e){copyText(no,'运单号已复制',e);}
+function copySkuMall(sku,e){copyText(sku,'商城SKU已复制',e);}
+function copySkuLogistics(sku,e){copyText(sku,'供应链SKU已复制',e);}
+function copyMainNo(no,e){copyText(no,'主订单号已复制',e);}
+function copySubNo(no,e){copyText(no,'子订单号已复制',e);}
+function copyProdName(n,e){copyText(n,'商品名称已复制',e);}
+
+function firstWaybillItem(item){
+  var comps=comboComponents(item);
+  for(var i=0;i<comps.length;i++){
+    if(comps[i].express&&comps[i].waybill)return comps[i];
+  }
+  return item;
+}
+function hasLogistics(item){
+  var comps=comboComponents(item);
+  if(comps.length){
+    return comps.some(function(c){return c.express&&c.waybill&&(c.status==='shipped'||c.status==='completed');});
+  }
+  return !!(item.express&&item.waybill&&(item.status==='shipped'||item.status==='completed'));
+}
+
+function fmtDateTime(ts){
+  var d=new Date(ts);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+' '
+    +String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+}
+
+function getShipDeadlineTs(item,order){
+  if(item.shipDeadline)return parseOrderTime(item.shipDeadline);
+  if(item.status!=='paid')return null;
+  var paidAt=item.paidTime||order.orderTime;
+  return parseOrderTime(paidAt)+SHIP_PROMISE_HOURS*3600000;
+}
+
+function getPaidTimeText(item,order){
+  return item.paidTime||order.orderTime;
+}
+
+function formatHoursFromMs(ms){
+  var h=Math.abs(ms)/3600000;
+  var s=h.toFixed(1);
+  if(s.endsWith('.0'))s=s.slice(0,-2);
+  return s+'h';
+}
+
+function formatRemainingShipTime(ms){
+  if(ms<=0)return {state:'overdue',text:'已超时'+formatHoursFromMs(ms)};
+  var warnMs=2*3600000;
+  var text=formatHoursFromMs(ms);
+  if(ms<warnMs)return {state:'warning',text:text};
+  return {state:'normal',text:text};
+}
+
+function shipTimeTooltip(order,item,deadlineTs,fmt){
+  var paid=getPaidTimeText(item,order);
+  return '下单时间：'+paid+' | 承诺时效：'+SHIP_PROMISE_HOURS+'h | 剩余：'+fmt.text;
+}
+
+function shipTimeInnerHtml(fmt){
+  return fmt.text;
+}
+
+function shipTimeClass(state){
+  return state==='normal'?'ship-time':'ship-time ship-time-'+state;
+}
+
+function shipTimeCell(order,item){
+  if(item.status!=='paid')return '<td class="ship-time-cell"><span class="placeholder-cell">—</span></td>';
+  var deadlineTs=getShipDeadlineTs(item,order);
+  if(!deadlineTs)return '<td class="ship-time-cell"><span class="placeholder-cell">—</span></td>';
+  var remainingMs=deadlineTs-Date.now();
+  var fmt=formatRemainingShipTime(remainingMs);
+  var paid=getPaidTimeText(item,order);
+  var tooltip=shipTimeTooltip(order,item,deadlineTs,fmt);
+  return '<td class="ship-time-cell"><span class="'+shipTimeClass(fmt.state)+'" data-ship-deadline="'+deadlineTs+'" data-ship-paid="'+paid+'" title="'+tooltip+'">'
+    +shipTimeInnerHtml(fmt)+'</span></td>';
+}
+
+function updateShipTimeCells(){
+  document.querySelectorAll('[data-ship-deadline]').forEach(function(el){
+    var deadlineTs=parseInt(el.getAttribute('data-ship-deadline'),10);
+    var paid=el.getAttribute('data-ship-paid')||'';
+    var remainingMs=deadlineTs-Date.now();
+    var fmt=formatRemainingShipTime(remainingMs);
+    el.className=shipTimeClass(fmt.state);
+    el.title='下单时间：'+paid+' | 承诺时效：'+SHIP_PROMISE_HOURS+'h | 剩余：'+fmt.text;
+    el.textContent=shipTimeInnerHtml(fmt);
+  });
+}
+
+function startShipTimeTimer(){
+  if(shipTimeTimer)clearInterval(shipTimeTimer);
+  shipTimeTimer=setInterval(updateShipTimeCells,30000);
+}
+
+function initMockShipDeadlines(){
+  var now=Date.now();
+  var configs=[
+    {subNo:'ORD2026032300103',remainingMs:6*3600000+18*60000,paidOffsetMs:-10*3600000},
+    {subNo:'ORD2026032300104',remainingMs:1*3600000+30*60000,paidOffsetMs:-20*3600000},
+    {subNo:'ORD2026032300105',remainingMs:-3*3600000,paidOffsetMs:-51*3600000},
+    {subNo:'ORD2026032100702',remainingMs:2*86400000+3*3600000,paidOffsetMs:-24*3600000},
+    {subNo:'ORD2026082401401',remainingMs:8*3600000,paidOffsetMs:-16*3600000},
+    {subNo:'ORD2026082401501',remainingMs:12*3600000,paidOffsetMs:-12*3600000}
+  ];
+  configs.forEach(function(cfg){
+    var item=findItemBySubNo(cfg.subNo);
+    if(!item||item.status!=='paid')return;
+    item.paidTime=fmtDateTime(now+cfg.paidOffsetMs);
+    item.shipDeadline=fmtDateTime(now+cfg.remainingMs);
+  });
+}
+
+function itemActionsCell(item){
+  var html='<td><div class="actions">';
+  html+='<span class="action-link" onclick="openOpsRemarkModal(\''+item.subNo+'\',event)">备注</span>';
+  if(item.status==='paid'){
+    html+='<span class="action-link" onclick="urgeShipSub(\''+item.subNo+'\',event)">催办</span>';
+  }
+  if(hasLogistics(item)){
+    var w=firstWaybillItem(item);
+    html+='<span class="action-link" onclick="showLogisticsProgress(\''+item.subNo+'\',\''+w.express+'\',\''+w.waybill+'\',event)">物流进展</span>';
+  }
+  return html+'</div></td>';
+}
+
+function opsRemarkCell(item){
+  var text=item.opsRemark||'';
+  if(!text)return '<td class="ops-remark-cell"><span class="placeholder-cell">—</span></td>';
+  return '<td class="ops-remark-cell" title="'+text+'">'+text+'</td>';
+}
+
+function findItemBySubNo(subNo){
+  for(var i=0;i<orderData.length;i++){
+    for(var j=0;j<orderData[i].items.length;j++){
+      if(orderData[i].items[j].subNo===subNo)return orderData[i].items[j];
+    }
+  }
+  return null;
+}
+
+function findOrderByMainNo(mainNo){
+  for(var i=0;i<orderData.length;i++){
+    if(orderData[i].mainNo===mainNo)return orderData[i];
+  }
+  return null;
+}
+
+function findFilteredOrderByMainNo(mainNo){
+  for(var i=0;i<filteredOrders.length;i++){
+    if(filteredOrders[i].mainNo===mainNo)return filteredOrders[i];
+  }
+  return null;
+}
+
+function cloneOrderWithItems(order,items){
+  return {
+    mainNo:order.mainNo,
+    mall:order.mall,
+    orderTime:order.orderTime,
+    customer:order.customer,
+    totalAmount:order.totalAmount,
+    freight:order.freight,
+    couponDiscount:order.couponDiscount,
+    pointsOffset:order.pointsOffset,
+    remark:order.remark,
+    items:items
+  };
+}
+
+function narrowOrdersByStatus(orders,status){
+  if(!status)return orders;
+  return orders.map(function(o){
+    return cloneOrderWithItems(o,o.items.filter(function(it){return it.status===status;}));
+  }).filter(function(o){return o.items.length>0;});
+}
+
+function openOpsRemarkModal(subNo,e){
+  if(e)e.stopPropagation();
+  var item=findItemBySubNo(subNo);
+  if(!item)return;
+  opsRemarkEditingSubNo=subNo;
+  document.getElementById('opsRemarkNoLabel').textContent='子订单号';
+  document.getElementById('opsRemarkNo').textContent=subNo;
+  document.getElementById('opsRemarkInput').value=item.opsRemark||'';
+  document.getElementById('opsRemarkModal').classList.add('open');
+}
+
+function closeOpsRemarkModal(){
+  opsRemarkEditingSubNo='';
+  document.getElementById('opsRemarkModal').classList.remove('open');
+}
+
+function saveOpsRemark(){
+  var item=findItemBySubNo(opsRemarkEditingSubNo);
+  if(!item)return;
+  item.opsRemark=document.getElementById('opsRemarkInput').value.trim();
+  closeOpsRemarkModal();
+  renderTable();
+  showToast('success','运营备注已保存');
+}
+
+function showOrderDetail(no,e,isMain){
+  if(e)e.stopPropagation();
+  window.open('14a.商城订单详情页-原型页面.html?order='+encodeURIComponent(no),'_blank');
+}
+
+function showLogisticsProgress(subNo,express,waybill,e){
+  if(e)e.stopPropagation();
+  showToast('info',express+waybill+' · 物流进展（演示）');
+}
+
+function productThumb(name){
+  return '<span class="product-thumb">'+(name?name.charAt(0):'商')+'</span>';
+}
+
+function productTypeTag(item){
+  if(item.type!=='combo'&&item.type!=='gift')return '';
+  var label=item.comboMode==='gift'||item.type==='gift'?'营销买赠':'组合套装';
+  return '<span class="sup-tag">'+label+'</span>';
+}
+function productNameLine(displayName,title,item,extraTags){
+  var nameHtml='<div class="product-name-link" title="'+title+'"><span class="name-ellipsis">'+displayName;
+  if(item.spec)nameHtml+='<span class="product-spec-inline">（规格：'+item.spec+'）</span>';
+  nameHtml+='</span>';
+  if(extraTags)nameHtml+=extraTags;
+  nameHtml+=copyIconButton("copyProdName('"+displayName.replace(/'/g,"\\'")+"',event)",'复制商品名称');
+  nameHtml+='</div>';
+  return nameHtml;
+}
+function productDetailCell(item){
+  var comps=comboComponents(item);
+  var isCombo=item.type==='combo'&&comps.length;
+  var displayName=(item.brand?item.brand+' ':'')+item.name+(item.model?' '+item.model:'');
+  var title=displayName+(item.spec?'（规格：'+item.spec+'）':'');
+  var typeTag=productTypeTag(item);
+  var html='<div class="product-cell">'+productThumb(isCombo?(item.comboName||item.name):displayName)
+    +'<div class="product-detail-stack">';
+  if(isCombo){
+    var spec=comboSpecText(comps);
+    var comboTitle=(item.comboName||item.name)+'（规格：'+spec+'）';
+    html+=productNameLine(item.comboName||item.name,comboTitle,{spec:spec},typeTag);
+  }else{
+    html+=productNameLine(displayName,title,item,typeTag);
+  }
+  html+='<div class="product-meta-line waybill-no-line"><span>子订单号：</span><span class="mono">'+item.subNo+'</span>'
+    +copyIconButton("copySubNo('"+item.subNo+"',event)",'复制子订单号')
+    +'</div>'
+    +'<div class="product-meta-line waybill-no-line"><span>商城SKU：</span><span class="mono">'+item.skuMall+'</span>'
+    +copyIconButton("copySkuMall('"+item.skuMall+"',event)",'复制商城SKU')
+    +'</div>';
+  html+='</div></div>';
+  return html;
+}
+
+function supplySourceCell(item){
+  var comps=comboComponents(item);
+  if(!comps.length){
+    return '<td><div class="supply-stack">'
+      +'<div class="supply-name">'+item.supplier+'</div>'
+      +'<div class="supply-sku-line"><span>供应链SKU：</span><span class="mono">'+item.skuLogistics+'</span>'
+      +copyIconButton("copySkuLogistics('"+item.skuLogistics+"',event)",'复制供应链SKU')
+      +'</div></div></td>';
+  }
+  var exp=isComboExpanded(item.subNo);
+  if(!exp){
+    var names=[];
+    comps.forEach(function(c){if(c.supplier&&names.indexOf(c.supplier)<0)names.push(c.supplier);});
+    var summary=names[0]||'—';
+    if(names.length>1)summary+=' 等'+names.length+'家';
+    return '<td><div class="supply-stack"><div class="supply-name">'+summary+'</div>'+comboFoldLink(item,false)+'</div></td>';
+  }
+  var html='<td>';
+  comps.forEach(function(c,i){
+    html+='<div class="supply-stack"'+(i?' style="margin-top:8px"':'')+'>'
+      +'<div class="supply-name">'+(c.role?'<span class="sup-tag">'+c.role+'</span> ':'')+c.supplier+'</div>'
+      +'<div class="supply-sku-line"><span>供应链SKU：</span><span class="mono">'+c.skuLogistics+'</span>'
+      +copyIconButton("copySkuLogistics('"+c.skuLogistics+"',event)",'复制供应链SKU')
+      +'</div></div>';
+  });
+  html+=comboFoldLink(item,true);
+  return html+'</td>';
+}
+
+function orderHeaderRow(order){
+  var isExp=expandedOrders.has(order.mainNo);
+  var mainChecked=isOrderFullySelected(order)?' checked':'';
+  var chk='<input type="checkbox" class="checkbox order-check" data-main="'+order.mainNo+'"'+mainChecked+' onchange="toggleSelectMain(\''+order.mainNo+'\',this.checked)">';
+  var countHint='<span class="oh-item oh-col-count"><span class="oh-value" style="color:var(--text-muted);font-weight:400;">'+order.items.length+'个子订单 · 共'+countOrderQty(order)+'件</span></span>';
+  var remarkHtml='';
+  if(order.remark)remarkHtml='<span class="oh-item oh-col-remark oh-remark" title="'+order.remark+'"><span class="oh-label">客户备注</span><span class="oh-value">'+order.remark+'</span></span>';
+  var rowClass='order-header-row'+(!isExp?' order-block-last':'');
+  return '<tr class="'+rowClass+'" data-main="'+order.mainNo+'">'
+    +'<td colspan="'+(ORDER_COLS-1)+'">'
+    +'<div class="order-header-bar collapsible" onclick="toggleOrderRow(\''+order.mainNo+'\',event)">'
+    +'<span class="oh-check" onclick="event.stopPropagation()">'+chk+'</span>'
+    +'<span class="oh-expand">'+expandArrowHtml(isExp)+'</span>'
+    +'<span class="oh-item oh-col-mainno"><span class="oh-label">主订单号</span><span class="oh-value oh-code-line"><span class="mono">'+order.mainNo+'</span>'
+    +copyIconButton("copyMainNo('"+order.mainNo+"',event)",'复制主订单号')
+    +'</span></span>'
+    +countHint
+    +'<span class="oh-item oh-col-time"><span class="oh-label">下单时间</span><span class="oh-value mono">'+order.orderTime+'</span></span>'
+    +'<span class="oh-item oh-col-mall"><span class="oh-label">所属商城</span><span class="oh-value">'+order.mall+'</span></span>'
+    +'<span class="oh-item oh-col-customer"><span class="oh-label">客户</span><span class="oh-value">'+order.customer.name+' · '+order.customer.phone+'</span></span>'
+    +amountHeaderItem(order)
+    +'<span class="oh-item oh-col-freight"><span class="oh-label">运费</span><span class="oh-value price">'+fmtMoney(order.freight)+'</span></span>'
+    +remarkHtml
+    +'</div></td>'
+    +'<td class="order-header-actions-cell"><div class="actions">'
+    +'<span class="action-link" onclick="showOrderDetail(\''+order.mainNo+'\',event,true)">详情</span>'
+    +(order.items.some(function(it){return it.status==='paid';})?'<span class="action-link" onclick="urgeShipMain(\''+order.mainNo+'\',event)">催办</span>':'')
+    +'</div></td></tr>';
+}
+
+function toggleOrderRow(mainNo,e){
+  if(e&&e.target.closest('.oh-check'))return;
+  if(expandedOrders.has(mainNo))expandedOrders.delete(mainNo);
+  else expandedOrders.add(mainNo);
+  allOrdersExpanded=false;
+  renderTable();
+}
+
+function getCollapsibleOrders(orders){
+  return orders.filter(isCollapsibleOrder);
+}
+
+function expandAllOrders(){
+  allOrdersExpanded=!allOrdersExpanded;
+  expandedOrders.clear();
+  if(allOrdersExpanded){
+    getCollapsibleOrders(filteredOrders).forEach(function(o){expandedOrders.add(o.mainNo);});
+  }
+  renderTable();
+}
+
+function updateExpandAllBtn(){
+  var btn=document.getElementById('btnExpandAll');
+  if(!btn)return;
+  var collapsible=getCollapsibleOrders(filteredOrders);
+  if(!collapsible.length){
+    btn.textContent='全部展开 ▾';
+    allOrdersExpanded=false;
+    return;
+  }
+  if(allOrdersExpanded&&collapsible.every(function(o){return expandedOrders.has(o.mainNo);})){
+    btn.textContent='全部收起 ▴';
+  }else if(expandedOrders.size===0){
+    btn.textContent='全部展开 ▾';
+    allOrdersExpanded=false;
+  }else{
+    btn.textContent='全部展开 ▾';
+    allOrdersExpanded=false;
+  }
+}
+
+function itemSubtotal(item){
+  return item.price*item.qty;
+}
+
+function orderItemRow(order,item,isLast){
+  var subChecked=selectedSubs.has(item.subNo)?' checked':'';
+  return '<tr class="order-item-row'+(isLast?' order-block-last':'')+'" data-main="'+order.mainNo+'" data-sub="'+item.subNo+'">'
+    +'<td><input type="checkbox" class="checkbox sub-check" data-main="'+order.mainNo+'" data-sub="'+item.subNo+'"'+subChecked+' onchange="toggleSelectSub(\''+order.mainNo+'\',\''+item.subNo+'\',this.checked)"></td>'
+    +'<td>'+productDetailCell(item)+'</td>'
+    +supplySourceCell(item)
+    +'<td class="price">'+fmtMoney(item.price)+'</td>'
+    +'<td style="text-align:center;">'+item.qty+'</td>'
+    +'<td class="price">'+fmtMoney(itemSubtotal(item))+'</td>'
+    +itemOrderStatusCell(item)
+    +shipTimeCell(order,item)
+    +logisticsCell(item)
+    +afterSaleCell(item)
+    +opsRemarkCell(item)
+    +itemActionsCell(item)
+    +'</tr>';
+}
+
+function countSubOrders(orders){
+  var n=0;orders.forEach(function(o){n+=o.items.length;});return n;
+}
+
+function countOrderQty(order){
+  var n=0;order.items.forEach(function(it){n+=it.qty;});return n;
+}
+
+function countAllItemsQty(orders){
+  var n=0;orders.forEach(function(o){n+=countOrderQty(o);});return n;
+}
+
+function parseOrderTime(str){
+  return new Date(str.replace(' ','T')).getTime();
+}
+
+function getRangeTimestamp(dateId,timeId,isEnd){
+  var d=document.getElementById(dateId).value;
+  if(!d)return null;
+  var t=document.getElementById(timeId).value;
+  if(!t)t=isEnd?'23:59':'00:00';
+  return new Date(d+'T'+t).getTime();
+}
+
+function formatRangePart(dateVal,timeVal){
+  if(!dateVal)return '';
+  var text=dateVal.replace(/-/g,'/');
+  if(timeVal)text+=' '+timeVal.substring(0,5);
+  return text;
+}
+
+function updateTimeRangeLabel(){
+  var label=document.getElementById('fTimeRangeLabel');
+  var box=document.getElementById('timeRangeBox');
+  var ds=document.getElementById('fDateStart').value;
+  var ts=document.getElementById('fTimeStart').value;
+  var de=document.getElementById('fDateEnd').value;
+  var te=document.getElementById('fTimeEnd').value;
+  if(!ds&&!de&&!ts&&!te){
+    label.textContent='开始时间-结束时间';
+    box.classList.remove('has-value');
+    return;
+  }
+  box.classList.add('has-value');
+  var start=formatRangePart(ds,ts)||'开始时间';
+  var end=formatRangePart(de,te)||'结束时间';
+  label.textContent=start+'-'+end;
+}
+
+function focusTimeRange(e){
+  if(e.target.closest('.time-range-pickers'))return;
+  var input=document.getElementById('fDateStart');
+  if(input.showPicker){try{input.showPicker();}catch(err){input.focus();}}
+  else input.focus();
+}
+
+function isOrderFullySelected(order){
+  return order.items.length>0&&order.items.every(function(it){return selectedSubs.has(it.subNo);});
+}
+
+function isOrderPartiallySelected(order){
+  var n=order.items.filter(function(it){return selectedSubs.has(it.subNo);}).length;
+  return n>0&&n<order.items.length;
+}
+
+function syncMainCheckbox(mainNo){
+  var order=findFilteredOrderByMainNo(mainNo);
+  if(!order)return;
+  document.querySelectorAll('.order-check[data-main="'+mainNo+'"]').forEach(function(cb){
+    cb.checked=isOrderFullySelected(order);
+    cb.indeterminate=isOrderPartiallySelected(order);
+  });
+}
+
+function syncAllMainCheckboxes(){
+  filteredOrders.forEach(function(o){syncMainCheckbox(o.mainNo);});
+}
+
+function toggleSelectMain(mainNo,checked){
+  var order=findFilteredOrderByMainNo(mainNo);
+  if(!order)return;
+  order.items.forEach(function(it){
+    if(checked)selectedSubs.add(it.subNo);
+    else selectedSubs.delete(it.subNo);
+  });
+  document.querySelectorAll('.sub-check[data-main="'+mainNo+'"]').forEach(function(cb){
+    cb.checked=checked;
+  });
+  syncMainCheckbox(mainNo);
+  updateSelectedInfo();
+}
+
+function toggleSelectSub(mainNo,subNo,checked){
+  if(checked)selectedSubs.add(subNo);
+  else selectedSubs.delete(subNo);
+  syncMainCheckbox(mainNo);
+  updateSelectedInfo();
+}
+
+function getSelectedItemsInFilter(){
+  var items=[];
+  filteredOrders.forEach(function(o){
+    o.items.forEach(function(it){
+      if(selectedSubs.has(it.subNo))items.push(it);
+    });
+  });
+  return items;
+}
+
+function updateSelectedInfo(){
+  var selectedItems=getSelectedItemsInFilter();
+  var subCount=selectedItems.length;
+  var qtyTotal=0;
+  var amountTotal=0;
+  var paidCount=0;
+  selectedItems.forEach(function(it){
+    qtyTotal+=it.qty;
+    amountTotal+=itemSubtotal(it);
+    if(it.status==='paid')paidCount++;
+  });
+  document.getElementById('selectedInfo').textContent=
+    '已选 '+subCount+' 笔子订单 | 商品总数 '+qtyTotal+' 件 | 订单总额 '+fmtStatMoney(amountTotal)+' | 待发货 '+paidCount+' 笔';
+  var all=document.getElementById('selectAll');
+  if(!all)return;
+  var totalSubs=countSubOrders(filteredOrders);
+  var selectedInFilter=selectedItems.length;
+  all.checked=totalSubs>0&&selectedInFilter===totalSubs;
+  all.indeterminate=selectedInFilter>0&&selectedInFilter<totalSubs;
+}
+
+function toggleSelectAll(checked){
+  filteredOrders.forEach(function(o){
+    o.items.forEach(function(it){
+      if(checked)selectedSubs.add(it.subNo);
+      else selectedSubs.delete(it.subNo);
+    });
+  });
+  renderTable();
+}
+
+function renderTable(){
+  var tbody=document.getElementById('orderTableBody');
+  var html='';
+  var totalPages=Math.max(1,Math.ceil(filteredOrders.length/PAGE_SIZE));
+  if(currentPage>totalPages)currentPage=totalPages;
+  if(currentPage<1)currentPage=1;
+  var pageOrders=filteredOrders.slice((currentPage-1)*PAGE_SIZE,currentPage*PAGE_SIZE);
+  pageOrders.forEach(function(order){
+    var isExp=expandedOrders.has(order.mainNo);
+    html+=orderHeaderRow(order);
+    if(isExp){
+      order.items.forEach(function(item,idx){
+        html+=orderItemRow(order,item,idx===order.items.length-1);
+      });
+    }
+  });
+  tbody.innerHTML=html||'<tr><td colspan="'+ORDER_COLS+'" style="text-align:center;padding:40px;color:var(--text-muted);">暂无符合条件的订单</td></tr>';
+  renderPagination('共 '+filteredOrders.length+' 个主订单 · '+countSubOrders(filteredOrders)+' 条子订单 · '+countAllItemsQty(filteredOrders)+' 件商品',totalPages);
+  syncAllMainCheckboxes();
+  updateSelectedInfo();
+  updateExpandAllBtn();
+}
+function goToPage(p){currentPage=p;renderTable();document.querySelector('.table-panel').scrollIntoView({behavior:'smooth',block:'start'});}
+function changePageSize(){PAGE_SIZE=parseInt(document.getElementById('pageSizeSelect').value,10)||10;currentPage=1;renderTable();}
+function jumpToPage(){var p=parseInt(document.getElementById('jumpPageInput').value,10);if(!p||p<1)p=1;if(p>lastTotalPages)p=lastTotalPages;document.getElementById('jumpPageInput').value=p;goToPage(p);}
+function renderPagination(totalText,totalPages){
+  lastTotalPages=totalPages;
+  var bar=document.getElementById('paginationBar');
+  var html='';
+  html+='<div class="page-btn'+(currentPage<=1?' disabled':'')+'" onclick="'+(currentPage>1?'goToPage('+(currentPage-1)+')':'')+'"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></div>';
+  var maxBtns=5;
+  var startP=Math.max(1,currentPage-Math.floor(maxBtns/2));
+  var endP=Math.min(totalPages,startP+maxBtns-1);
+  if(endP-startP<maxBtns-1)startP=Math.max(1,endP-maxBtns+1);
+  for(var i=startP;i<=endP;i++){
+    html+='<div class="page-btn'+(i===currentPage?' active':'')+'" onclick="goToPage('+i+')">'+i+'</div>';
+  }
+  html+='<div class="page-btn'+(currentPage>=totalPages?' disabled':'')+'" onclick="'+(currentPage<totalPages?'goToPage('+(currentPage+1)+')':'')+'"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>';
+  bar.innerHTML=html;
+  document.getElementById('totalCount').textContent=totalText;
+}
+
+document.addEventListener('click',function(){
+  document.querySelectorAll('.action-menu.open').forEach(function(m){m.classList.remove('open');});
+});
+
+function applyFilters(){
+  var keyword=document.getElementById('fKeyword').value.trim();
+  var keywordLower=keyword.toLowerCase();
+  var status=document.getElementById('fStatus').value;
+  var afterSale=document.getElementById('fAfterSale').value;
+  var mall=document.getElementById('fMall').value;
+  var supplier=document.getElementById('fSupplier').value;
+  var startTs=getRangeTimestamp('fDateStart','fTimeStart',false);
+  var endTs=getRangeTimestamp('fDateEnd','fTimeEnd',true);
+  filteredOrders=orderData.filter(function(o){
+    if(keyword){
+      var mainMatch=o.mainNo.toLowerCase().indexOf(keywordLower)>=0;
+      var subMatch=o.items.some(function(it){return it.subNo.toLowerCase().indexOf(keywordLower)>=0;});
+      var productMatch=o.items.some(function(it){
+        var names=[it.name,it.comboName];
+        if(names.some(function(n){return n&&n.toLowerCase().indexOf(keywordLower)>=0;}))return true;
+        return comboComponents(it).some(function(c){
+          return ((c.brand||'')+' '+(c.name||'')).toLowerCase().indexOf(keywordLower)>=0;
+        });
+      });
+      var skuMatch=o.items.some(function(it){
+        if((it.skuMall&&it.skuMall.toLowerCase().indexOf(keywordLower)>=0)
+          ||(it.skuLogistics&&it.skuLogistics.toLowerCase().indexOf(keywordLower)>=0))return true;
+        return comboComponents(it).some(function(c){return (c.skuLogistics||'').toLowerCase().indexOf(keywordLower)>=0;});
+      });
+      var phoneMatch=o.customer.phone.indexOf(keyword)>=0;
+      var receiverMatch=o.customer.name.indexOf(keyword)>=0;
+      if(!mainMatch&&!subMatch&&!productMatch&&!skuMatch&&!phoneMatch&&!receiverMatch)return false;
+    }
+    if(status&&!o.items.some(function(it){return it.status===status;}))return false;
+    if(afterSale&&!o.items.some(function(it){return (it.afterSale||'none')===afterSale;}))return false;
+    if(mall&&o.mall!==mall)return false;
+    if(supplier&&!o.items.some(function(it){
+      if(it.supplier===supplier)return true;
+      return comboComponents(it).some(function(c){return c.supplier===supplier;});
+    }))return false;
+    if(startTs||endTs){
+      var ts=parseOrderTime(o.orderTime);
+      if(startTs&&ts<startTs)return false;
+      if(endTs&&ts>endTs)return false;
+    }
+    return true;
+  });
+  filteredOrders=narrowOrdersByStatus(filteredOrders,status);
+  currentPage=1;
+  renderTable();
+}
+
+function resetFilters(){
+  ['fKeyword','fDateStart','fTimeStart','fDateEnd','fTimeEnd'].forEach(function(id){document.getElementById(id).value='';});
+  ['fStatus','fAfterSale','fMall','fSupplier'].forEach(function(id){document.getElementById(id).selectedIndex=0;});
+  filteredOrders=orderData.slice();
+  initExpandedState();
+  updateTimeRangeLabel();
+  currentPage=1;
+  renderTable();
+}
+
+function initExpandedState(){
+  expandedOrders.clear();
+  getCollapsibleOrders(filteredOrders).forEach(function(o){expandedOrders.add(o.mainNo);});
+  allOrdersExpanded=true;
+}
+
+function exportSelected(){
+  if(!selectedSubs.size){showToast('info','请先勾选要导出的子订单');return;}
+  showToast('success','已导出 '+selectedSubs.size+' 条子订单（演示）');
+}
+
+function toggleExportMenu(e){
+  e.stopPropagation();
+  var menu=document.getElementById('fullExportMenu');
+  document.querySelectorAll('.action-menu.open').forEach(function(m){if(m!==menu)m.classList.remove('open');});
+  menu.classList.toggle('open');
+}
+
+function exportAllOrders(e){
+  if(e)e.stopPropagation();
+  document.getElementById('fullExportMenu').classList.remove('open');
+  var subCount=countSubOrders(orderData);
+  showToast('success','已导出全部 '+orderData.length+' 个主订单 · '+subCount+' 条子订单（演示）');
+}
+
+function exportFilteredOrders(e){
+  if(e)e.stopPropagation();
+  document.getElementById('fullExportMenu').classList.remove('open');
+  if(!filteredOrders.length){showToast('info','当前筛选结果为空，无可导出订单');return;}
+  var subCount=countSubOrders(filteredOrders);
+  showToast('success','已导出筛选结果 '+filteredOrders.length+' 个主订单 · '+subCount+' 条子订单（演示）');
+}
+
+function batchUrgeShip(){
+  var urgeSubs=[];
+  selectedSubs.forEach(function(subNo){
+    var item=findItemBySubNo(subNo);
+    if(item&&item.status==='paid')urgeSubs.push(subNo);
+  });
+  if(!urgeSubs.length){showToast('info','请先勾选待发货子订单');return;}
+  showToast('success','已向 '+urgeSubs.length+' 个待发货子订单发送催办提醒（演示）');
+}
+
+function urgeShipSub(subNo,e){
+  if(e)e.stopPropagation();
+  var item=findItemBySubNo(subNo);
+  if(!item||item.status!=='paid'){showToast('info','仅待发货子订单可催办');return;}
+  showToast('success','已向子订单 '+subNo+' 发送催办提醒（演示）');
+}
+
+function urgeShipMain(mainNo,e){
+  if(e)e.stopPropagation();
+  var order=findOrderByMainNo(mainNo);
+  if(!order)return;
+  var count=order.items.filter(function(it){return it.status==='paid';}).length;
+  if(!count){showToast('info','该主订单无待发货子订单');return;}
+  showToast('success','已向主订单 '+mainNo+' 下 '+count+' 个待发货子订单发送催办提醒（演示）');
+}
+
+initMockShipDeadlines();
+initExpandedState();
+renderOrderStats();
+renderTable();
+startShipTimeTimer();
+</script>
+</body>
+</html>

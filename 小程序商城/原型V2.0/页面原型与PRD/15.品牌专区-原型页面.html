@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>品牌专区 - 苏银豆商城</title>
+<link rel="stylesheet" href="../assets/common.css">
+<style>
+  /* Search bar */
+  .brand-search {
+    background: var(--card-bg);
+    padding: var(--space-sm) 12px;
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+  }
+  .search-input-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    background: var(--bg-color);
+    border-radius: var(--radius-xl);
+    padding: var(--space-sm) 14px;
+    gap: var(--space-sm);
+  }
+  .search-input-wrap svg { width: 16px; height: 16px; color: var(--text-tertiary); }
+  .search-input-wrap input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: var(--font-base);
+    background: transparent;
+    color: var(--text-color);
+  }
+  .search-input-wrap input::placeholder { color: var(--text-muted); }
+
+  /* Category tabs */
+  .category-tabs {
+    display: flex;
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--border-divider);
+    padding: 0 var(--space-md);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .category-tabs::-webkit-scrollbar { display: none; }
+  .category-tab {
+    padding: var(--space-md) var(--space-lg);
+    font-size: var(--font-sm);
+    color: var(--text-secondary);
+    cursor: pointer;
+    white-space: nowrap;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .category-tab:active { background: var(--bg-input); }
+  .category-tab.active {
+    color: var(--primary-start);
+    font-weight: 600;
+  }
+  .category-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 2px;
+    background: var(--primary-start);
+    border-radius: var(--radius-xs);
+  }
+
+  /* Hot brands */
+  .hot-brands {
+    background: var(--card-bg);
+    margin: var(--space-sm) 12px;
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-md);
+  }
+  .section-title {
+    font-size: var(--font-md);
+    font-weight: 600;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+  .section-title svg { width: 16px; height: 16px; color: var(--primary-start); }
+  .section-more {
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .section-more svg { width: 14px; height: 14px; }
+
+  .hot-brand-list {
+    display: flex;
+    gap: var(--space-md);
+    overflow-x: auto;
+    padding-bottom: var(--space-xs);
+    -webkit-overflow-scrolling: touch;
+  }
+  .hot-brand-list::-webkit-scrollbar { display: none; }
+  .hot-brand-item {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-sm);
+    cursor: pointer;
+  }
+  .hot-brand-item:active { opacity: 0.7; }
+  .hot-brand-logo {
+    width: 64px;
+    height: 64px;
+    border-radius: var(--radius-md);
+    background: var(--bg-input);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 1px solid var(--border-divider);
+  }
+  .hot-brand-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .hot-brand-name {
+    font-size: var(--font-sm);
+    color: var(--text-color);
+    text-align: center;
+    max-width: 64px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Brand grid */
+  .brand-section {
+    background: var(--card-bg);
+    margin: 0 var(--space-md) var(--space-sm);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+  }
+  .brand-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-lg) 12px;
+  }
+  .brand-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-sm);
+    cursor: pointer;
+  }
+  .brand-item:active { opacity: 0.7; }
+  .brand-logo {
+    width: 72px;
+    height: 72px;
+    border-radius: var(--radius-md);
+    background: var(--bg-input);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 1px solid var(--border-divider);
+    position: relative;
+  }
+  .brand-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .brand-logo .brand-tag {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: linear-gradient(135deg, var(--primary-start), var(--price-color));
+    color: var(--card-bg);
+    font-size: var(--font-xs);
+    padding: 2px var(--space-sm);
+    border-radius: 0 var(--radius-md) 0 var(--space-sm);
+  }
+  .brand-name {
+    font-size: var(--font-sm);
+    color: var(--text-color);
+    text-align: center;
+    font-weight: 500;
+  }
+  .brand-desc {
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+    text-align: center;
+  }
+
+  /* Letter index */
+  .letter-index {
+    position: fixed;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 100;
+    background: rgba(255,255,255,0.9);
+    border-radius: var(--radius-md);
+    padding: var(--space-xs) 0;
+    box-shadow: var(--shadow-md);
+  }
+  .letter-item {
+    font-size: var(--font-xs);
+    color: var(--text-secondary);
+    padding: 2px var(--space-sm);
+    cursor: pointer;
+  }
+  .letter-item:active,
+  .letter-item.active {
+    color: var(--primary-start);
+    font-weight: 600;
+  }
+
+  /* Letter group */
+  .letter-group {
+    margin-bottom: var(--space-sm);
+  }
+  .letter-header {
+    background: var(--card-bg);
+    padding: var(--space-md) 12px;
+    font-size: var(--font-base);
+    font-weight: 600;
+    color: var(--primary-start);
+    position: sticky;
+    top: 132px;
+    z-index: 10;
+  }
+</style>
+</head>
+<body>
+<div class="phone-frame">
+
+  <!-- Sub-page Navigation -->
+  <div class="sub-nav">
+    <div class="status-bar dark">
+      <span class="time">09:41</span>
+      <div class="icons">
+        <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+      </div>
+    </div>
+    <div class="nav-bar">
+      <div class="back-btn" onclick="history.back()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <span class="nav-title">品牌专区</span>
+      <div class="capsule-btn"><img src="../assets/icons/小程序按钮.svg" alt=""></div>
+    </div>
+  </div>
+
+  <!-- Search -->
+  <div class="brand-search">
+    <div class="search-input-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" placeholder="搜索品牌" id="brandSearch">
+    </div>
+  </div>
+
+  <!-- Category Tabs -->
+  <div class="category-tabs">
+    <div class="category-tab active" data-cat="all">全部</div>
+    <div class="category-tab" data-cat="digital">数码家电</div>
+    <div class="category-tab" data-cat="fashion">服饰鞋包</div>
+    <div class="category-tab" data-cat="beauty">美妆护肤</div>
+    <div class="category-tab" data-cat="food">食品饮料</div>
+    <div class="category-tab" data-cat="home">家居生活</div>
+  </div>
+
+  <!-- Scrollable Content -->
+  <div class="page-scroll" style="padding-bottom: 16px;">
+
+    <!-- Hot Brands -->
+    <div class="hot-brands">
+      <div class="section-header">
+        <span class="section-title">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67z"/></svg>
+          热门品牌
+        </span>
+        <span class="section-more">更多 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+      </div>
+      <div class="hot-brand-list" id="hotBrandList"></div>
+    </div>
+
+    <!-- Brand List -->
+    <div id="brandContent"></div>
+
+  </div>
+
+  <!-- Letter Index -->
+  <div class="letter-index" id="letterIndex"></div>
+
+</div>
+<script src="../assets/common.js"></script>
+<script>
+(function() {
+  var brands = [
+    { letter: 'A', name: 'Apple', desc: '科技引领未来', img: '../assets/unsplash/1611186871348-b1ce696e52c9.jpg', hot: true, category: 'digital' },
+    { letter: 'A', name: '阿迪达斯', desc: '运动无止境', img: '../assets/unsplash/1518002171953-a080ee817e1f.jpg', hot: true, category: 'fashion' },
+    { letter: 'B', name: 'Beats', desc: '聆听好声音', img: '../assets/unsplash/1505740420928-5e560c06d30e.jpg', category: 'digital' },
+    { letter: 'C', name: 'Calvin Klein', desc: '时尚简约', img: '../assets/unsplash/1521572163474-6864f9cf17ab.jpg', category: 'fashion' },
+    { letter: 'D', name: '戴森', desc: '科技家电', img: '../assets/unsplash/1558618666-fcd25c85cd64.jpg', hot: true, category: 'digital' },
+    { letter: 'G', name: '格力', desc: '让世界爱上中国造', img: '../assets/unsplash/1585338107529-13afc5f02586.jpg', category: 'digital' },
+    { letter: 'H', name: '华为', desc: '构建万物互联', img: '../assets/unsplash/1583394838336-acd977736f90.jpg', hot: true, category: 'digital' },
+    { letter: 'J', name: '九阳', desc: '健康生活', img: '../assets/unsplash/1504674900247-0877df9cc836.jpg', category: 'home' },
+    { letter: 'L', name: '兰蔻', desc: '优雅绽放', img: '../assets/unsplash/1596462502278-27bfdc403348.jpg', hot: true, category: 'beauty' },
+    { letter: 'M', name: '美的', desc: '智慧生活', img: '../assets/unsplash/1556909114-f6e7ad7d3136.jpg', category: 'digital' },
+    { letter: 'N', name: '耐克', desc: 'Just Do It', img: '../assets/unsplash/1542291026-7eec264c27ff.jpg', hot: true, category: 'fashion' },
+    { letter: 'O', name: '欧莱雅', desc: '你值得拥有', img: '../assets/unsplash/1585386959984-a4155224a1ad.jpg', category: 'beauty' },
+    { letter: 'S', name: '三只松鼠', desc: '快乐坚果', img: '../assets/unsplash/1560472354-b33ff0c44a43.jpg', category: 'food' },
+    { letter: 'S', name: '索尼', desc: '让感动常在', img: '../assets/unsplash/1606107557195-0e29a4b5b4aa.jpg', category: 'digital' },
+    { letter: 'T', name: '腾讯', desc: '科技向善', img: '../assets/unsplash/1614680376593-902f74cf0d41.jpg', category: 'digital' },
+    { letter: 'W', name: '旺旺', desc: '旺旺雪饼', img: '../assets/unsplash/1578985545062-69928b1d9587.jpg', category: 'food' },
+    { letter: 'X', name: '小米', desc: '为发烧而生', img: '../assets/unsplash/1523275335684-37898b6baf30.jpg', hot: true, category: 'digital' },
+    { letter: 'Y', name: '伊利', desc: '滋养生命活力', img: '../assets/unsplash/1550583724-b2692b85b150.jpg', category: 'food' },
+    { letter: 'Z', name: '自然堂', desc: '你本来就很美', img: '../assets/unsplash/1596755094514-f87e34085b2c.jpg', category: 'beauty' }
+  ];
+
+  var currentCategory = 'all';
+  var hotBrandList = document.getElementById('hotBrandList');
+  var brandContent = document.getElementById('brandContent');
+  var letterIndex = document.getElementById('letterIndex');
+
+  // Render hot brands
+  function renderHotBrands() {
+    var hotBrands = brands.filter(function(b) { return b.hot; });
+    var html = '';
+    hotBrands.forEach(function(brand) {
+      html += '<a href="20.商品列表-原型页面.html" class="hot-brand-item">' +
+        '<div class="hot-brand-logo"><img src="' + brand.img + '" alt="' + brand.name + '"></div>' +
+        '<span class="hot-brand-name">' + brand.name + '</span>' +
+      '</a>';
+    });
+    hotBrandList.innerHTML = html;
+  }
+
+  // Group brands by letter
+  function groupByLetter(brandList) {
+    var groups = {};
+    brandList.forEach(function(brand) {
+      if (!groups[brand.letter]) {
+        groups[brand.letter] = [];
+      }
+      groups[brand.letter].push(brand);
+    });
+    return groups;
+  }
+
+  // Render brand list
+  function renderBrandList() {
+    var filtered = currentCategory === 'all' ? brands : brands.filter(function(b) { return b.category === currentCategory; });
+    var groups = groupByLetter(filtered);
+    var letters = Object.keys(groups).sort();
+
+    // Render letter index
+    var indexHtml = '';
+    letters.forEach(function(letter) {
+      indexHtml += '<div class="letter-item" data-letter="' + letter + '">' + letter + '</div>';
+    });
+    letterIndex.innerHTML = indexHtml;
+
+    // Render brand groups
+    var contentHtml = '';
+    letters.forEach(function(letter) {
+      contentHtml += '<div class="letter-group" id="letter-' + letter + '">' +
+        '<div class="letter-header">' + letter + '</div>' +
+        '<div class="brand-section">' +
+          '<div class="brand-grid">';
+
+      groups[letter].forEach(function(brand) {
+        contentHtml += '<a href="20.商品列表-原型页面.html" class="brand-item">' +
+          '<div class="brand-logo">' +
+            '<img src="' + brand.img + '" alt="' + brand.name + '">' +
+            (brand.hot ? '<span class="brand-tag">HOT</span>' : '') +
+          '</div>' +
+          '<span class="brand-name">' + brand.name + '</span>' +
+          '<span class="brand-desc">' + brand.desc + '</span>' +
+        '</a>';
+      });
+
+      contentHtml += '</div></div></div>';
+    });
+    brandContent.innerHTML = contentHtml;
+
+    // Bind letter index click
+    document.querySelectorAll('.letter-item').forEach(function(item) {
+      item.addEventListener('click', function() {
+        var letter = this.dataset.letter;
+        var target = document.getElementById('letter-' + letter);
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+  }
+
+  // Category tab switching
+  document.querySelectorAll('.category-tab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      document.querySelectorAll('.category-tab').forEach(function(t) { t.classList.remove('active'); });
+      this.classList.add('active');
+      currentCategory = this.dataset.cat;
+      renderBrandList();
+    });
+  });
+
+  // Search
+  document.getElementById('brandSearch').addEventListener('input', function() {
+    var keyword = this.value.toLowerCase().trim();
+    var filtered = brands.filter(function(b) {
+      return b.name.toLowerCase().indexOf(keyword) !== -1;
+    });
+
+    if (keyword === '') {
+      renderBrandList();
+      return;
+    }
+
+    var contentHtml = '<div class="brand-section"><div class="brand-grid">';
+    filtered.forEach(function(brand) {
+      contentHtml += '<a href="20.商品列表-原型页面.html" class="brand-item">' +
+        '<div class="brand-logo">' +
+          '<img src="' + brand.img + '" alt="' + brand.name + '">' +
+        '</div>' +
+        '<span class="brand-name">' + brand.name + '</span>' +
+        '<span class="brand-desc">' + brand.desc + '</span>' +
+      '</a>';
+    });
+    contentHtml += '</div></div>';
+
+    if (filtered.length === 0) {
+      brandContent.innerHTML = '<div class="brand-section" style="text-align:center;padding:40px;color:var(--text-tertiary);">未找到相关品牌</div>';
+    } else {
+      brandContent.innerHTML = contentHtml;
+    }
+    letterIndex.innerHTML = '';
+  });
+
+  renderHotBrands();
+  renderBrandList();
+})();
+</script>
+<script src="../assets/theme-switcher.js"></script>
+</body>
+</html>

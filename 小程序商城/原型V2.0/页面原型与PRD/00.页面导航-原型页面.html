@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>苏银豆商城 - 页面导航</title>
+<style>
+  :root {
+    --primary-start: #ff6034;
+    --primary-end: #ee0a24;
+    --price-color: #ee0a24;
+    --success-color: #52c41a;
+    --warning-color: #ff9800;
+    --tag-blue: #1677ff;
+    --tag-purple: #8b5cf6;
+    --text-color: #333;
+    --text-secondary: #666;
+    --text-tertiary: #999;
+    --text-muted: #bbb;
+    --bg-color: #f5f5f5;
+    --bg-input: #f8f8f8;
+    --card-bg: #fff;
+    --hover-bg: #fafafa;
+    --selected-bg: #fff5f0;
+    --border-color: #eee;
+    --radius-xs: 4px;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 12px;
+    --space-lg: 16px;
+    --space-xl: 24px;
+    --space-2xl: 32px;
+    --font-xs: 10px;
+    --font-sm: 12px;
+    --font-base: 14px;
+    --font-md: 16px;
+    --font-lg: 18px;
+    --font-xl: 20px;
+    --font-2xl: 24px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+    --shadow-md: 0 2px 8px rgba(0,0,0,0.08);
+    --shadow-lg: 0 4px 12px rgba(0,0,0,0.12);
+  }
+  /* Green theme */
+  .theme-green {
+    --primary-start: #07c160;
+    --primary-end: #059c4e;
+    --price-color: #059c4e;
+    --selected-bg: #e8f5e9;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', 'Microsoft YaHei', sans-serif;
+    background: var(--bg-color);
+    color: var(--text-color);
+    padding: var(--space-xl);
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  h1 {
+    font-size: var(--font-xl);
+    text-align: center;
+    margin-bottom: var(--space-xs);
+  }
+  .subtitle {
+    text-align: center;
+    color: var(--text-tertiary);
+    font-size: var(--font-sm);
+    margin-bottom: var(--space-xl);
+  }
+  .section {
+    background: var(--card-bg);
+    border-radius: var(--radius-sm);
+    padding: var(--space-lg);
+    margin-bottom: var(--space-md);
+    box-shadow: var(--shadow-sm);
+  }
+  .section h2 {
+    font-size: var(--font-md);
+    color: var(--price-color);
+    margin-bottom: var(--space-md);
+    padding-left: var(--space-sm);
+    border-left: 3px solid var(--price-color);
+  }
+  .links {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-sm);
+  }
+  .links a {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-md);
+    background: var(--bg-input);
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    color: var(--text-color);
+    font-size: var(--font-base);
+    transition: background 0.15s;
+  }
+  .links a:hover {
+    background: var(--card-bg)0ed;
+    color: var(--price-color);
+  }
+  .tip {
+    background: var(--card-bg)be6;
+    border: 1px solid var(--warning-color);
+    border-radius: var(--radius-sm);
+    padding: var(--space-md) var(--space-lg);
+    margin-bottom: var(--space-lg);
+    font-size: var(--font-sm);
+    color: var(--warning-dark);
+  }
+  .subgroup {
+    margin-top: var(--space-lg);
+  }
+  .subgroup:first-child {
+    margin-top: 0;
+  }
+  .subgroup h3 {
+    font-size: var(--font-sm);
+    color: var(--text-secondary);
+    font-weight: 500;
+    margin-bottom: var(--space-sm);
+    padding-left: 2px;
+  }
+  .level-tag {
+    font-size: var(--font-xs);
+    color: var(--text-tertiary);
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xs);
+    padding: 1px 6px;
+    flex-shrink: 0;
+    line-height: 1.4;
+  }
+  .links a:hover .level-tag {
+    color: var(--price-color);
+    border-color: var(--price-color);
+  }
+  .level-tag.global {
+    color: var(--tag-blue);
+    border-color: var(--tag-blue);
+  }
+</style>
+</head>
+<body>
+<h1>苏银豆商城 - 页面导航</h1>
+<p class="subtitle">原型演示页面，直接点击链接打开</p>
+<p class="subtitle">按用户路径与功能模块组织 · L1 底部Tab入口｜L2 功能页｜L3 操作页｜全局 跨流程入口</p>
+
+<div class="tip">原型默认已登录测试账号 <code>13800001111</code>（张三）。控制台执行 <code>Auth.resetAccounts()</code> 可重置数据</div>
+
+<div class="section">
+  <h2>核心导航（底部Tab）</h2>
+  <div class="links">
+    <a href="10.首页-原型页面.html"><span>首页</span><span class="level-tag">L1</span></a>
+    <a href="11.分类-原型页面.html"><span>分类</span><span class="level-tag">L1</span></a>
+    <a href="30.购物车-原型页面.html"><span>购物车</span><span class="level-tag">L1</span></a>
+    <a href="70.个人中心-原型页面.html"><span>我的</span><span class="level-tag">L1</span></a>
+  </div>
+</div>
+
+<div class="section">
+  <h2>① 首页与交易业务流</h2>
+  <div class="subgroup">
+    <h3>发现入口</h3>
+    <div class="links">
+      <a href="12.搜索-原型页面.html"><span>搜索</span><span class="level-tag">L1</span></a>
+      <a href="13.搜索筛选-原型页面.html"><span>搜索结果</span><span class="level-tag">L1</span></a>
+      <a href="14.活动专题-原型页面.html"><span>活动专题</span><span class="level-tag">L1</span></a>
+      <a href="15.品牌专区-原型页面.html"><span>品牌专区</span><span class="level-tag">L1</span></a>
+    </div>
+  </div>
+  <div class="subgroup">
+    <h3>浏览决策</h3>
+    <div class="links">
+      <a href="20.商品列表-原型页面.html"><span>商品列表</span><span class="level-tag">L2</span></a>
+      <a href="21.商品详情-原型页面.html"><span>商品详情</span><span class="level-tag">L2</span></a>
+      <a href="21.商品详情-原型页面.html?reason=soldout"><span>商品详情（售罄）</span><span class="level-tag">L2</span></a>
+      <a href="21.商品详情-原型页面.html?reason=offshelf"><span>商品已下架</span><span class="level-tag">L2</span></a>
+      <a href="76.浏览记录-原型页面.html"><span>浏览记录</span><span class="level-tag">L2</span></a>
+      <a href="75.我的收藏-原型页面.html"><span>我的收藏</span><span class="level-tag">L2</span></a>
+      <a href="62.商品评价-原型页面.html"><span>商品评价</span><span class="level-tag">L2</span></a>
+    </div>
+  </div>
+  <div class="subgroup">
+    <h3>结算支付</h3>
+    <div class="links">
+      <a href="31.确认订单-原型页面.html?scene=goods"><span>确认订单（商品）</span><span class="level-tag">L3</span></a>
+      <a href="31.确认订单-原型页面.html?scene=cake"><span>确认订单（蛋糕）</span><span class="level-tag">L3</span></a>
+      <a href="31.确认订单-原型页面.html?scene=movie"><span>确认订单（电影票）</span><span class="level-tag">L3</span></a>
+      <a href="32.订单支付-原型页面.html"><span>订单支付</span><span class="level-tag">L3</span></a>
+      <a href="33.支付成功-原型页面.html"><span>支付成功</span><span class="level-tag">L3</span></a>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h2>② 用户中心与资产管理（从「我的」展开）</h2>
+  <div class="subgroup">
+    <h3>订单查询</h3>
+    <div class="links">
+      <a href="40.我的订单-原型页面.html"><span>我的订单</span><span class="level-tag">L2</span></a>
+      <a href="41.订单详情-原型页面.html"><span>订单详情</span><span class="level-tag">L3</span></a>
+      <a href="42.取消订单-原型页面.html"><span>取消订单</span><span class="level-tag">L3</span></a>
+      <a href="43.物流追踪-原型页面.html"><span>物流追踪</span><span class="level-tag">L3</span></a>
+    </div>
+  </div>
+  <div class="subgroup">
+    <h3>售后子流</h3>
+    <div class="links">
+      <a href="50.售后记录-原型页面.html"><span>售后记录</span><span class="level-tag">L2</span></a>
+      <a href="51.申请售后-原型页面.html"><span>申请售后</span><span class="level-tag">L3</span></a>
+      <a href="52.售后详情-原型页面.html"><span>售后详情</span><span class="level-tag">L3</span></a>
+    </div>
+  </div>
+  <div class="subgroup">
+    <h3>评价子流</h3>
+    <div class="links">
+      <a href="60.我的评价-原型页面.html"><span>我的评价</span><span class="level-tag">L2</span></a>
+      <a href="61.发表评价-原型页面.html"><span>发表评价</span><span class="level-tag">L3</span></a>
+    </div>
+  </div>
+  <div class="subgroup">
+    <h3>资产卡包</h3>
+    <div class="links">
+      <a href="74.我的卡券-原型页面.html"><span>我的卡包</span><span class="level-tag">L2</span></a>
+      <a href="71.积分中心-原型页面.html"><span>积分中心</span><span class="level-tag">L2</span></a>
+      <a href="73.卡密兑换-原型页面.html"><span>卡密兑换</span><span class="level-tag">L2</span></a>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h2>③ 账户与设置</h2>
+  <div class="subgroup">
+    <h3>账户基础</h3>
+    <div class="links">
+      <a href="80.登录-原型页面.html"><span>登录</span><span class="level-tag global">全局</span></a>
+      <a href="81.个人资料-原型页面.html"><span>个人资料</span><span class="level-tag">L3</span></a>
+      <a href="82.修改手机号-原型页面.html"><span>修改手机号</span><span class="level-tag">L3</span></a>
+      <a href="83.收货地址-原型页面.html"><span>收货地址</span><span class="level-tag">L3</span></a>
+      <a href="84.编辑地址-原型页面.html"><span>编辑地址</span><span class="level-tag">L3</span></a>
+    </div>
+  </div>
+  <div class="subgroup">
+    <h3>系统设置 · 帮助</h3>
+    <div class="links">
+      <a href="85.设置-原型页面.html"><span>设置</span><span class="level-tag">L3</span></a>
+      <a href="86.消息中心-原型页面.html"><span>消息中心</span><span class="level-tag global">全局</span></a>
+      <a href="94.关于我们-原型页面.html"><span>关于我们</span><span class="level-tag">L3</span></a>
+      <a href="92.帮助中心-原型页面.html"><span>帮助中心</span><span class="level-tag">L3</span></a>
+      <a href="93.意见反馈-原型页面.html"><span>意见反馈</span><span class="level-tag">L3</span></a>
+      <a href="91.在线客服-原型页面.html"><span>在线客服</span><span class="level-tag">L3</span></a>
+    </div>
+  </div>
+</div>
+
+<script src="../assets/theme-switcher.js"></script>
+</body>
+</html>

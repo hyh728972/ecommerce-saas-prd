@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>物流追踪 - 苏银豆商城</title>
+<link rel="stylesheet" href="../assets/common.css">
+<style>
+  .phone-frame {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .page-scroll {
+    flex: 1;
+    min-height: 0;
+    padding-bottom: 0;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+    overflow-y: auto;
+    background: #e8eef2;
+  }
+
+  .pkg-switcher {
+    display: flex;
+    gap: 8px;
+    padding: 12px 12px 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .pkg-switcher::-webkit-scrollbar { display: none; }
+  .pkg-chip {
+    flex: 0 0 auto;
+    min-width: 148px;
+    padding: 8px 10px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .pkg-chip:active { opacity: 0.85; }
+  .pkg-chip.is-on {
+    border-color: var(--primary-start);
+    background: var(--selected-bg);
+  }
+  .pkg-chip-meta { flex: 1; min-width: 0; }
+  .pkg-chip-thumbs {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .pkg-chip-thumbs img {
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    object-fit: cover;
+    background: var(--bg-input);
+    border: 1px solid var(--card-bg);
+  }
+  .pkg-chip-thumbs img + img { margin-left: -8px; }
+  .pkg-chip-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: #262626;
+    line-height: 1.3;
+  }
+  .pkg-chip-status {
+    font-size: 11px;
+    color: var(--primary-start);
+    margin-top: 2px;
+    line-height: 1.3;
+  }
+
+  .trace-map {
+    position: relative;
+    flex: 1 0 140px;
+    min-height: 140px;
+    overflow: hidden;
+    background: #e8eef2;
+  }
+  .trace-map-spacer { flex: 1; min-height: 40px; }
+  .trace-map > img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 42%;
+    display: block;
+    pointer-events: none;
+  }
+  .trace-map .pkg-switcher {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 20px;
+    padding: 0 12px;
+    box-sizing: border-box;
+  }
+
+  .trace-card {
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
+    background: var(--card-bg);
+    margin-top: -12px;
+    border-radius: 12px 12px 0 0;
+    padding: 16px 12px 16px;
+  }
+
+  .trace-card.is-plain {
+    margin-top: 12px;
+    border-radius: 0;
+  }
+
+  .status-hero {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .status-hero .sh-text {
+    font-size: 18px;
+    font-weight: 700;
+    color: #262626;
+    line-height: 1.35;
+  }
+  .status-hero .sh-time {
+    font-size: 12px;
+    color: #999;
+    margin-top: 4px;
+  }
+  .btn-contact {
+    flex-shrink: 0;
+    font-size: 12px;
+    color: var(--primary-start);
+    border: 1px solid var(--primary-start);
+    background: none;
+    padding: 5px 10px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-family: inherit;
+    line-height: 1.2;
+  }
+  .btn-contact:active { opacity: 0.7; }
+
+  .waybill-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 2px 0 4px;
+  }
+  .waybill-bar .wb-courier {
+    font-size: 13px;
+    font-weight: 600;
+    color: #262626;
+    flex-shrink: 0;
+  }
+  .waybill-bar .wb-no {
+    font-size: 12px;
+    color: #666;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .waybill-bar .wb-copy,
+  .waybill-bar .wb-phone {
+    flex-shrink: 0;
+    font-size: 12px;
+    color: var(--primary-start);
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .waybill-bar .wb-copy:active,
+  .waybill-bar .wb-phone:active { opacity: 0.7; }
+  .waybill-bar .wb-phone { margin-left: auto; }
+
+  .pkg-goods {
+    margin-top: 10px;
+    padding: 8px 0;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+  }
+  .pg-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+  }
+  .pg-item .pg-img {
+    width: 40px;
+    height: 40px;
+    border-radius: 4px;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: var(--bg-input);
+  }
+  .pg-item .pg-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .pg-item .pg-name {
+    flex: 1;
+    min-width: 0;
+    font-size: 12px;
+    color: #262626;
+    line-height: 1.35;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .pg-item .pg-qty {
+    flex-shrink: 0;
+    font-size: 12px;
+    color: #999;
+  }
+
+  .pending-empty {
+    margin-top: 16px;
+    padding: 28px 12px;
+    text-align: center;
+    color: var(--text-tertiary);
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .timeline {
+    position: relative;
+    margin-top: 16px;
+    padding-left: 18px;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 4px;
+    top: 8px;
+    bottom: 8px;
+    width: 1px;
+    background: var(--border-color);
+  }
+  .timeline-item {
+    position: relative;
+    padding-bottom: 18px;
+  }
+  .timeline-item.is-hidden { display: none; }
+  .timeline-item .dot {
+    position: absolute;
+    left: -18px;
+    top: 5px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--card-bg);
+    border: 2px solid #d9d9d9;
+    box-sizing: border-box;
+  }
+  .timeline-item.is-current .dot {
+    width: 10px;
+    height: 10px;
+    left: -18.5px;
+    background: var(--primary-start);
+    border-color: var(--primary-start);
+  }
+  .tl-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .tl-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #999;
+    line-height: 1.3;
+  }
+  .timeline-item.is-current .tl-title { color: var(--primary-start); }
+  .tl-time {
+    flex-shrink: 0;
+    font-size: 12px;
+    color: #999;
+  }
+  .tl-desc {
+    font-size: 12px;
+    color: #999;
+    line-height: 1.6;
+    margin-top: 4px;
+  }
+  .timeline-item.is-current .tl-desc { color: #666; }
+  .tl-phone { color: var(--primary-start); }
+
+  .tl-more {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding-top: 2px;
+    font-size: 12px;
+    color: #999;
+    cursor: pointer;
+  }
+  .tl-more svg {
+    width: 12px;
+    height: 12px;
+    transition: transform 0.2s;
+  }
+  .tl-more.is-open svg { transform: rotate(180deg); }
+  .tl-more:active { opacity: 0.7; }
+
+  .recv-bar {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-color);
+  }
+  .recv-badge {
+    width: 22px;
+    height: 22px;
+    border-radius: 4px;
+    background: var(--primary-start);
+    color: var(--card-bg);
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .recv-text { flex: 1; min-width: 0; }
+  .recv-addr {
+    font-size: 13px;
+    color: #262626;
+    line-height: 1.45;
+  }
+  .recv-user {
+    font-size: 12px;
+    color: #999;
+    margin-top: 4px;
+  }
+</style>
+</head>
+<body>
+<div class="phone-frame">
+
+  <div class="sub-nav">
+    <div class="status-bar dark">
+      <span class="time">09:41</span>
+      <div class="icons">
+        <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+      </div>
+    </div>
+    <div class="nav-bar">
+      <div class="back-btn" onclick="history.back()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <span class="nav-title">物流追踪</span>
+      <div class="capsule-btn"><img src="../assets/icons/小程序按钮.svg" alt=""></div>
+    </div>
+  </div>
+
+  <div class="page-scroll" id="traceRoot"></div>
+
+</div>
+<script src="../assets/common.js"></script>
+<script>
+(function() {
+  var chevronSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>';
+  var ADDRESS = {
+    line: '北京市朝阳区建国路88号 悦享大厦A座12层',
+    user: '张三 138****8888'
+  };
+
+  var GOODS_PACKAGES = [
+    {
+      id: 1,
+      title: '包裹1',
+      status: 'shipping',
+      statusText: '运输中',
+      heroText: '快件正在派送中',
+      updateTime: '04-08 08:35',
+      courier: '顺丰速运',
+      trackingNo: 'SF1234567890',
+      products: [
+        { name: '日本进口保温杯 不锈钢真空便携水杯500ml', qty: 1, img: '../assets/unsplash/1602143407151-7111542de6e8.jpg' },
+        { name: '纯棉短袖T恤男女款 夏季宽松百搭潮流', qty: 1, img: '../assets/unsplash/1521572163474-6864f9cf17ab.jpg' }
+      ],
+      timeline: [
+        { title: '派件中', time: '04-08 08:35', desc: '【北京市】快件已到达北京朝阳区营业点，正在派送中，快递员：李师傅 <span class="tl-phone">138****6666</span>' },
+        { title: '运输中', time: '04-08 05:22', desc: '【北京市】快件已从北京转运中心发出，下一站北京朝阳区营业点' },
+        { title: '运输中', time: '04-07 22:15', desc: '【南京市】快件已从南京转运中心发出' },
+        { title: '已发货', time: '04-07 16:30', desc: '【南京市】快件已从江苏银行仓库发出' }
+      ]
+    },
+    {
+      id: 2,
+      title: '包裹2',
+      status: 'delivered',
+      statusText: '已签收',
+      heroText: '已按预计时间为您送达',
+      updateTime: '04-09 14:20',
+      courier: '中通快递',
+      trackingNo: 'ZT2026040700001',
+      products: [
+        { name: '无线蓝牙降噪耳机 迷你入耳式超长续航', qty: 1, img: '../assets/unsplash/1505740420928-5e560c06d30e.jpg' }
+      ],
+      timeline: [
+        { title: '已签收', time: '04-09 14:20', desc: '【北京市】已签收，签收人：本人签收' },
+        { title: '待取件', time: '04-09 11:34', desc: '快件已存放至朝阳区建国路悦享大厦驿站，请及时取件' },
+        { title: '派件中', time: '04-09 08:10', desc: '【北京市】快件正在派送中，快递员：王师傅 <span class="tl-phone">139****7777</span>' },
+        { title: '运输中', time: '04-09 06:30', desc: '【北京市】快件已到达北京朝阳区营业点' },
+        { title: '已发货', time: '04-08 20:00', desc: '【南京市】快件已从南京转运中心发出' }
+      ]
+    }
+  ];
+
+  var COMBO_PACKAGES = [
+    {
+      id: 1,
+      title: '包裹1',
+      status: 'shipping',
+      statusText: '运输中',
+      heroText: '快件正在派送中',
+      updateTime: '04-08 08:35',
+      courier: '顺丰速运',
+      trackingNo: 'SF2026040800002',
+      products: [
+        { name: '【OPPO】Find X9 Ultra 哈苏联名专业影像套装', qty: 1, img: '../assets/products/oppo-x9/cp main01.jpg' }
+      ],
+      timeline: [
+        { title: '派件中', time: '04-08 08:35', desc: '【北京市】快件已到达北京朝阳区营业点，正在派送中' },
+        { title: '已发货', time: '04-07 16:30', desc: '【南京市】快件已从江苏银行仓库发出' }
+      ]
+    },
+    {
+      id: 2,
+      title: '包裹2',
+      status: 'delivered',
+      statusText: '已签收',
+      heroText: '已按预计时间为您送达',
+      updateTime: '04-09 14:20',
+      courier: '中通快递',
+      trackingNo: 'ZT2026040800003',
+      products: [
+        { name: '哈苏影像配件套装（套装内 · 搭配）', qty: 1, img: '../assets/products/oppo-x9/c main01.jpg' }
+      ],
+      timeline: [
+        { title: '已签收', time: '04-09 14:20', desc: '【北京市】已签收，签收人：本人签收' },
+        { title: '派件中', time: '04-09 08:10', desc: '【北京市】快件正在派送中' },
+        { title: '已发货', time: '04-08 20:00', desc: '【南京市】快件已从南京转运中心发出' }
+      ]
+    },
+    {
+      id: 3,
+      title: '待发货',
+      status: 'pending',
+      statusText: '待发货',
+      heroText: '商家备货中',
+      updateTime: '',
+      courier: '',
+      trackingNo: '',
+      products: [
+        { name: '哈苏专业增距镜（套装内 · 搭配）', qty: 1, img: '../assets/products/oppo-x9/c main02.webp' }
+      ],
+      timeline: []
+    }
+  ];
+
+  var params = new URLSearchParams(location.search);
+  var packages = params.get('scene') === 'combo' ? COMBO_PACKAGES : GOODS_PACKAGES;
+  var activeId = pickDefaultPackageId(packages, params.get('pkg'));
+  var timelineOpen = {};
+
+  function pickDefaultPackageId(list, pkgParam) {
+    var requested = Number(pkgParam);
+    if (requested && list.some(function(p) { return p.id === requested; })) return requested;
+    var shipping = list.filter(function(p) { return p.status === 'shipping'; })[0];
+    if (shipping) return shipping.id;
+    var pending = list.filter(function(p) { return p.status === 'pending'; })[0];
+    if (pending) return pending.id;
+    return list[list.length - 1].id;
+  }
+
+  function recvBarHtml() {
+    return '<div class="recv-bar">' +
+      '<div class="recv-badge">收</div>' +
+      '<div class="recv-text">' +
+        '<div class="recv-addr">' + ADDRESS.line + '</div>' +
+        '<div class="recv-user">' + ADDRESS.user + '</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function render() {
+    var pkg = packages.filter(function(p) { return p.id === activeId; })[0] || packages[0];
+    var chips = packages.map(function(p) {
+      var thumbs = p.products.slice(0, 3).map(function(g) {
+        return '<img src="' + g.img + '" alt="">';
+      }).join('');
+      return '<div class="pkg-chip' + (p.id === activeId ? ' is-on' : '') + '" data-pkg="' + p.id + '">' +
+        '<div class="pkg-chip-meta">' +
+          '<div class="pkg-chip-name">' + p.title + '</div>' +
+          '<div class="pkg-chip-status">' + p.statusText + '</div>' +
+        '</div>' +
+        '<div class="pkg-chip-thumbs">' + thumbs + '</div>' +
+      '</div>';
+    }).join('');
+
+    var goods = pkg.products.map(function(g) {
+      return '<div class="pg-item">' +
+        '<div class="pg-img"><img src="' + g.img + '" alt=""></div>' +
+        '<div class="pg-name">' + g.name + '</div>' +
+        '<div class="pg-qty">x' + g.qty + '</div>' +
+      '</div>';
+    }).join('');
+
+    var contactBtn = pkg.status === 'pending'
+      ? ''
+      : '<button type="button" class="btn-contact" onclick="alert(\'已为您接通快递员\')">联系快递员</button>';
+
+    var body;
+    if (pkg.status === 'pending') {
+      body =
+        '<div class="waybill-bar"><div class="wb-no">暂无运单号</div></div>' +
+        '<div class="pkg-goods">' + goods + '</div>' +
+        '<div class="pending-empty">商家备货中<br>发货后可查看物流轨迹</div>';
+    } else {
+      var opened = !!timelineOpen[pkg.id];
+      var preview = 3;
+      var items = pkg.timeline.map(function(t, i) {
+        var hidden = !opened && i >= preview ? ' is-hidden' : '';
+        var current = i === 0 ? ' is-current' : '';
+        return '<div class="timeline-item' + current + hidden + '">' +
+          '<div class="dot"></div>' +
+          '<div class="tl-head">' +
+            '<div class="tl-title">' + t.title + '</div>' +
+            '<div class="tl-time">' + t.time + '</div>' +
+          '</div>' +
+          '<div class="tl-desc">' + t.desc + '</div>' +
+        '</div>';
+      }).join('');
+      var more = pkg.timeline.length > preview
+        ? '<div class="tl-more' + (opened ? ' is-open' : '') + '" id="tlMore">' +
+            '<span>' + (opened ? '收起物流信息' : '展开全部物流信息') + '</span>' +
+            chevronSvg +
+          '</div>'
+        : '';
+      body =
+        '<div class="waybill-bar">' +
+          '<span class="wb-courier">' + pkg.courier + '</span>' +
+          '<span class="wb-no">' + pkg.trackingNo + '</span>' +
+          '<span class="wb-copy" onclick="alert(\'已复制单号\')">复制</span>' +
+          '<span class="wb-phone" onclick="alert(\'已拨打物流电话\')">物流电话</span>' +
+        '</div>' +
+        '<div class="pkg-goods">' + goods + '</div>' +
+        '<div class="timeline">' + items + more + '</div>';
+    }
+
+    document.getElementById('traceRoot').innerHTML =
+      (pkg.status === 'pending'
+        ? '<div class="trace-map-spacer"></div><div class="pkg-switcher">' + chips + '</div>'
+        : '<div class="trace-map">' +
+            '<img src="../assets/logistics-map-demo.png" alt="物流路径示意">' +
+            '<div class="pkg-switcher">' + chips + '</div>' +
+          '</div>') +
+      '<div class="trace-card' + (pkg.status === 'pending' ? ' is-plain' : '') + '">' +
+        '<div class="status-hero">' +
+          '<div>' +
+            '<div class="sh-text">' + (pkg.heroText || pkg.statusText) + '</div>' +
+            (pkg.updateTime ? '<div class="sh-time">' + pkg.updateTime + ' 更新</div>' : '') +
+          '</div>' +
+          contactBtn +
+        '</div>' +
+        body +
+        recvBarHtml() +
+      '</div>';
+
+    document.querySelectorAll('.pkg-chip').forEach(function(el) {
+      el.addEventListener('click', function() {
+        activeId = Number(this.dataset.pkg);
+        render();
+      });
+    });
+    var moreEl = document.getElementById('tlMore');
+    if (moreEl) {
+      moreEl.addEventListener('click', function() {
+        timelineOpen[pkg.id] = !timelineOpen[pkg.id];
+        render();
+      });
+    }
+  }
+
+  render();
+})();
+</script>
+<script src="../assets/theme-switcher.js"></script>
+</body>
+</html>

@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>帮助中心 - 苏银豆商城</title>
+<link rel="stylesheet" href="../assets/common.css">
+<style>
+  /* Search bar */
+  .help-search {
+    background: var(--card-bg);
+    padding: var(--space-md);
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+  .help-search-input {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    background: var(--bg-color);
+    border-radius: var(--radius-xl);
+    padding: var(--space-sm) 12px;
+    gap: var(--space-sm);
+  }
+  .help-search-input svg { width: 16px; height: 16px; color: var(--text-tertiary); }
+  .help-search-input input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: var(--font-base);
+    background: transparent;
+    color: var(--text-color);
+  }
+  .help-search-input input::placeholder { color: var(--text-muted); }
+
+  /* Hot questions */
+  .hot-section {
+    background: var(--card-bg);
+    margin: var(--space-sm) 12px;
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+  }
+  .section-title {
+    font-size: var(--font-md);
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: var(--space-md);
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+  .section-title svg { width: 16px; height: 16px; color: var(--primary-start); }
+  .hot-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+  }
+  .hot-item {
+    background: var(--selected-bg);
+    color: var(--primary-start);
+    font-size: var(--font-sm);
+    padding: var(--space-sm) 12px;
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+  }
+  .hot-item:active { background: var(--selected-bg); }
+
+  /* FAQ sections */
+  .faq-section {
+    background: var(--card-bg);
+    margin: 0 var(--space-md) var(--space-sm);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+  .faq-category {
+    padding: var(--space-lg);
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    cursor: pointer;
+    border-bottom: 1px solid var(--bg-color);
+  }
+  .faq-category:last-child { border-bottom: none; }
+  .faq-category:active { background: var(--hover-bg); }
+  .faq-category-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .faq-category-icon svg { width: 20px; height: 20px; color: var(--card-bg); }
+  .faq-category-info { flex: 1; }
+  .faq-category-name {
+    font-size: var(--font-base);
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: 2px;
+  }
+  .faq-category-count {
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+  }
+  .faq-category-arrow { color: var(--text-light); }
+  .faq-category-arrow svg { width: 16px; height: 16px; }
+
+  /* Question list */
+  .question-list {
+    background: var(--card-bg);
+    margin: 0 var(--space-md) var(--space-sm);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+  .question-item {
+    border-bottom: 1px solid var(--bg-color);
+  }
+  .question-item:last-child { border-bottom: none; }
+  .question-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-lg);
+    cursor: pointer;
+  }
+  .question-header:active { background: var(--hover-bg); }
+  .question-title {
+    font-size: var(--font-base);
+    color: var(--text-color);
+    flex: 1;
+  }
+  .question-arrow {
+    color: var(--text-light);
+    transition: transform 0.2s;
+  }
+  .question-arrow svg { width: 16px; height: 16px; }
+  .question-item.open .question-arrow { transform: rotate(180deg); }
+
+  .question-answer {
+    display: none;
+    padding: 0 var(--space-lg) var(--space-lg);
+    font-size: var(--font-sm);
+    color: var(--text-secondary);
+    line-height: 1.7;
+    background: var(--hover-bg);
+  }
+  .question-item.open .question-answer { display: block; }
+
+  /* Contact */
+  .contact-section {
+    background: var(--card-bg);
+    margin: var(--space-md);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    text-align: center;
+  }
+  .contact-title {
+    font-size: var(--font-md);
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: var(--space-sm);
+  }
+  .contact-desc {
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+    margin-bottom: var(--space-lg);
+  }
+  .btn-contact {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-sm);
+    background: linear-gradient(135deg, var(--primary-start), var(--price-color));
+    color: var(--card-bg);
+    padding: var(--space-md) 24px;
+    border-radius: var(--radius-xl);
+    font-size: var(--font-base);
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+  }
+  .btn-contact:active { opacity: 0.85; }
+  .btn-contact svg { width: 18px; height: 18px; }
+</style>
+</head>
+<body>
+<div class="phone-frame">
+
+  <!-- Sub-page Navigation -->
+  <div class="sub-nav">
+    <div class="status-bar dark">
+      <span class="time">09:41</span>
+      <div class="icons">
+        <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+      </div>
+    </div>
+    <div class="nav-bar">
+      <div class="back-btn" onclick="history.back()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <span class="nav-title">帮助中心</span>
+      <div class="capsule-btn"><img src="../assets/icons/小程序按钮.svg" alt=""></div>
+    </div>
+  </div>
+
+  <!-- Scrollable Content -->
+  <div class="page-scroll" style="padding-bottom: 16px;">
+
+    <!-- Search -->
+    <div class="help-search">
+      <div class="help-search-input">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="搜索问题">
+      </div>
+    </div>
+
+    <!-- Hot Questions -->
+    <div class="hot-section">
+      <div class="section-title">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67z"/></svg>
+        热门问题
+      </div>
+      <div class="hot-list">
+        <span class="hot-item">如何登录账号</span>
+        <span class="hot-item">积分怎么获取</span>
+        <span class="hot-item">退款多久到账</span>
+        <span class="hot-item">如何修改收货地址</span>
+        <span class="hot-item">如何更换绑定手机号</span>
+      </div>
+    </div>
+
+    <!-- FAQ Categories -->
+    <div class="faq-section">
+      <div class="faq-category">
+        <div class="faq-category-icon" style="background: linear-gradient(135deg, var(--info-color), var(--info-color));">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
+        </div>
+        <div class="faq-category-info">
+          <div class="faq-category-name">购物相关</div>
+          <div class="faq-category-count">8个问题</div>
+        </div>
+        <span class="faq-category-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+      </div>
+      <div class="faq-category">
+        <div class="faq-category-icon" style="background: linear-gradient(135deg, var(--success-color), var(--success-dark));">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        </div>
+        <div class="faq-category-info">
+          <div class="faq-category-name">支付相关</div>
+          <div class="faq-category-count">6个问题</div>
+        </div>
+        <span class="faq-category-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+      </div>
+      <div class="faq-category">
+        <div class="faq-category-icon" style="background: linear-gradient(135deg, var(--warning-color), var(--warning-dark));">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        </div>
+        <div class="faq-category-info">
+          <div class="faq-category-name">配送相关</div>
+          <div class="faq-category-count">5个问题</div>
+        </div>
+        <span class="faq-category-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+      </div>
+      <div class="faq-category">
+        <div class="faq-category-icon" style="background: linear-gradient(135deg, var(--error-light), var(--price-color));">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3zM7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3"/></svg>
+        </div>
+        <div class="faq-category-info">
+          <div class="faq-category-name">售后服务</div>
+          <div class="faq-category-count">7个问题</div>
+        </div>
+        <span class="faq-category-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+      </div>
+      <div class="faq-category">
+        <div class="faq-category-icon" style="background: linear-gradient(135deg, var(--info-color), var(--info-color));">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <div class="faq-category-info">
+          <div class="faq-category-name">账号问题</div>
+          <div class="faq-category-count">3个问题</div>
+        </div>
+        <span class="faq-category-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+      </div>
+    </div>
+
+    <!-- Common Questions -->
+    <div class="question-list">
+      <div class="section-title" style="padding: var(--space-lg); border-bottom: 1px solid var(--bg-color); margin: 0;">常见问题</div>
+      <div class="question-item">
+        <div class="question-header">
+          <span class="question-title">如何登录苏银豆商城？</span>
+          <span class="question-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+        </div>
+        <div class="question-answer">
+          1. 打开苏银豆商城小程序<br>
+          2. 点击"我的"页面<br>
+          3. 点击"登录"<br>
+          4. 输入手机号获取验证码并完成登录
+        </div>
+      </div>
+      <div class="question-item">
+        <div class="question-header">
+          <span class="question-title">积分如何获取和使用？</span>
+          <span class="question-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+        </div>
+        <div class="question-answer">
+          苏银豆获取方式：<br>
+          • 平台发放<br>
+          • 礼品卡绑定<br>
+          • 积分卡卡密兑换<br><br>
+          不提供签到、领券、做任务等获取方式；苏银豆可用于兑换好物或下单抵扣现金
+        </div>
+      </div>
+      <div class="question-item">
+        <div class="question-header">
+          <span class="question-title">退款多久能到账？</span>
+          <span class="question-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+        </div>
+        <div class="question-answer">
+          退款到账时间：<br>
+          • 苏银豆抵扣部分：即时返还<br>
+          • 退款：1-3个工作日
+        </div>
+      </div>
+      <div class="question-item">
+        <div class="question-header">
+          <span class="question-title">如何更换绑定手机号？</span>
+          <span class="question-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+        </div>
+        <div class="question-answer">
+          本商城使用手机验证码登录，无需密码。<br>
+          如需更换绑定手机号：<br>
+          1. 进入"我的" → "设置" → "修改手机号"<br>
+          2. 验证原手机号后绑定新手机号<br>
+          如原手机号已无法接收验证码，请联系客服处理
+        </div>
+      </div>
+    </div>
+
+    <!-- Contact -->
+    <div class="contact-section">
+      <div class="contact-title">没有找到答案？</div>
+      <div class="contact-desc">联系在线客服，我们将为您解答</div>
+      <button class="btn-contact" onclick="location.href='91.在线客服-原型页面.html'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        联系客服
+      </button>
+    </div>
+
+  </div>
+
+</div>
+<script src="../assets/common.js"></script>
+<script>
+(function() {
+  // Question toggle
+  document.querySelectorAll('.question-header').forEach(function(header) {
+    header.addEventListener('click', function() {
+      var item = this.parentElement;
+      item.classList.toggle('open');
+    });
+  });
+
+  // Hot item click
+  document.querySelectorAll('.hot-item').forEach(function(item) {
+    item.addEventListener('click', function() {
+      alert('搜索：' + this.textContent);
+    });
+  });
+})();
+</script>
+<script src="../assets/theme-switcher.js"></script>
+</body>
+</html>

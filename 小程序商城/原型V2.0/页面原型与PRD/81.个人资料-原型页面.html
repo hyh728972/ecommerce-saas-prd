@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>个人资料 - 苏银豆商城</title>
+<link rel="stylesheet" href="../assets/common.css">
+<style>
+  .profile-edit-content {
+    padding: var(--space-md);
+    padding-bottom: 100px;
+  }
+
+  /* Avatar section */
+  .avatar-section {
+    background: var(--card-bg);
+    border-radius: var(--radius-md);
+    padding: var(--space-xl);
+    margin-bottom: var(--space-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+  .avatar-wrapper {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+  }
+  .avatar-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .avatar-edit {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0,0,0,0.5);
+    color: var(--card-bg);
+    font-size: var(--font-sm);
+    text-align: center;
+    padding: var(--space-xs) 0;
+  }
+  .avatar-tip {
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+  }
+
+  /* Form section */
+  .form-section {
+    background: var(--card-bg);
+    border-radius: var(--radius-md);
+    padding: 0 var(--space-lg);
+    margin-bottom: var(--space-md);
+  }
+  .form-item {
+    display: flex;
+    align-items: center;
+    padding: var(--space-lg) 0;
+    border-bottom: 1px solid var(--bg-color);
+  }
+  .form-item:last-child { border-bottom: none; }
+  .form-label {
+    font-size: var(--font-base);
+    color: var(--text-color);
+    width: 80px;
+    flex-shrink: 0;
+  }
+  .form-input {
+    flex: 1;
+    display: flex;
+    align-items: center;
+  }
+  .form-input input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: var(--font-base);
+    color: var(--text-color);
+    background: transparent;
+    text-align: right;
+  }
+  .form-input input::placeholder { color: var(--text-muted); }
+  .form-input .form-value {
+    font-size: var(--font-base);
+    color: var(--text-color);
+    text-align: right;
+  }
+  .form-input .form-arrow {
+    color: var(--text-light);
+    margin-left: var(--space-sm);
+  }
+  .form-input .form-arrow svg { width: 16px; height: 16px; }
+
+  /* Gender picker */
+  .gender-picker {
+    display: flex;
+    gap: var(--space-md);
+  }
+  .gender-option {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    cursor: pointer;
+    padding: var(--space-sm) 12px;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+    font-size: var(--font-sm);
+    color: var(--text-secondary);
+  }
+  .gender-option.active {
+    border-color: var(--primary-start);
+    color: var(--primary-start);
+    background: var(--selected-bg);
+  }
+
+  /* Save button */
+  .save-section {
+    padding: var(--space-xl) 12px;
+  }
+  .btn-save {
+    width: 100%;
+    height: 48px;
+    background: linear-gradient(135deg, var(--primary-start), var(--price-color));
+    color: var(--card-bg);
+    border: none;
+    border-radius: var(--radius-xl);
+    font-size: var(--font-md);
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .btn-save:active { opacity: 0.85; }
+
+  /* Birthday picker modal */
+  .picker-modal {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--card-bg);
+    border-radius: var(--radius-md) 12px 0 0;
+    padding: var(--space-lg);
+    z-index: 1000;
+    transform: translateY(100%);
+    transition: transform 0.3s;
+  }
+  .picker-modal.show { transform: translateY(0); }
+  .picker-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-md);
+  }
+  .picker-title {
+    font-size: var(--font-md);
+    font-weight: 600;
+    color: var(--text-color);
+  }
+  .picker-btn {
+    font-size: var(--font-base);
+    color: var(--primary-start);
+    cursor: pointer;
+  }
+  .picker-body {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-lg);
+    height: 200px;
+  }
+  .picker-column {
+    flex: 1;
+    overflow-y: auto;
+    text-align: center;
+  }
+  .picker-column::-webkit-scrollbar { display: none; }
+  .picker-item {
+    padding: var(--space-sm);
+    font-size: var(--font-base);
+    color: var(--text-secondary);
+    cursor: pointer;
+  }
+  .picker-item.selected {
+    color: var(--primary-start);
+    font-weight: 600;
+    background: var(--selected-bg);
+    border-radius: var(--radius-xs);
+  }
+  .picker-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 999;
+    display: none;
+  }
+  .picker-overlay.show { display: block; }
+</style>
+</head>
+<body>
+<div class="phone-frame">
+
+  <!-- Sub-page Navigation -->
+  <div class="sub-nav">
+    <div class="status-bar dark">
+      <span class="time">09:41</span>
+      <div class="icons">
+        <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+      </div>
+    </div>
+    <div class="nav-bar">
+      <div class="back-btn" onclick="history.back()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <span class="nav-title">个人资料</span>
+      <div class="capsule-btn"><img src="../assets/icons/小程序按钮.svg" alt=""></div>
+    </div>
+  </div>
+
+  <!-- Scrollable Content -->
+  <div class="page-scroll">
+    <div class="profile-edit-content">
+
+      <!-- Avatar -->
+      <div class="avatar-section">
+        <div class="avatar-wrapper" onclick="alert('更换头像')">
+          <img src="../assets/unsplash/1535713875002-d1d0cf377fde.jpg" alt="头像">
+          <div class="avatar-edit">更换头像</div>
+        </div>
+        <div class="avatar-tip">点击更换头像</div>
+      </div>
+
+      <!-- Basic Info -->
+      <div class="form-section">
+        <div class="form-item">
+          <span class="form-label">昵称</span>
+          <div class="form-input">
+            <input type="text" id="nickname" placeholder="请输入昵称" value="悦享用户">
+          </div>
+        </div>
+        <div class="form-item">
+          <span class="form-label">性别</span>
+          <div class="form-input">
+            <div class="gender-picker">
+              <div class="gender-option active" data-gender="male">男</div>
+              <div class="gender-option" data-gender="female">女</div>
+              <div class="gender-option" data-gender="secret">保密</div>
+            </div>
+          </div>
+        </div>
+        <div class="form-item" id="birthdayItem">
+          <span class="form-label">生日</span>
+          <div class="form-input">
+            <span class="form-value" id="birthdayValue">1990-01-01</span>
+            <span class="form-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contact Info -->
+      <div class="form-section">
+        <div class="form-item">
+          <span class="form-label">手机号</span>
+          <div class="form-input">
+            <span class="form-value" id="phoneValue">138****8888</span>
+          </div>
+        </div>
+        <div class="form-item">
+          <span class="form-label">邮箱</span>
+          <div class="form-input">
+            <input type="email" id="email" placeholder="未绑定" value="">
+          </div>
+        </div>
+      </div>
+
+      <!-- Save -->
+      <div class="save-section">
+        <button class="btn-save" id="saveBtn">保存修改</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Birthday Picker Modal -->
+  <div class="picker-overlay" id="pickerOverlay"></div>
+  <div class="picker-modal" id="pickerModal">
+    <div class="picker-header">
+      <span class="picker-btn" onclick="closePicker()">取消</span>
+      <span class="picker-title">选择生日</span>
+      <span class="picker-btn" onclick="confirmPicker()">确定</span>
+    </div>
+    <div class="picker-body">
+      <div class="picker-column" id="yearPicker"></div>
+      <div class="picker-column" id="monthPicker"></div>
+      <div class="picker-column" id="dayPicker"></div>
+    </div>
+  </div>
+
+</div>
+<script src="../assets/auth.js"></script>
+<script src="../assets/auth-guard.js"></script>
+<script src="../assets/common.js"></script>
+<script>
+(function() {
+  var user = Auth.getCurrentUser();
+
+  // Load user data into form
+  if (user) {
+    document.querySelector('.avatar-wrapper img').src = user.avatar || Auth.DEFAULT_AVATAR;
+    document.getElementById('nickname').value = user.name || '';
+    document.getElementById('birthdayValue').textContent = user.birthday || '1970-01-01';
+    document.getElementById('phoneValue').textContent = Auth.maskPhone(user.phone);
+    document.getElementById('email').value = user.email || '';
+
+    // Set gender
+    var gender = user.gender || 'secret';
+    document.querySelectorAll('.gender-option').forEach(function(opt) {
+      opt.classList.toggle('active', opt.dataset.gender === gender);
+    });
+  }
+
+  // Gender picker
+  var genderOptions = document.querySelectorAll('.gender-option');
+  genderOptions.forEach(function(opt) {
+    opt.addEventListener('click', function() {
+      genderOptions.forEach(function(o) { o.classList.remove('active'); });
+      this.classList.add('active');
+    });
+  });
+
+  // Birthday picker
+  var birthdayItem = document.getElementById('birthdayItem');
+  var birthdayValue = document.getElementById('birthdayValue');
+  var pickerOverlay = document.getElementById('pickerOverlay');
+  var pickerModal = document.getElementById('pickerModal');
+  var yearPicker = document.getElementById('yearPicker');
+  var monthPicker = document.getElementById('monthPicker');
+  var dayPicker = document.getElementById('dayPicker');
+
+  var selectedYear = 1990, selectedMonth = 1, selectedDay = 1;
+
+  function initPicker() {
+    var yearHtml = '';
+    for (var y = 1950; y <= 2010; y++) {
+      yearHtml += '<div class="picker-item' + (y === selectedYear ? ' selected' : '') + '" data-val="' + y + '">' + y + '年</div>';
+    }
+    yearPicker.innerHTML = yearHtml;
+
+    var monthHtml = '';
+    for (var m = 1; m <= 12; m++) {
+      monthHtml += '<div class="picker-item' + (m === selectedMonth ? ' selected' : '') + '" data-val="' + m + '">' + m + '月</div>';
+    }
+    monthPicker.innerHTML = monthHtml;
+
+    var dayHtml = '';
+    for (var d = 1; d <= 31; d++) {
+      dayHtml += '<div class="picker-item' + (d === selectedDay ? ' selected' : '') + '" data-val="' + d + '">' + d + '日</div>';
+    }
+    dayPicker.innerHTML = dayHtml;
+
+    document.querySelectorAll('.picker-item').forEach(function(item) {
+      item.addEventListener('click', function() {
+        var parent = this.parentElement;
+        parent.querySelectorAll('.picker-item').forEach(function(i) { i.classList.remove('selected'); });
+        this.classList.add('selected');
+        var val = parseInt(this.dataset.val);
+        if (parent.id === 'yearPicker') selectedYear = val;
+        else if (parent.id === 'monthPicker') selectedMonth = val;
+        else if (parent.id === 'dayPicker') selectedDay = val;
+      });
+    });
+  }
+
+  function openPicker() {
+    var current = birthdayValue.textContent;
+    if (current && current.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      var parts = current.split('-');
+      selectedYear = parseInt(parts[0]);
+      selectedMonth = parseInt(parts[1]);
+      selectedDay = parseInt(parts[2]);
+    }
+    initPicker();
+    pickerOverlay.classList.add('show');
+    pickerModal.classList.add('show');
+  }
+
+  function closePicker() {
+    pickerOverlay.classList.remove('show');
+    pickerModal.classList.remove('show');
+  }
+
+  function confirmPicker() {
+    birthdayValue.textContent = selectedYear + '-' + (selectedMonth < 10 ? '0' : '') + selectedMonth + '-' + (selectedDay < 10 ? '0' : '') + selectedDay;
+    closePicker();
+  }
+
+  birthdayItem.addEventListener('click', openPicker);
+  pickerOverlay.addEventListener('click', closePicker);
+
+  // Save button
+  document.getElementById('saveBtn').addEventListener('click', function() {
+    var nickname = document.getElementById('nickname').value.trim();
+    if (!nickname) {
+      alert('请输入昵称');
+      return;
+    }
+
+    var activeGender = document.querySelector('.gender-option.active');
+    var updates = {
+      name: nickname,
+      gender: activeGender ? activeGender.dataset.gender : 'secret',
+      birthday: birthdayValue.textContent,
+      email: document.getElementById('email').value.trim()
+    };
+
+    Auth.updateCurrentUser(updates);
+    alert('保存成功');
+    history.back();
+  });
+})();
+</script>
+<script src="../assets/theme-switcher.js"></script>
+</body>
+</html>

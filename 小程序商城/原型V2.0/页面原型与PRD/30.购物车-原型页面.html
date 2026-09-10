@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>购物车 - 苏银豆商城</title>
+<link rel="stylesheet" href="../assets/common.css">
+<style>
+  /* Fix: page-scroll 的 min-height:100vh 会撑高 phone-frame，导致 absolute 的 tab-bar 被顶出视口。
+     锁定 phone-frame 为一屏、让 page-scroll 吃掉中间空间，tab-bar 即可正常贴底。 */
+  .phone-frame {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .page-scroll {
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* Cart edit bar */
+  .cart-edit-bar {
+    display: flex;
+    align-items: center;
+    padding: var(--space-sm) var(--space-md);
+    background: var(--card-bg);
+    font-size: var(--font-sm);
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--bg-color);
+  }
+
+  /* Cart item */
+  .cart-list {
+    padding: var(--space-sm) 0;
+  }
+  .cart-item-wrapper {
+    position: relative;
+    overflow: hidden;
+    margin-bottom: var(--space-sm);
+    border-radius: 0;
+    background: var(--card-bg);
+  }
+  .cart-item-wrapper .swipe-actions {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    display: flex;
+    z-index: 0;
+  }
+  .cart-item-wrapper .fav-btn,
+  .cart-item-wrapper .delete-btn {
+    width: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.3;
+    color: var(--card-bg);
+    cursor: pointer;
+    padding: 0 6px;
+  }
+  .cart-item-wrapper .fav-btn {
+    background: var(--warning-color);
+  }
+  .cart-item-wrapper .fav-btn:active { opacity: 0.9; }
+  .cart-item-wrapper .delete-btn {
+    background: var(--price-color);
+  }
+  .cart-item-wrapper .delete-btn:active { opacity: 0.9; }
+  .cart-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    background: var(--card-bg);
+    padding: var(--space-md);
+    position: relative;
+    transition: transform 0.2s ease;
+    z-index: 1;
+  }
+  .cart-item .checkbox {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--text-disabled);
+    flex-shrink: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+  .cart-item .checkbox.checked {
+    background: var(--primary-start);
+    border-color: var(--primary-start);
+  }
+  .cart-item .checkbox.checked::after {
+    content: '';
+    width: 6px;
+    height: 10px;
+    border: 2px solid var(--card-bg);
+    border-top: none;
+    border-left: none;
+    transform: rotate(45deg) translateY(-1px);
+  }
+  .cart-item .item-img {
+    width: 80px;
+    height: 80px;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    flex-shrink: 0;
+    background: var(--bg-input);
+  }
+  .cart-item .item-img img { width: 100%; height: 100%; object-fit: cover; }
+  .cart-item .item-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+  .cart-item .item-name {
+    font-size: var(--font-sm);
+    color: var(--text-color);
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .cart-item .item-spec {
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+    background: var(--bg-color);
+    padding: 2px var(--space-sm);
+    border-radius: var(--radius-xs);
+    display: inline-block;
+    align-self: flex-start;
+  }
+  .cart-item .item-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 2px;
+  }
+  .cart-item .item-price {
+    color: var(--price-color);
+    font-size: var(--font-md);
+    font-weight: 700;
+  }
+  .cart-item .item-price .symbol { font-size: var(--font-xs); }
+
+  /* Quantity control (按钮语言对齐我的订单 .btn-sm) */
+  .qty-control {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    background: var(--bg-color);
+    border-radius: 4px;
+  }
+  .qty-btn {
+    width: 26px;
+    height: 26px;
+    border: none;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-base);
+    color: var(--text-secondary);
+    cursor: pointer;
+  }
+  .qty-btn:first-child { border-radius: 4px 0 0 4px; }
+  .qty-btn:last-child { border-radius: 0 4px 4px 0; }
+  .qty-btn:active { background: var(--hover-bg); }
+  .qty-btn.disabled { color: var(--text-disabled); pointer-events: none; }
+  .qty-num {
+    width: 32px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-sm);
+    color: var(--text-color);
+  }
+
+  .cart-item .checkbox.disabled {
+    background: #eee;
+    border-color: #d8d8d8;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  /* Invalid items: disabled checkbox + bottom strip on image (not full mask) */
+  .cart-item.offshelf .item-img,
+  .cart-item.soldout .item-img,
+  .cart-item.noship .item-img {
+    position: relative;
+  }
+  .cart-item.offshelf .item-img::after,
+  .cart-item.soldout .item-img::after,
+  .cart-item.noship .item-img::after {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 22px;
+    background: rgba(0,0,0,0.55);
+    color: #fff;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: 0.5px;
+  }
+  .cart-item.offshelf .item-img::after { content: '已失效'; }
+  .cart-item.soldout .item-img::after { content: '已售罄'; }
+  .cart-item.noship .item-img::after { content: '无库存'; }
+  .cart-item.offshelf .item-name,
+  .cart-item.offshelf .item-spec,
+  .cart-item.offshelf .item-price,
+  .cart-item.soldout .item-name,
+  .cart-item.soldout .item-spec,
+  .cart-item.soldout .item-price,
+  .cart-item.noship .item-name,
+  .cart-item.noship .item-spec,
+  .cart-item.noship .item-price {
+    color: var(--text-tertiary);
+  }
+  .cart-item.offshelf .qty-control,
+  .cart-item.soldout .qty-control,
+  .cart-item.noship .qty-control {
+    display: none;
+  }
+  .cart-item.offshelf .offshelf-text,
+  .cart-item.soldout .soldout-text,
+  .cart-item.noship .noship-text {
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+  }
+  .cart-item.noship .noship-info {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+  .cart-item.noship .noship-link {
+    font-size: var(--font-sm);
+    color: var(--primary-start);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .cart-item.noship .noship-link:active { opacity: 0.7; }
+
+  /* Bottom checkout bar */
+  .checkout-bar {
+    position: absolute;
+    bottom: 56px;
+    left: 0;
+    right: 0;
+    background: var(--card-bg);
+    display: flex;
+    align-items: center;
+    height: 56px;
+    border-top: 1px solid var(--border-color);
+    z-index: 200;
+    padding-bottom: var(--space-sm);
+  }
+  .checkout-bar .select-all {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: 0 var(--space-md);
+    font-size: var(--font-sm);
+    color: var(--text-color);
+    cursor: pointer;
+  }
+  .checkout-bar .select-all .checkbox {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--text-disabled);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+  .checkout-bar .select-all .checkbox.checked {
+    background: var(--primary-start);
+    border-color: var(--primary-start);
+  }
+  .checkout-bar .select-all .checkbox.checked::after {
+    content: '';
+    width: 6px;
+    height: 10px;
+    border: 2px solid var(--card-bg);
+    border-top: none;
+    border-left: none;
+    transform: rotate(45deg) translateY(-1px);
+  }
+  .checkout-bar .total-area {
+    flex: 1;
+    text-align: right;
+    padding-right: var(--space-md);
+  }
+  .checkout-bar .total-label { font-size: var(--font-sm); color: var(--text-color); }
+  .checkout-bar .total-price { font-size: var(--font-md); color: var(--price-color); font-weight: 700; }
+  .checkout-bar .total-price .symbol { font-size: var(--font-sm); }
+  .checkout-bar .btn-checkout {
+    background: linear-gradient(135deg, var(--primary-start), var(--price-color));
+    color: var(--card-bg);
+    border: none;
+    padding: 0 var(--space-xl);
+    height: 40px;
+    font-size: var(--font-base);
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: var(--radius-xl);
+    margin-right: var(--space-md);
+  }
+  .checkout-bar .btn-checkout:active { opacity: 0.85; }
+</style>
+</head>
+<body>
+<div class="phone-frame">
+
+  <!-- Sub-page Navigation -->
+  <div class="sub-nav">
+    <div class="status-bar dark">
+      <span class="time">09:41</span>
+      <div class="icons">
+        <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+      </div>
+    </div>
+    <div class="nav-bar">
+      <div class="back-btn" onclick="history.back()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <span class="nav-title">购物车</span>
+      <div class="capsule-btn"><img src="../assets/icons/小程序按钮.svg" alt=""></div>
+    </div>
+  </div>
+
+  <!-- Scrollable Content -->
+  <div class="page-scroll" style="padding-bottom: 128px;">
+
+    <div class="cart-edit-bar">
+      <span>共 <b id="cartCount">3</b> 件商品</span>
+    </div>
+
+    <!-- Cart List -->
+    <div class="cart-list" id="cartList"></div>
+
+  </div>
+
+  <!-- Bottom Checkout Bar -->
+  <div class="checkout-bar">
+    <div class="select-all" id="selectAll">
+      <div class="checkbox checked" id="selectAllBox"></div>
+      <span>全选</span>
+    </div>
+    <div class="total-area">
+      <span class="total-label">合计：</span>
+      <span class="total-price"><span class="symbol">&yen;</span><span id="totalAmount">195.90</span></span>
+    </div>
+    <button class="btn-checkout" onclick="location.href='31.确认订单-原型页面.html?scene=goods'">结算(<span id="checkoutCount">3</span>)</button>
+  </div>
+
+  <!-- Bottom Tab Bar -->
+  <div class="tab-bar">
+    <a href="10.首页-原型页面.html" class="tab-item">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      <span>首页</span>
+    </a>
+    <a href="11.分类-原型页面.html" class="tab-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      <span>分类</span>
+    </a>
+    <div class="tab-item active">
+      <div class="cart-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
+        <span class="badge">3</span>
+      </div>
+      <span>购物车</span>
+    </div>
+    <a href="75.我的收藏-原型页面.html" class="tab-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+      <span>收藏</span>
+    </a>
+    <a href="70.个人中心-原型页面.html" class="tab-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span>我的</span>
+    </a>
+  </div>
+
+</div>
+<script src="../assets/common.js"></script>
+<script>
+(function() {
+  var cartItems = [
+    { id: 1, name: '日本进口保温杯 不锈钢真空便携水杯500ml', spec: '白色 500ml', price: 68, qty: 1, checked: true, img: '../assets/unsplash/1602143407151-7111542de6e8.jpg' },
+    { id: 2, name: '无线蓝牙降噪耳机 迷你入耳式超长续航', spec: '黑色 标准版', price: 89, qty: 1, checked: true, img: '../assets/unsplash/1505740420928-5e560c06d30e.jpg' },
+    { id: 3, name: '纯棉短袖T恤男女款 夏季宽松百搭潮流', spec: '白色 L码', price: 39.9, qty: 2, checked: true, img: '../assets/unsplash/1521572163474-6864f9cf17ab.jpg' },
+    { id: 4, name: '便携式迷你充电宝 20000mAh大容量', spec: '白色', price: 59, qty: 1, checked: false, img: '../assets/unsplash/1609091839311-d5365f9ff1c5.jpg', offshelf: true },
+    { id: 5, name: '潮流太阳眼镜 防紫外线偏光墨镜', spec: '黑色', price: 128, qty: 1, checked: false, img: '../assets/unsplash/1572635196237-14b3f281503f.jpg', soldout: true },
+    { id: 6, name: '智能运动手环 心率血氧监测防水', spec: '黑色 标准版', price: 199, qty: 1, checked: false, img: '../assets/unsplash/1575311373937-040b8e1fd5b6.jpg', noship: true }
+  ];
+
+  function renderCart() {
+    var html = '';
+    cartItems.forEach(function(item) {
+      var swipeHtml = '<div class="swipe-actions">' +
+        '<div class="fav-btn" data-id="' + item.id + '">移入收藏</div>' +
+        '<div class="delete-btn" data-id="' + item.id + '">删除</div>' +
+        '</div>';
+      if (item.offshelf) {
+        html += '<div class="cart-item-wrapper" data-id="' + item.id + '">' +
+          swipeHtml +
+          '<div class="cart-item offshelf">' +
+            '<div class="checkbox disabled"></div>' +
+            '<a href="21.商品详情-原型页面.html?reason=offshelf" class="item-img"><img src="' + item.img + '" alt=""></a>' +
+            '<div class="item-info">' +
+              '<a href="21.商品详情-原型页面.html?reason=offshelf" class="item-name" style="text-decoration:none;color:inherit;">' + item.name + '</a>' +
+              '<div class="item-spec">' + item.spec + '</div>' +
+              '<div class="item-bottom">' +
+                '<span class="item-price"><span class="symbol">&yen;</span>' + item.price.toFixed(2) + '</span>' +
+                '<span class="offshelf-text">已下架</span>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      } else if (item.soldout) {
+        html += '<div class="cart-item-wrapper" data-id="' + item.id + '">' +
+          swipeHtml +
+          '<div class="cart-item soldout">' +
+            '<div class="checkbox disabled"></div>' +
+            '<a href="21.商品详情-原型页面.html?reason=soldout" class="item-img"><img src="' + item.img + '" alt=""></a>' +
+            '<div class="item-info">' +
+              '<a href="21.商品详情-原型页面.html?reason=soldout" class="item-name" style="text-decoration:none;color:inherit;">' + item.name + '</a>' +
+              '<div class="item-spec">' + item.spec + '</div>' +
+              '<div class="item-bottom">' +
+                '<span class="item-price"><span class="symbol">&yen;</span>' + item.price.toFixed(2) + '</span>' +
+                '<span class="soldout-text">已售罄</span>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      } else if (item.noship) {
+        html += '<div class="cart-item-wrapper" data-id="' + item.id + '">' +
+          swipeHtml +
+          '<div class="cart-item noship">' +
+            '<div class="checkbox disabled"></div>' +
+            '<div class="item-img"><img src="' + item.img + '" alt=""></div>' +
+            '<div class="item-info">' +
+              '<div class="item-name">' + item.name + '</div>' +
+              '<div class="item-spec">' + item.spec + '</div>' +
+              '<div class="item-bottom">' +
+                '<span class="item-price"><span class="symbol">&yen;</span>' + item.price.toFixed(2) + '</span>' +
+                '<div class="noship-info">' +
+                  '<span class="noship-text">该地区无库存</span>' +
+                  '<span class="noship-link" onclick="showAddressPopup()">切换地址</span>' +
+                '</div>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      } else {
+        html += '<div class="cart-item-wrapper" data-id="' + item.id + '">' +
+          swipeHtml +
+          '<div class="cart-item">' +
+            '<div class="checkbox' + (item.checked ? ' checked' : '') + '" data-id="' + item.id + '"></div>' +
+            '<a href="21.商品详情-原型页面.html" class="item-img"><img src="' + item.img + '" alt=""></a>' +
+            '<div class="item-info">' +
+              '<div class="item-name">' + item.name + '</div>' +
+              '<div class="item-spec">' + item.spec + '</div>' +
+              '<div class="item-bottom">' +
+                '<span class="item-price"><span class="symbol">&yen;</span>' + item.price.toFixed(2) + '</span>' +
+                '<div class="qty-control">' +
+                  '<div class="qty-btn' + (item.qty <= 1 ? ' disabled' : '') + '" data-action="minus" data-id="' + item.id + '">-</div>' +
+                  '<div class="qty-num">' + item.qty + '</div>' +
+                  '<div class="qty-btn" data-action="plus" data-id="' + item.id + '">+</div>' +
+                '</div>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      }
+    });
+    document.getElementById('cartList').innerHTML = html;
+    // Count only non-offshelf items
+    var activeCount = cartItems.filter(function(i) { return !i.offshelf && !i.soldout && !i.noship; }).length;
+    document.getElementById('cartCount').textContent = activeCount;
+    updateTotal();
+    bindEvents();
+    bindSwipeEvents();
+  }
+
+  function updateTotal() {
+    var total = 0, count = 0;
+    cartItems.forEach(function(item) {
+      if (item.checked && !item.offshelf && !item.soldout && !item.noship) {
+        total += item.price * item.qty;
+        count += item.qty;
+      }
+    });
+    document.getElementById('totalAmount').textContent = total.toFixed(2);
+    document.getElementById('checkoutCount').textContent = count;
+    var allChecked = cartItems.filter(function(i) { return !i.offshelf && !i.soldout && !i.noship; }).length > 0 &&
+      cartItems.filter(function(i) { return !i.offshelf && !i.soldout && !i.noship; }).every(function(i) { return i.checked; });
+    document.getElementById('selectAllBox').classList.toggle('checked', allChecked);
+  }
+
+  function bindEvents() {
+    // Checkbox toggle
+    document.querySelectorAll('.cart-item .checkbox').forEach(function(el) {
+      el.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (this.classList.contains('disabled')) return;
+        var id = +this.dataset.id;
+        cartItems.forEach(function(item) {
+          if (item.id === id) item.checked = !item.checked;
+        });
+        this.classList.toggle('checked');
+        updateTotal();
+      });
+    });
+
+    // Qty controls
+    document.querySelectorAll('.qty-btn').forEach(function(el) {
+      el.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var id = +this.dataset.id;
+        var action = this.dataset.action;
+        cartItems.forEach(function(item) {
+          if (item.id === id) {
+            if (action === 'plus') item.qty++;
+            if (action === 'minus' && item.qty > 1) item.qty--;
+          }
+        });
+        renderCart();
+      });
+    });
+
+    // Delete / move to favorites
+    function removeCartItem(id, wrapper) {
+      cartItems = cartItems.filter(function(item) { return item.id !== id; });
+      wrapper.style.transition = 'height 0.2s, margin 0.2s, opacity 0.2s';
+      wrapper.style.height = wrapper.offsetHeight + 'px';
+      requestAnimationFrame(function() {
+        wrapper.style.height = '0px';
+        wrapper.style.marginBottom = '0px';
+        wrapper.style.opacity = '0';
+        wrapper.style.overflow = 'hidden';
+      });
+      setTimeout(function() { renderCart(); }, 220);
+    }
+    function showCartToast(msg) {
+      var toast = document.createElement('div');
+      toast.textContent = msg;
+      toast.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.7);color:var(--card-bg);padding:var(--space-sm) var(--space-xl);border-radius:var(--radius-sm);font-size:var(--font-base);z-index:9999;white-space:nowrap;';
+      document.querySelector('.phone-frame').appendChild(toast);
+      setTimeout(function() { toast.remove(); }, 1500);
+    }
+    document.querySelectorAll('.fav-btn').forEach(function(el) {
+      el.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var id = +this.dataset.id;
+        var wrapper = this.closest('.cart-item-wrapper');
+        showCartToast('已移入收藏');
+        removeCartItem(id, wrapper);
+      });
+    });
+    document.querySelectorAll('.delete-btn').forEach(function(el) {
+      el.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var id = +this.dataset.id;
+        var wrapper = this.closest('.cart-item-wrapper');
+        removeCartItem(id, wrapper);
+      });
+    });
+  }
+
+  // Swipe to delete
+  function bindSwipeEvents() {
+    var currentSwipe = null;
+    var startX = 0;
+    var DELETE_WIDTH = 144;
+
+    document.querySelectorAll('.cart-item-wrapper').forEach(function(wrapper) {
+      var cartItem = wrapper.querySelector('.cart-item');
+
+      // Touch events
+      cartItem.addEventListener('touchstart', function(e) {
+        if (currentSwipe && currentSwipe !== cartItem) {
+          currentSwipe.style.transform = 'translateX(0)';
+        }
+        currentSwipe = cartItem;
+        startX = e.touches[0].clientX;
+        cartItem.style.transition = 'none';
+      });
+
+      cartItem.addEventListener('touchmove', function(e) {
+        var diff = e.touches[0].clientX - startX;
+        var offset = Math.min(0, Math.max(-DELETE_WIDTH, diff));
+        cartItem.style.transform = 'translateX(' + offset + 'px)';
+      });
+
+      cartItem.addEventListener('touchend', function(e) {
+        cartItem.style.transition = 'transform 0.2s ease';
+        var diff = e.changedTouches[0].clientX - startX;
+        if (diff < -DELETE_WIDTH / 2) {
+          cartItem.style.transform = 'translateX(-' + DELETE_WIDTH + 'px)';
+        } else {
+          cartItem.style.transform = 'translateX(0)';
+          currentSwipe = null;
+        }
+      });
+
+      // Mouse events (for desktop preview)
+      var mouseDown = false;
+      cartItem.addEventListener('mousedown', function(e) {
+        if (e.target.closest('.qty-btn') || e.target.closest('.checkbox') || e.target.closest('a')) return;
+        if (currentSwipe && currentSwipe !== cartItem) {
+          currentSwipe.style.transition = 'transform 0.2s ease';
+          currentSwipe.style.transform = 'translateX(0)';
+        }
+        currentSwipe = cartItem;
+        mouseDown = true;
+        startX = e.clientX;
+        cartItem.style.transition = 'none';
+        e.preventDefault();
+      });
+
+      document.addEventListener('mousemove', function(e) {
+        if (!mouseDown) return;
+        var diff = e.clientX - startX;
+        var offset = Math.min(0, Math.max(-DELETE_WIDTH, diff));
+        cartItem.style.transform = 'translateX(' + offset + 'px)';
+      });
+
+      document.addEventListener('mouseup', function(e) {
+        if (!mouseDown) return;
+        mouseDown = false;
+        cartItem.style.transition = 'transform 0.2s ease';
+        var diff = e.clientX - startX;
+        if (diff < -DELETE_WIDTH / 2) {
+          cartItem.style.transform = 'translateX(-' + DELETE_WIDTH + 'px)';
+        } else {
+          cartItem.style.transform = 'translateX(0)';
+          currentSwipe = null;
+        }
+      });
+    });
+  }
+
+  // Select all
+  document.getElementById('selectAll').addEventListener('click', function() {
+    var activeItems = cartItems.filter(function(i) { return !i.offshelf && !i.soldout && !i.noship; });
+    var allChecked = activeItems.every(function(i) { return i.checked; });
+    activeItems.forEach(function(item) { item.checked = !allChecked; });
+    renderCart();
+  });
+
+  // Address switch popup for noship items
+  window.showAddressPopup = function() {
+    // Prototype: just show a simple address list overlay
+    var overlay = document.createElement('div');
+    overlay.style.cssText = 'position:absolute;inset:0;background:rgba(0,0,0,0.5);z-index:500;display:flex;align-items:flex-end;justify-content:center;';
+    var popup = document.createElement('div');
+    popup.style.cssText = 'width:100%;background:var(--card-bg);border-radius:var(--radius-lg) var(--radius-lg) 0 0;padding:var(--space-lg);max-height:60%;overflow-y:auto;';
+    popup.innerHTML =
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-md);">' +
+        '<span style="font-size:var(--font-md);font-weight:600;color:var(--text-color);">选择收货地址</span>' +
+        '<span style="color:var(--text-tertiary);cursor:pointer;font-size:var(--font-base);" id="closeAddrPopup">关闭</span>' +
+      '</div>' +
+      '<div style="padding:var(--space-md);border-radius:var(--radius-md);background:var(--card-bg)9f5;border:2px solid var(--primary-start);margin-bottom:var(--space-sm);">' +
+        '<div style="font-size:var(--font-base);font-weight:500;color:var(--text-color);">张三  138****8888</div>' +
+        '<div style="font-size:var(--font-sm);color:var(--text-secondary);margin-top:var(--space-xs);">北京市朝阳区建国路88号 悦享大厦A座12层</div>' +
+        '<div style="font-size:var(--font-sm);color:var(--primary-start);margin-top:var(--space-xs);">当前默认</div>' +
+      '</div>' +
+      '<div style="padding:var(--space-md);border-radius:var(--radius-md);background:var(--bg-input);margin-bottom:var(--space-sm);cursor:pointer;" onclick="alert(\'已切换默认地址（原型演示）\')">' +
+        '<div style="font-size:var(--font-base);font-weight:500;color:var(--text-color);">李四  139****9999</div>' +
+        '<div style="font-size:var(--font-sm);color:var(--text-secondary);margin-top:var(--space-xs);">上海市浦东新区陆家嘴环路1000号 恒生大厦8层</div>' +
+        '<div style="font-size:var(--font-sm);color:var(--success-color);margin-top:var(--space-xs);">设为默认可购买</div>' +
+      '</div>' +
+      '<div style="padding:var(--space-md);border-radius:var(--radius-md);background:var(--bg-input);cursor:pointer;" onclick="location.href=\'83.收货地址-原型页面.html\'">' +
+        '<div style="font-size:var(--font-sm);color:var(--primary-start);text-align:center;">管理收货地址</div>' +
+      '</div>';
+    overlay.appendChild(popup);
+    document.querySelector('.phone-frame').appendChild(overlay);
+    document.getElementById('closeAddrPopup').onclick = function() { overlay.remove(); };
+    overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+  };
+
+  renderCart();
+})();
+</script>
+<script src="../assets/theme-switcher.js"></script>
+</body>
+</html>

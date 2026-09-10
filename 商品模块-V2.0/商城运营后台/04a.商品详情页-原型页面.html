@@ -1,0 +1,3022 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>商品详情 - 商城运营平台</title>
+<style>
+:root {
+  --bg-app: #f4f3f0; --bg-sidebar: #1e1e22; --bg-surface: #ffffff;
+  --bg-hover: #f7f6f4; --bg-input: #f9f8f7;
+  --border: #e6e4e0; --border-light: #f0eeeb;
+  --text-primary: #1a1a1c; --text-secondary: #6b6b70; --text-muted: #99999d;
+  --text-sidebar: #c4c4c9; --text-sidebar-active: #ffffff;
+  --accent: #2d2d33; --accent-soft: #f0eeeb;
+  --red: #da3e3a; --red-bg: #fef4f3; --red-border: #fcd9d7;
+  --orange: #d97706; --orange-bg: #fffbf0; --orange-border: #fde8c4;
+  --blue: #2563eb; --blue-bg: #f5f8ff; --blue-border: #d4e0fc;
+  --green: #16a34a; --green-bg: #f4fdf6; --green-border: #c6f0d4;
+  --gray: #6b7280; --gray-bg: #f8f8f7; --gray-border: #e8e6e3;
+  --radius-sm: 4px; --radius: 8px; --radius-lg: 12px;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.04);
+  --shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-lg: 0 4px 16px rgba(0,0,0,.10), 0 2px 6px rgba(0,0,0,.04);
+  --transition: 160ms ease;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:"Microsoft YaHei",sans-serif;background:var(--bg-app);color:var(--text-primary);display:flex;min-height:100vh;-webkit-font-smoothing:antialiased;}
+
+/* ===== Sidebar ===== */
+.sidebar{width:232px;min-width:232px;background:var(--bg-sidebar);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;z-index:10;}
+.sidebar-brand{padding:20px 20px 28px;border-bottom:1px solid rgba(255,255,255,.06);}
+.sidebar-brand .logo{font-size:17px;font-weight:600;color:#fff;letter-spacing:-.02em;display:flex;align-items:center;gap:10px;}
+.sidebar-brand .sub{font-size:11px;color:var(--text-sidebar);margin-top:2px;letter-spacing:.02em;}
+.sidebar-nav{flex:1;padding:12px 10px;display:flex;flex-direction:column;gap:2px;}
+.nav-section-label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.25);padding:14px 10px 6px;display:flex;align-items:center;gap:4px;cursor:pointer;user-select:none;}
+.nav-section-label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.25);padding:14px 10px 6px;display:flex;align-items:center;gap:4px;cursor:pointer;user-select:none;}
+.nav-section-label:hover{color:rgba(255,255,255,.45);}
+.section-arrow{font-size:8px;transition:transform .2s ease;flex-shrink:0;}
+.nav-section.collapsed .section-arrow{transform:rotate(-90deg);}
+.nav-section.collapsed .nav-section-items{display:none;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:6px;color:var(--text-sidebar);font-size:13.5px;cursor:pointer;transition:all var(--transition);text-decoration:none;letter-spacing:.01em;}
+.nav-item:hover{background:rgba(255,255,255,.05);color:#fff;}
+.nav-item.active{background:rgba(255,255,255,.10);color:#fff;font-weight:500;}
+.nav-item .badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:600;padding:1px 7px;border-radius:10px;min-width:20px;text-align:center;line-height:18px;}
+.nav-icon{width:18px;height:18px;opacity:.55;flex-shrink:0;}
+.nav-item.active .nav-icon{opacity:1;}
+
+/* ===== Main ===== */
+.main{flex:1;display:flex;flex-direction:column;min-width:0;}
+.topbar{height:52px;min-height:52px;background:var(--bg-surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 28px;gap:16px;z-index:5;}
+.topbar .breadcrumb{font-size:12.5px;color:var(--text-muted);letter-spacing:.01em;}
+.topbar .breadcrumb span{color:var(--text-primary);font-weight:500;}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:16px;}
+.user-avatar{width:30px;height:30px;border-radius:50%;background:#e6e4e0;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);}
+
+/* ===== Content ===== */
+.content{flex:1;display:flex;flex-direction:column;padding:20px 28px;padding-bottom:30px;overflow-y:auto;}
+.page-actions{margin-left:auto;display:flex;gap:8px;}
+
+/* Demo toggle */
+.demo-toggle{display:flex;gap:6px;align-items:center;}
+.demo-toggle label{font-size:11px;color:var(--text-muted);}
+.demo-toggle select{font-size:11px;padding:2px 6px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-surface);}
+.warning-banner{background:var(--orange-bg);border:1px solid var(--orange-border);border-radius:var(--radius);padding:12px 16px;margin-bottom:16px;font-size:12.5px;color:var(--orange);display:flex;gap:10px;align-items:flex-start;line-height:1.6;}
+.warning-banner.hidden{display:none;}
+
+/* ===== Buttons ===== */
+.btn{display:inline-flex;align-items:center;padding:5px 12px;border-radius:var(--radius-sm);font-size:12px;font-family:inherit;cursor:pointer;border:1px solid transparent;transition:all var(--transition);white-space:nowrap;font-weight:500;gap:5px;}
+.btn-sm{padding:4px 10px;font-size:11.5px;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{opacity:.85;}
+.btn-outline{border-color:var(--border);color:var(--text-primary);background:var(--bg-surface);}
+.btn-outline:hover{border-color:var(--text-muted);background:var(--bg-hover);}
+.btn-danger{color:var(--red);border-color:var(--red-border);background:var(--red-bg);}
+.btn-danger:hover{background:#fde8e7;}
+.btn-link{color:var(--blue);border:none;background:none;padding:2px 4px;cursor:pointer;font-size:12px;font-family:inherit;transition:opacity var(--transition);}
+.btn-link:hover{opacity:.75;}
+.btn-link.danger{color:var(--red);}
+
+/* ===== Tabs ===== */
+.tabs{display:flex;align-items:center;gap:0;border-bottom:1px solid var(--border);margin-bottom:18px;}
+.tab{padding:10px 20px;font-size:13.5px;font-weight:500;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent;transition:all var(--transition);font-family:inherit;background:none;border-top:none;border-left:none;border-right:none;}
+.tab.active{color:var(--text-primary);border-bottom-color:var(--accent);}
+.tab:hover:not(.active){color:var(--text-secondary);}
+.tab .count{font-size:12px;color:var(--text-muted);margin-left:2px;}
+.tab.active .count{color:var(--text-secondary);}
+
+/* ===== View ===== */
+.view{display:none;flex-direction:column;}
+.view.active{display:flex;}
+
+/* ===== SPU Header ===== */
+.spu-header{display:flex;gap:24px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 24px;margin-bottom:16px;}
+.spu-image{width:360px;min-width:360px;display:flex;flex-direction:column;align-items:center;}
+.spu-image .img-box{width:360px;height:360px;border:1px solid var(--border);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;background:var(--bg-input);overflow:hidden;position:relative;}
+.spu-image .img-box img{max-width:100%;max-height:100%;object-fit:contain;}
+.spu-image .img-box .placeholder{font-size:14px;color:var(--text-muted);text-align:center;line-height:1.6;}
+/* Carousel */
+.spu-carousel{position:relative;width:100%;height:100%;}
+.spu-carousel .carousel-slide{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .3s;}
+.spu-carousel .carousel-slide.active{opacity:1;}
+.carousel-arrow{position:absolute;top:50%;transform:translateY(-50%);width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.15);color:#fff;border:none;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;z-index:2;transition:background .2s;}
+.carousel-arrow:hover{background:rgba(0,0,0,.35);}
+.carousel-arrow.prev{left:4px;}
+.carousel-arrow.next{right:4px;}
+.carousel-dots{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:2;}
+.carousel-dots .dot{width:8px;height:8px;border-radius:50%;background:rgba(0,0,0,.2);cursor:pointer;transition:background .2s;}
+.carousel-dots .dot.active{background:var(--accent);}
+.carousel-thumbs .thumb{width:52px;height:52px;border:2px solid transparent;border-radius:var(--radius-sm);cursor:pointer;overflow:hidden;display:flex;align-items:center;justify-content:center;background:var(--bg-input);font-size:10px;color:var(--text-muted);transition:all var(--transition);}
+.carousel-thumbs .thumb.active{border-color:var(--accent);}
+.carousel-thumbs .thumb:hover{border-color:var(--text-muted);}
+.spu-image .img-source{margin-top:8px;font-size:11.5px;color:var(--text-muted);display:flex;align-items:center;gap:6px;}
+.spu-image .img-source select{font-size:11.5px;padding:2px 6px;border:1px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;color:var(--text-primary);background:var(--bg-surface);}
+.spu-image .img-source .locked{color:var(--blue);font-weight:500;}
+
+.spu-info{flex:1;display:flex;flex-direction:column;gap:10px;}
+.info-section{display:flex;flex-direction:column;gap:4px;}
+.info-section .section-label{font-size:11px;letter-spacing:.03em;color:var(--text-muted);margin-bottom:4px;font-weight:500;}
+.info-row{display:flex;align-items:center;gap:10px;font-size:13px;line-height:1.5;}
+.info-row .label{color:var(--text-muted);font-size:12px;min-width:100px;flex-shrink:0;}
+.info-row .value{color:var(--text-primary);font-weight:500;font-size:13px;}
+.info-row .value.code{font-family:"Microsoft YaHei",sans-serif;font-size:12px;}
+.info-row .value.muted{font-weight:400;color:var(--text-muted);font-size:12.5px;}
+.info-row .value.pending{font-weight:400;color:var(--text-muted);font-style:italic;}
+
+/* SPU 信息卡片统一字体/行间距（仅限 .spu-info 内，不影响页面其它 info-row） */
+.spu-info .info-row{font-size:13px;line-height:1.6;}
+.spu-info .info-row .label{font-size:13px;font-weight:400;}
+.spu-info .info-row .value,
+.spu-info .info-row .value.code,
+.spu-info .info-row .value.muted{font-size:13px;}
+
+/* supply chain vs mall config visual */
+.info-block{border-left:2px solid var(--border);padding-left:14px;padding-top:4px;padding-bottom:4px;}
+.info-block.mall{border-left-color:var(--blue-border);}
+.info-block.mall.editing{border-left-color:var(--blue);background:var(--blue-bg);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding-right:12px;}
+#editBtn.editing{background:var(--accent);color:#fff;border-color:var(--accent);}
+.edit-only{display:none;}
+.editing .edit-only{display:inline;}
+body.edit-mode .edit-only{display:inline;}
+body.edit-mode .view-only{display:none;}
+.info-block+.info-block{margin-top:12px;padding-top:12px;border-top:1px solid var(--border-light);border-left:2px solid var(--blue-border);}
+
+/* ===== Tags ===== */
+.tag{display:inline-flex;align-items:center;padding:2px 10px;border-radius:4px;font-size:11.5px;font-weight:500;letter-spacing:.01em;white-space:nowrap;gap:4px;}
+.tag-red{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border);}
+.tag-green{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border);}
+.tag-blue{background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-border);}
+.tag-gray{background:var(--gray-bg);color:var(--gray);border:1px solid var(--gray-border);}
+.tag-orange{background:var(--orange-bg);color:var(--orange);border:1px solid var(--orange-border);}
+.tag-purple{background:#f5f3ff;color:#7c3aed;border:1px solid #ddd6fe;}
+.tag-remove{display:none;cursor:pointer;font-size:14px;line-height:1;opacity:.5;transition:opacity var(--transition);}
+body.edit-mode .tag-remove{display:inline;}
+.tag-remove:hover{opacity:1;color:var(--red);}
+
+/* ===== SKU Switcher (Radio Group) ===== */
+.sku-switcher{display:flex;gap:8px;margin-bottom:16px;align-items:flex-start;flex-wrap:wrap;}
+.sku-switcher .switcher-label{font-size:12px;color:var(--text-muted);margin-right:4px;font-weight:500;padding-top:20px;}
+.sku-radio{display:inline-flex;flex-direction:row;align-items:center;gap:10px;padding:8px 12px;border:2px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:all var(--transition);background:var(--bg-surface);text-align:left;}
+.sku-radio .sku-thumb{width:56px;height:56px;border-radius:var(--radius-sm);background:var(--bg-input);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;overflow:hidden;border:1px solid var(--border-light);}
+.sku-radio:hover{border-color:var(--text-muted);box-shadow:var(--shadow-sm);}
+.sku-radio.active{border-color:var(--accent);background:var(--bg-surface);box-shadow:var(--shadow);}
+.sku-radio .sku-thumb{width:40px;height:40px;border-radius:var(--radius-sm);background:var(--bg-input);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;overflow:hidden;border:1px solid var(--border-light);}
+.sku-radio .sku-info{display:flex;flex-direction:column;gap:1px;flex:1;min-width:0;}
+.sku-radio .sku-info .sku-code{font-family:"Microsoft YaHei",sans-serif;font-size:10.5px;color:var(--text-muted);}
+.sku-radio .sku-info .sku-spec{font-size:12.5px;font-weight:500;color:var(--text-primary);}
+.sku-radio.active .sku-info .sku-code{color:var(--text-secondary);}
+.sku-radio--promo{border-color:var(--border);position:relative;}
+.sku-radio--promo.active{border-color:var(--accent);}
+.sku-radio .sku-tag-promo{display:inline-block;font-size:10px;line-height:14px;padding:0 5px;border-radius:3px;background:#f5f3ff;color:#7c3aed;border:1px solid #ddd6fe;font-weight:500;margin-top:2px;align-self:flex-start;}
+
+/* ===== SKU Info Bar ===== */
+.sku-info-bar{display:flex;flex-wrap:wrap;gap:8px 20px;padding:10px 14px;background:#fafaf9;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:12px;font-size:12.5px;align-items:center;}
+.sku-info-bar .info-item{display:flex;align-items:center;gap:4px;}
+.sku-info-bar .info-item .lbl{color:var(--text-muted);font-size:11.5px;}
+.sku-info-bar .info-item .val{font-family:"Microsoft YaHei",sans-serif;font-size:12px;}
+.sku-info-bar .info-item .val.price{color:var(--orange);}
+.sku-info-bar .sep{color:var(--border);}
+.sku-info-bar .info-item .link{color:var(--blue);cursor:pointer;font-size:12px;}
+.sku-info-bar .info-item .link:hover{text-decoration:underline;}
+
+/* ===== Supply Mode ===== */
+.supply-mode{display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:12.5px;}
+.oa-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:11px;background:var(--orange-bg);color:var(--orange);border:1px solid var(--orange-border);}
+
+/* Tab2 hierarchical rows */
+.tab2-main{cursor:pointer;}
+.tab2-main:hover{background:var(--bg-hover);}
+.tab2-main .expand-arrow{display:inline-block;transition:transform var(--transition);font-size:10px;margin-right:4px;color:var(--text-muted);width:12px;text-align:center;}
+.tab2-main .expand-arrow.expanded{transform:rotate(90deg);}
+.tab2-sub{background:#fafaf9;}
+.tab2-sub td{padding:8px 12px;font-size:12.5px;}
+.tab2-sub td:first-child{padding-left:34px;}
+.tab2-sub:hover{background:#f4f3f0;}
+
+/* ===== Table ===== */
+.table-wrap{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;}
+.table-scroll{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead th{background:#fafaf9;text-align:left;padding:10px 12px;font-weight:500;font-size:12px;color:var(--text-muted);letter-spacing:.02em;border-bottom:1px solid var(--border);white-space:nowrap;}
+thead th:first-child{padding-left:18px;}
+tbody td{padding:10px 12px;border-bottom:1px solid var(--border-light);vertical-align:middle;}
+tbody td:first-child{padding-left:18px;}
+tbody tr{transition:background var(--transition);}
+tbody tr:hover{background:var(--bg-hover);}
+tbody tr:last-child td{border-bottom:none;}
+.price{font-family:"Microsoft YaHei",sans-serif;font-size:12.5px;}
+.price.lowest{color:var(--green);font-weight:500;}
+.cell-muted{color:var(--text-muted);font-size:12px;}
+/* Contact cell (采购对接人) */
+.cell-row{display:flex;align-items:center;gap:10px;min-width:0;}
+.person-avatar{width:36px;height:36px;border-radius:50%;background:var(--blue-bg);color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0;}
+.cell-stack{display:flex;flex-direction:column;gap:3px;min-width:0;}
+.cell-stack .primary{font-size:13px;color:var(--text-primary);line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cell-stack .secondary{font-size:11.5px;color:var(--text-muted);line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+/* Hide SKU主图 checkbox in view mode */
+body:not(.edit-mode) .sku-image-check{display:none;}
+body:not(.edit-mode) .sku-image-label{display:inline;}
+body.edit-mode .sku-image-label{display:none;}
+
+/* Sticky column: 供应商(1) */
+.table-scroll thead th:nth-child(1){position:sticky;left:0;z-index:3;background:#fafaf9;box-shadow:2px 0 4px rgba(0,0,0,.06);}
+.table-scroll tbody td:nth-child(1){position:sticky;left:0;z-index:2;background:var(--bg-surface);box-shadow:2px 0 4px rgba(0,0,0,.04);}
+.table-scroll tbody tr:hover td:nth-child(1){background:var(--bg-hover);}
+
+/* ===== Checkbox ===== */
+.checkbox{width:16px;height:16px;accent-color:var(--accent);cursor:pointer;flex-shrink:0;}
+.checkbox:disabled{opacity:.3;cursor:not-allowed;}
+.radio{width:16px;height:16px;accent-color:var(--accent);cursor:pointer;}
+.radio:disabled{opacity:.3;cursor:not-allowed;}
+
+/* ===== Toggle Switch ===== */
+.toggle{position:relative;display:inline-flex;align-items:center;gap:6px;}
+.toggle.clickable{cursor:pointer;}
+.toggle-track{width:36px;height:20px;border-radius:20px;background:#d1d5db;transition:all var(--transition);position:relative;flex-shrink:0;}
+.toggle.on .toggle-track{background:#9ca3af;}
+.toggle.off .toggle-track{background:var(--red);}
+.toggle.locked .toggle-track{background:var(--red);}
+.toggle-knob{position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.15);transition:transform var(--transition);}
+.toggle.on .toggle-knob{transform:translateX(16px);}
+.toggle.off .toggle-knob{transform:translateX(0);}
+.toggle.locked .toggle-knob{transform:translateX(0);}
+.toggle-label{font-size:12px;font-weight:500;}
+.toggle.on .toggle-label{color:var(--text-secondary);}
+.toggle.off .toggle-label{color:var(--red);}
+.toggle.locked .toggle-label{color:var(--red);}
+.toggle .red-dot{display:none;width:6px;height:6px;border-radius:50%;background:var(--red);flex-shrink:0;}
+.toggle.locked .red-dot{display:inline-block;}
+
+/* ===== Preview Area ===== */
+.preview-area{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 20px;margin-top:16px;}
+.preview-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.preview-header h3{font-size:14px;font-weight:600;}
+.preview-header select{font-size:12px;padding:3px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;color:var(--text-primary);}
+.param-table{width:100%;border-collapse:collapse;font-size:13px;}
+.param-table td{padding:7px 12px;border-bottom:1px solid var(--border-light);}
+.param-table td:first-child{color:var(--text-muted);width:120px;font-size:12px;}
+.param-table td:last-child{color:var(--text-primary);}
+.detail-content{border:1px solid var(--border-light);border-radius:var(--radius);padding:20px;min-height:200px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:13px;text-align:center;line-height:1.6;}
+
+/* ===== Table Footer (Batch Bar) ===== */
+.batch-actions{display:flex;gap:8px;align-items:center;}
+.batch-actions .selected-info{font-size:12.5px;color:var(--text-muted);}
+.log-type-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;flex-shrink:0;}
+.log-type-dot.gray{background:var(--gray);}
+.log-type-dot.green{background:var(--green);}
+.log-type-dot.yellow{background:var(--orange);}
+.log-type-dot.red{background:var(--red);}
+.log-type-dot.blue{background:var(--blue);}
+.log-type-dot.purple{background:#7c3aed;}
+
+/* ===== Filter Bar ===== */
+.filter-bar{
+  display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px;
+  padding:12px 16px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-lg);
+}
+.filter-bar select,.filter-bar input{
+  height:36px;padding:0 12px;border:1px solid var(--border);border-radius:var(--radius-sm);
+  font-size:13px;font-family:inherit;background:var(--bg-surface);color:var(--text-primary);
+  outline:none;transition:border-color var(--transition);
+}
+.filter-bar input[type="text"]{width:220px;}
+.filter-bar input[type="date"]{width:140px;}
+.filter-bar input::placeholder{color:var(--text-muted);}
+.filter-bar select{min-width:150px;}
+.filter-bar select:focus,.filter-bar input:focus{border-color:var(--accent);}
+.filter-bar .date-sep,.filter-bar .sep{color:var(--text-muted);font-size:12px;}
+.filter-bar .filter-extra{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.btn-filter{height:36px;padding:0 16px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);font-size:13px;font-family:inherit;cursor:pointer;font-weight:500;}
+.btn-reset{height:36px;padding:0 14px;background:transparent;color:var(--text-secondary);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;cursor:pointer;}
+
+/* ===== Modal ===== */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:100;align-items:center;justify-content:center;backdrop-filter:blur(2px);}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--bg-surface);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);width:760px;max-width:94vw;max-height:85vh;overflow:visible;animation:modalIn .18s ease;display:flex;flex-direction:column;}
+.modal-header{flex-shrink:0;}
+.modal-body{overflow-y:auto;flex:1;min-height:0;}
+.modal-footer{flex-shrink:0;}
+.modal.wide{width:600px;}
+@keyframes modalIn{from{opacity:0;transform:translateY(8px) scale(.98);}to{opacity:1;transform:translateY(0) scale(1);}}
+.modal-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.modal-header h3{font-size:15px;font-weight:600;}
+.modal-close{width:28px;height:28px;border:none;background:none;cursor:pointer;font-size:18px;color:var(--text-muted);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;transition:all var(--transition);}
+.modal-close:hover{background:var(--bg-hover);color:var(--text-primary);}
+.modal-body{padding:16px 20px;font-size:13px;color:var(--text-secondary);line-height:1.6;}
+.modal-footer{padding:14px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;}
+.modal-body .warning-box{background:#fff8f7;border:1px solid #fdd9d5;border-radius:var(--radius-sm);padding:12px 14px;font-size:12.5px;color:#b53a35;display:flex;gap:8px;align-items:flex-start;margin-top:12px;}
+.modal-body textarea{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;resize:vertical;min-height:60px;margin-top:8px;}
+.modal-body textarea:focus{outline:none;border-color:var(--accent);}
+
+/* ===== Toast ===== */
+.toast-container{position:fixed;top:24px;right:24px;z-index:200;display:flex;flex-direction:column;gap:8px;}
+.toast{background:var(--bg-sidebar);color:#fff;padding:12px 18px;border-radius:var(--radius);font-size:13px;box-shadow:var(--shadow-lg);animation:toastIn .25s ease;display:flex;align-items:center;gap:8px;}
+@keyframes toastIn{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:translateX(0);}}
+.toast.success{border-left:3px solid var(--green);}
+.toast.info{border-left:3px solid var(--blue);}
+.toast.warn{border-left:3px solid var(--orange);}
+
+/* ===== Empty State ===== */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;color:var(--text-muted);font-size:13px;text-align:center;gap:8px;}
+.empty-state .empty-icon{font-size:36px;opacity:.4;}
+
+/* ===== Stats Cards ===== */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:16px;}
+@media(max-width:1200px){.stats-row{grid-template-columns:repeat(2,1fr);}}
+.stats-card{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 20px;box-shadow:var(--shadow-sm);display:flex;flex-direction:column;gap:4px;}
+.stats-card .card-title{font-size:12px;color:var(--text-muted);letter-spacing:.02em;}
+.stats-card .card-value{font-size:24px;font-weight:600;color:var(--text-primary);}
+.stats-card .card-sub{font-size:13px;color:var(--text-secondary);}
+.stats-card .card-sub .sep{color:var(--border);margin:0 8px;}
+/* Table header tooltip */
+.th-tip{display:inline-block;width:15px;height:15px;border-radius:50%;border:1px solid var(--text-muted);color:var(--text-muted);font-size:11px;line-height:14px;text-align:center;cursor:help;margin-left:3px;font-weight:400;position:relative;}
+
+/* ===== Multi-Select Dropdown ===== */
+.multi-select{position:relative;user-select:none;}
+.multi-select .ms-trigger{display:flex;align-items:center;justify-content:space-between;min-height:38px;padding:4px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;background:var(--bg-surface);font-size:13px;transition:border-color var(--transition);gap:8px;}
+.multi-select .ms-trigger:hover{border-color:var(--text-muted);}
+.multi-select.open .ms-trigger{border-color:var(--accent);border-radius:var(--radius-sm) var(--radius-sm) 0 0;}
+.multi-select .ms-placeholder{color:var(--text-muted);white-space:nowrap;}
+.multi-select .ms-tags{display:flex;flex-wrap:wrap;gap:4px;flex:1;min-width:0;}
+.multi-select .ms-tag{display:inline-flex;align-items:center;gap:2px;padding:1px 6px;border-radius:3px;font-size:11px;background:var(--bg-hover);color:var(--text-primary);white-space:nowrap;}
+.multi-select .ms-tag .ms-tag-remove{margin-left:2px;cursor:pointer;font-size:13px;line-height:1;opacity:.5;}
+.multi-select .ms-tag .ms-tag-remove:hover{opacity:1;color:var(--red);}
+.multi-select .ms-arrow{color:var(--text-muted);font-size:10px;transition:transform var(--transition);flex-shrink:0;}
+.multi-select.open .ms-arrow{transform:rotate(180deg);}
+.multi-select .ms-dropdown{display:none;position:absolute;left:0;right:0;top:100%;z-index:10;background:var(--bg-surface);border:1px solid var(--accent);border-top:none;border-radius:0 0 var(--radius-sm) var(--radius-sm);max-height:200px;overflow-y:auto;box-shadow:var(--shadow-lg);}
+.multi-select.open .ms-dropdown{display:block;}
+.multi-select .ms-opt{display:flex;align-items:center;gap:8px;padding:9px 12px;cursor:pointer;font-size:13px;transition:background var(--transition);}
+.multi-select .ms-opt:hover{background:var(--bg-hover);}
+.multi-select .ms-opt input[type="checkbox"]{width:15px;height:15px;accent-color:var(--accent);cursor:pointer;flex-shrink:0;}
+
+/* ===== Utility ===== */
+.hidden{display:none !important;}
+.muted{color:var(--text-muted);}
+.gap-8{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+</style>
+</head>
+<body>
+
+<!-- ===== Sidebar ===== -->
+<aside class="sidebar" id="app-sidebar"></aside>
+<script>
+// 侧边栏高亮跟随入口页（与面包屑联动）：01/02进入时高亮对应菜单，默认渠道商品管理
+(function(){
+  var from = new URLSearchParams(window.location.search).get('from');
+  var navId = { 'supply-pool': 'supply-pool', 'selection-list': 'selection-list', 'jicai-list': 'jicai-products' }[from];
+  if (navId) document.getElementById('app-sidebar').setAttribute('data-nav-active', navId);
+})();
+</script>
+<script src="../assets/common-sidebar.js"></script>
+
+<!-- ===== Main ===== -->
+<main class="main">
+  <div class="topbar">
+    <div class="breadcrumb" id="pageBreadcrumb">选品管理 / 渠道商品管理 / <span>商品详情</span></div>
+    <div class="topbar-right">
+      <span style="font-size:12px;color:var(--text-muted);">运营专员</span>
+      <div class="user-avatar">李</div>
+    </div>
+  </div>
+
+  <div class="content" id="contentArea">
+    <!-- Banner for 未建立SPU mode -->
+    <div class="warning-banner hidden" id="noSpuBanner">
+      <span>&#9888;</span>
+      <div>该商品尚未建立商城SPU，请先建立商城SPU以配置前台信息并上架渠道。</div>
+    </div>
+
+    <!-- Tabs + Actions -->
+    <div class="tabs">
+      <button class="tab active" data-tab="tab1">商品基础信息</button>
+      <button class="tab" data-tab="tab2">在售商城 <span class="count" id="channelCount">(3)</span></button>
+      <button class="tab" data-tab="tab3">商品日志</button>
+      <div class="page-actions" style="display:flex;align-items:center;gap:10px;">
+        <div class="demo-toggle">
+          <label>演示模式：</label>
+          <select id="spuModeSwitcher" onchange="switchSpuMode(this.value)">
+            <option value="established">已建立商城SPU（实物，含营销SKU）</option>
+            <option value="pending">未建立商城SPU</option>
+            <option value="combo">已建立商城SPU（组合套装）</option>
+          </select>
+        </div>
+        <button class="btn btn-outline btn-sm" id="editBtn" onclick="toggleEditMode()">编辑</button>
+      </div>
+    </div>
+
+    <!-- ========== TAB1: 商品基础信息 ========== -->
+    <div class="view active" id="tab1">
+      <!-- ① SPU Header -->
+      <div class="spu-header">
+        <div class="spu-image">
+          <div class="img-box" id="spuMainImage">
+            <div class="spu-carousel" id="spuCarousel">
+              <button class="carousel-arrow prev" onclick="carouselNav(-1)">&#10094;</button>
+              <button class="carousel-arrow next" onclick="carouselNav(1)">&#10095;</button>
+              <div class="carousel-dots" id="carouselDots"></div>
+            </div>
+          </div>
+          <div class="carousel-thumbs" id="carouselThumbs" style="display:flex;gap:6px;margin-top:8px;justify-content:center;"></div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:6px;" id="spuImageSourceNote">当前: 供应商A · SKU {白,常规}</div>
+        </div>
+        <div class="spu-info">
+          <div class="info-section info-block mall">
+            <div class="section-label">商城信息</div>
+            <div class="info-row">
+              <span class="label">前台商品名称</span>
+              <span class="value" id="frontNameDisplay">3M 9001V KN95口罩</span>
+              <button class="btn-link edit-only" onclick="editFrontName()">[修改]</button>
+            </div>
+            <div class="info-row"><span class="label">商城SPU</span><span id="spuCodeDisplay"><span class="value code">S001A00001</span></span></div>
+            <div class="info-row">
+              <span class="label">前台分类</span>
+              <span class="value" id="frontCatsDisplay">医疗用品 > 日常防护 > 防护口罩</span>
+              <button class="btn-link" onclick="openCategoryModal()"><span class="edit-only"><span class="edit-only">[修改]</span></span></button>
+            </div>
+            <div class="info-row"><span class="label">商城创建时间</span><span class="value muted">2026-03-15 08:00</span></div>
+          </div>
+          <div class="info-section info-block">
+            <div class="section-label">供应链信息</div>
+            <div class="info-row"><span class="label">商品名称</span><span class="value" id="spuNameDisplay">3M 9001V KN95口罩</span></div>
+            <div class="info-row"><span class="label">产品型号</span><span class="value" id="spuModelDisplay">9001V</span></div>
+            <div class="info-row"><span class="label">关联供应链SPU</span><span class="value muted" title="ZD-A00001, ZD-A00081">ZD-A00001, ZD-A00081 (共2个)</span></div>
+            <div class="info-row"><span class="label">所属品牌</span><span class="value">3M</span></div>
+            <div class="info-row"><span class="label">系统类目</span><span class="value">劳保用品 > 防护口罩 > KN95口罩</span></div>
+            <div class="info-row"><span class="label">商品类型</span><span class="value"><span class="tag tag-blue">实物商品</span> <span class="tag tag-purple">含营销SKU</span></span></div>
+            <div class="info-row"><span class="label">供应链创建时间</span><span class="value muted">2026-02-20 14:30</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ② SKU Switcher (Radio Group) -->
+      <div class="sku-switcher">
+        <span class="switcher-label">SKU切换:</span>
+        <label class="sku-radio active" data-sku="sku1" onclick="switchSku('sku1')">
+          <div class="sku-thumb">&#128203;</div>
+          <div class="sku-info"><span class="sku-code">S001A00001001</span><span class="sku-spec">3M 9001V KN95口罩 · 白,常规</span></div>
+        </label>
+        <label class="sku-radio" data-sku="sku2" onclick="switchSku('sku2')">
+          <div class="sku-thumb">&#128203;</div>
+          <div class="sku-info"><span class="sku-code">S001A00001002</span><span class="sku-spec">3M 9001V KN95口罩 · 蓝,常规</span></div>
+        </label>
+        <label class="sku-radio" data-sku="sku3" onclick="switchSku('sku3')">
+          <div class="sku-thumb">&#128203;</div>
+          <div class="sku-info"><span class="sku-code">S001A00001003</span><span class="sku-spec">3M 9001V KN95口罩 · 灰,加厚</span></div>
+        </label>
+        <label class="sku-radio" data-sku="sku4" onclick="switchSku('sku4')">
+          <div class="sku-thumb">&#128203;</div>
+          <div class="sku-info"><span class="sku-code">S001A00001004</span><span class="sku-spec">3M 9001V KN95口罩 · 黑,常规</span></div>
+        </label>
+        <label class="sku-radio sku-radio--promo" data-sku="sku5" onclick="switchSku('sku5')">
+          <div class="sku-thumb">&#128203;</div>
+          <div class="sku-info"><span class="sku-code">C001A00003001</span><span class="sku-spec">3M 工业防护专业套装 营销买赠A</span></div>
+        </label>
+      </div>
+
+      <!-- ③ SKU Info + Supplier Table (dynamic via JS) -->
+      <div id="skuArea"></div>
+
+      <!-- SPU级内容源选择 -->
+      <div class="sku-info-bar" style="margin-top:16px;" id="spuContentBar">
+        <span class="info-item"><span class="lbl">SPU级内容源:</span></span>
+        <span class="info-item">
+          <span class="lbl">SPU主图源:</span>
+          <select id="spuImageSource" onchange="onSpuImageSourceChange()" style="font-size:12px;padding:2px 6px;border:1px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;">
+            <option value="auto">自动（最近上架SKU主图）</option>
+          </select>
+          <button class="btn-link edit-only" onclick="setSpuImageDefault()">设为默认</button>
+        </span>
+        <span class="sep">|</span>
+        <span class="info-item">
+          <span class="lbl">产品参数源:</span>
+          <select id="spuParamsSource" onchange="onSpuContentSourceChange('params')" style="font-size:12px;padding:2px 6px;border:1px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;">
+            <option value="">自动（主供）</option>
+          </select>
+          <button class="btn-link edit-only" onclick="setSpuContentDefault('params')">设为默认</button>
+        </span>
+        <span class="sep">|</span>
+        <span class="info-item">
+          <span class="lbl">图文详情源:</span>
+          <select id="spuDetailSource" onchange="onSpuContentSourceChange('detail')" style="font-size:12px;padding:2px 6px;border:1px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;">
+            <option value="">自动（主供）</option>
+          </select>
+          <button class="btn-link edit-only" onclick="setSpuContentDefault('detail')">设为默认</button>
+        </span>
+      </div>
+
+      <!-- ④ Preview Area -->
+      <div class="preview-area" id="previewArea">
+        <div class="preview-header">
+          <h3>商品详情预览</h3>
+        </div>
+        <div id="previewContent"></div>
+      </div>
+    </div>
+
+    <!-- ========== TAB2: 在售商城 ========== -->
+    <div class="view" id="tab2">
+      <!-- 数据统计卡片 -->
+      <div class="stats-row" id="channelStats">
+        <div class="stats-card">
+          <div class="card-title">订单总量</div>
+          <div class="card-value" id="statTotalOrders">—</div>
+          <div class="card-sub">近30天 <span id="statRecentOrders">—</span></div>
+        </div>
+        <div class="stats-card">
+          <div class="card-title">上架渠道覆盖</div>
+          <div class="card-value" id="statChannelCover">—</div>
+          <div class="card-sub">上架率 <span id="statCoverRate">—</span></div>
+        </div>
+        <div class="stats-card">
+          <div class="card-title">综合售后率</div>
+          <div class="card-value" id="statTotalAfterSale">—</div>
+          <div class="card-sub">近30天 <span id="statRecentAfterSale">—</span></div>
+        </div>
+        <div class="stats-card">
+          <div class="card-title">近30天趋势</div>
+          <div class="card-value" id="statTrend">—</div>
+          <div class="card-sub" id="statTrendDetail">—</div>
+        </div>
+      </div>
+      <div class="filter-bar">
+        <select id="chFilterChannel"><option value="">全部渠道</option></select>
+        <select id="chFilterSku"><option value="">全部SKU</option></select>
+        <select id="chFilterSaleMode"><option value="">全部销售模式</option><option value="直销">直销</option><option value="分销">分销</option></select>
+        <select id="chFilterSupplyMode"><option value="">全部供货模式</option><option value="lowest">最低价优先</option><option value="manual">供应商指定</option></select>
+        <select id="chFilterSellable"><option value="">全部可售状态</option><option value="on">可售</option><option value="off">不可售</option></select>
+        <input type="text" id="chFilterKeyword" placeholder="搜索渠道名称">
+        <button class="btn-filter" onclick="applyChannelFilter()">查询</button>
+        <button class="btn-reset" onclick="resetChannelFilter()">重置</button>
+        <span class="filter-extra" style="font-size:12px;color:var(--text-muted);" id="chFilterResult"></span>
+      </div>
+      <div class="table-wrap">
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th></th><th>商城SKU / 在售商城</th><th>销售模式</th><th>供货模式</th><th>当前供应商</th><th>供货价</th><th>划线价</th><th>渠道价</th><th>商城价</th>
+                <th>我司毛利</th><th>渠道毛利</th>
+                <th>渠道订单量 <span class="th-tip" title="该渠道上架后累计订单数 / 近30天订单数">?</span></th>
+                <th>渠道售后率 <span class="th-tip" title="该渠道累计售后率 / 近30天售后率。售后单含退货、换货、仅退款">?</span></th>
+                <th>上架时间/操作人</th><th>可售状态</th><th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="channelTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== TAB3: 商品日志 ========== -->
+    <div class="view" id="tab3">
+      <div class="filter-bar">
+        <select><option>全部类型</option><option>改价申请</option><option>改价</option><option>改价驳回</option><option>移出</option><option>渠道下架</option><option>可售状态变更</option><option>标签变更</option><option>供货模式变更申请</option><option>供货模式变更</option><option>主供变更</option><option>主供自动变更</option><option>内容源切换</option><option>选品清单变更</option><option>信息编辑</option><option>商品创建</option></select>
+        <select><option>全部操作人</option><option>张三 (商城运营端)</option><option>李四 (商城运营端)</option><option>系统 (供应链端)</option></select>
+        <input type="date"> <span class="sep">—</span> <input type="date">
+        <button class="btn-filter">查询</button>
+        <button class="btn-reset">重置</button>
+        <div class="filter-extra">
+          <span style="font-size:12px;color:var(--text-muted);" id="logSelectedInfo">已选 0 条</span>
+          <button class="btn btn-outline btn-sm" id="logExportBtn" disabled onclick="exportLogs()">批量导出</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th><input type="checkbox" class="checkbox" id="logSelectAll" onchange="toggleAllLogs(this.checked)"></th>
+                <th>时间</th><th>操作类型</th><th>操作人</th><th>内容</th><th>变更</th><th>结果</th>
+              </tr>
+            </thead>
+            <tbody id="logTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- ===== Modals ===== -->
+<!-- Category Edit -->
+<div class="modal-overlay" id="categoryModal">
+  <div class="modal">
+    <div class="modal-header"><h3>修改前台分类</h3><button class="modal-close" onclick="closeModal('categoryModal')">&times;</button></div>
+    <div class="modal-body">
+      <div class="multi-select" id="catMultiSelect">
+        <div class="ms-trigger" onclick="this.parentElement.classList.toggle('open')">
+          <span class="ms-tags"></span>
+          <span class="ms-placeholder">请选择分类</span>
+          <span class="ms-arrow">▾</span>
+        </div>
+        <div class="ms-dropdown">
+          <label class="ms-opt"><input type="checkbox" value="医疗用品 > 日常防护 > 防护口罩" checked> 医疗用品 > 日常防护 > 防护口罩</label>
+          <label class="ms-opt"><input type="checkbox" value="劳保用品 > 呼吸防护 > 防尘口罩"> 劳保用品 > 呼吸防护 > 防尘口罩</label>
+          <label class="ms-opt"><input type="checkbox" value="健康防护 > 口鼻防护 > 卫生口罩"> 健康防护 > 口鼻防护 > 卫生口罩</label>
+          <label class="ms-opt"><input type="checkbox" value="居家生活 > 家清日用 > 厨房清洁"> 居家生活 > 家清日用 > 厨房清洁</label>
+          <label class="ms-opt"><input type="checkbox" value="食品饮料 > 休闲零食 > 坚果炒货"> 食品饮料 > 休闲零食 > 坚果炒货</label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('categoryModal')">取消</button><button class="btn btn-primary" onclick="saveCategory()">确认修改</button></div>
+  </div>
+</div>
+
+<!-- Tag Add -->
+<div class="modal-overlay" id="tagModal">
+  <div class="modal">
+    <div class="modal-header"><h3>添加标签</h3><button class="modal-close" onclick="closeModal('tagModal')">&times;</button></div>
+    <div class="modal-body">
+      <div class="multi-select" id="tagMultiSelect">
+        <div class="ms-trigger" onclick="this.parentElement.classList.toggle('open')">
+          <span class="ms-tags"></span>
+          <span class="ms-placeholder">请选择标签</span>
+          <span class="ms-arrow">▾</span>
+        </div>
+        <div class="ms-dropdown">
+          <label class="ms-opt"><input type="checkbox" value="限时特价" data-cls="tag-red" checked> 限时特价 <span class="tag tag-red" style="margin-left:auto;pointer-events:none;">红色</span></label>
+          <label class="ms-opt"><input type="checkbox" value="正品认证" data-cls="tag-green" checked> 正品认证 <span class="tag tag-green" style="margin-left:auto;pointer-events:none;">绿色</span></label>
+          <label class="ms-opt"><input type="checkbox" value="新品推荐" data-cls="tag-orange"> 新品推荐 <span class="tag tag-orange" style="margin-left:auto;pointer-events:none;">橙色</span></label>
+          <label class="ms-opt"><input type="checkbox" value="热销爆款" data-cls="tag-red"> 热销爆款 <span class="tag tag-red" style="margin-left:auto;pointer-events:none;">红色</span></label>
+          <label class="ms-opt"><input type="checkbox" value="企业专享" data-cls="tag-blue"> 企业专享 <span class="tag tag-blue" style="margin-left:auto;pointer-events:none;">蓝色</span></label>
+          <label class="ms-opt"><input type="checkbox" value="员工福利" data-cls="tag-green"> 员工福利 <span class="tag tag-green" style="margin-left:auto;pointer-events:none;">绿色</span></label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('tagModal')">取消</button><button class="btn btn-primary" onclick="saveTags()">确认修改</button></div>
+  </div>
+</div>
+
+<!-- SKU Tag Add -->
+<div class="modal-overlay" id="skuTagModal">
+  <div class="modal">
+    <div class="modal-header"><h3>添加SKU标签</h3><button class="modal-close" onclick="closeModal('skuTagModal')">&times;</button></div>
+    <div class="modal-body">
+      <div class="multi-select" id="skuTagMultiSelect">
+        <div class="ms-trigger" onclick="this.parentElement.classList.toggle('open')">
+          <span class="ms-tags"></span>
+          <span class="ms-placeholder">请选择标签</span>
+          <span class="ms-arrow">▾</span>
+        </div>
+        <div class="ms-dropdown">
+          <label class="ms-opt"><input type="checkbox" value="限时特价" data-cls="tag-red"> 限时特价 <span class="tag tag-red" style="margin-left:auto;pointer-events:none;">红色</span></label>
+          <label class="ms-opt"><input type="checkbox" value="正品认证" data-cls="tag-green"> 正品认证 <span class="tag tag-green" style="margin-left:auto;pointer-events:none;">绿色</span></label>
+          <label class="ms-opt"><input type="checkbox" value="新品推荐" data-cls="tag-orange"> 新品推荐 <span class="tag tag-orange" style="margin-left:auto;pointer-events:none;">橙色</span></label>
+          <label class="ms-opt"><input type="checkbox" value="热销爆款" data-cls="tag-red"> 热销爆款 <span class="tag tag-red" style="margin-left:auto;pointer-events:none;">红色</span></label>
+          <label class="ms-opt"><input type="checkbox" value="企业专享" data-cls="tag-blue"> 企业专享 <span class="tag tag-blue" style="margin-left:auto;pointer-events:none;">蓝色</span></label>
+          <label class="ms-opt"><input type="checkbox" value="员工福利" data-cls="tag-green"> 员工福利 <span class="tag tag-green" style="margin-left:auto;pointer-events:none;">绿色</span></label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('skuTagModal')">取消</button><button class="btn btn-primary" onclick="saveSkuTags()">确认修改</button></div>
+  </div>
+</div>
+
+<!-- OA Approval -->
+<div class="modal-overlay" id="oaModal">
+  <div class="modal">
+    <div class="modal-header"><h3 id="oaModalTitle">供应商指定申请</h3><button class="modal-close" onclick="closeModal('oaModal')">✕</button></div>
+    <div class="modal-body" id="oaModalBody"></div>
+    <div class="modal-footer"><button class="btn btn-outline" id="oaBackBtn" style="display:none;">上一步</button><button class="btn btn-outline" onclick="closeModal('oaModal')">取消</button><button class="btn btn-primary" id="oaSubmitBtn" onclick="submitOA()">提交审批</button></div>
+  </div>
+</div>
+
+<!-- Confirm Modal -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal">
+    <div class="modal-header"><h3 id="confirmTitle">确认操作</h3><button class="modal-close" onclick="closeModal('confirmModal')">&times;</button></div>
+    <div class="modal-body" id="confirmBody"></div>
+    <div class="modal-footer" id="confirmFooter"></div>
+  </div>
+</div>
+
+<!-- Preferred Supplier Modal -->
+<div class="modal-overlay" id="preferredModal">
+  <div class="modal">
+    <div class="modal-header"><h3>优选供应商详情</h3><button class="modal-close" onclick="closeModal('preferredModal')">&times;</button></div>
+    <div class="modal-body" id="preferredModalBody"></div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('preferredModal')">关闭</button></div>
+  </div>
+</div>
+
+<!-- Designation Trace Modal -->
+<div class="modal-overlay" id="designationModal">
+  <div class="modal">
+    <div class="modal-header"><h3 id="designationTitle">指定来源</h3><button class="modal-close" onclick="closeModal('designationModal')">&times;</button></div>
+    <div class="modal-body" id="designationModalBody"></div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('designationModal')">关闭</button></div>
+  </div>
+</div>
+
+<!-- Combo Supply Config Modal -->
+<div class="modal-overlay" id="comboSupplyModal">
+  <div class="modal">
+    <div class="modal-header"><h3>组合供货配置</h3><button class="modal-close" onclick="closeModal('comboSupplyModal')">&times;</button></div>
+    <div class="modal-body" id="comboSupplyModalBody"></div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('comboSupplyModal')">关闭</button></div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="../assets/common-datetime.js"></script>
+<script src="../assets/mock-backend/database.js"></script>
+<script src="../assets/mock-backend/api.js"></script>
+<script>
+// ========================================
+// DATA: 从模拟后端接口获取 (assets/mock-backend/)
+// 真实系统为 HTTP 异步接口,原型为同步 Mock
+// ========================================
+const data = MallAPI.productDetail.get();
+
+// 商品维度展示供应链编码用基础码，隐藏履约后缀 -DF（口径同201 v4.2）
+function baseSupplyCode(code){ return (code || '').replace(/-DF$/, ''); }
+
+// 面包屑入口映射：01供应链商品池 / 02选品清单管理 / 04渠道商品管理（默认，含直接打开）
+var ENTRY_CRUMBS = { 'supply-pool': '供应链商品池', 'selection-list': '选品清单管理', 'channel-products': '渠道商品管理', 'jicai-list': '集采商品列表' };
+
+let currentSku = 'sku1';
+// SPU-level content source (declared in renderSpuContentSources via var for hoisting)
+var spuImageSourceMode, spuParamsSource, spuDetailSource;
+
+// All suppliers across all SKUs (for SPU-level content source dropdowns)
+function getAllSuppliers() {
+  const all = [];
+  const seen = new Set();
+  Object.values(data.skus).forEach(sku => {
+    if (!sku.suppliers) return; // 营销买赠SKU无供应商表，跳过
+    sku.suppliers.forEach(s => {
+      if (!seen.has(s.id)) { seen.add(s.id); all.push(s); }
+    });
+  });
+  return all;
+}
+
+// ========================================
+// INIT
+// ========================================
+document.addEventListener('DOMContentLoaded', function() {
+  // Parse URL parameters
+  var params = new URLSearchParams(window.location.search);
+  var urlSku = params.get('sku');
+  var urlTab = params.get('tab');
+  var urlChannel = params.get('channel');
+
+  // 面包屑按入口页动态显示：from 由入口页跳转带入，未带时默认渠道商品管理
+  var entryCrumb = ENTRY_CRUMBS[params.get('from')];
+  if (entryCrumb) document.getElementById('pageBreadcrumb').innerHTML = '选品管理 / ' + entryCrumb + ' / <span>商品详情</span>';
+
+  // Determine initial mode from URL: ?mode=pending
+  if (params.get('mode') === 'pending') {
+    spuMode = 'pending';
+    document.getElementById('spuModeSwitcher').value = 'pending';
+    switchSpuMode('pending');
+  } else if (params.get('mode') === 'combo') {
+    spuMode = 'combo';
+    document.getElementById('spuModeSwitcher').value = 'combo';
+    switchSpuMode('combo');
+  }
+
+  // Pre-select SKU from URL
+  if (urlSku) {
+    for (var k in data.skus) {
+      if (data.skus[k].code === urlSku) { currentSku = k; break; }
+    }
+  }
+  // Update SKU radio button active state
+  document.querySelectorAll('.sku-radio').forEach(function(r) { r.classList.remove('active'); });
+  var activeRadio = document.querySelector('.sku-radio[data-sku="' + currentSku + '"]');
+  if (activeRadio) activeRadio.classList.add('active');
+
+  // Pre-select tab from URL
+  if (urlTab === 'tab2' || urlTab === 'tab3') {
+    document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+    document.querySelectorAll('.view').forEach(function(v) { v.classList.remove('active'); });
+    var targetTab = document.querySelector('.tab[data-tab="' + urlTab + '"]');
+    if (targetTab) targetTab.classList.add('active');
+    var targetView = document.getElementById(urlTab);
+    if (targetView) targetView.classList.add('active');
+  }
+
+  // TAB SWITCHING — register first so it always works
+  document.querySelectorAll('.tab').forEach(t => {
+    t.addEventListener('click', function() {
+      document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+      this.classList.add('active');
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.getElementById(this.dataset.tab).classList.add('active');
+    });
+  });
+
+  // Render all content
+  try {
+    renderSpuContentSources();
+    renderAll();
+    initCarousel();
+  } catch(e) {
+    console.error('Init error:', e);
+  }
+});
+
+// ========================================
+// ② SKU SWITCH
+// ========================================
+function switchSku(skuKey) {
+  if (currentSku === skuKey || spuMode === 'pending') return;
+  if (spuMode === 'combo' && !data.skus[skuKey]) return;
+  currentSku = skuKey;
+  document.querySelectorAll('.sku-radio').forEach(function(r) { r.classList.remove('active'); });
+  var activeRadio = document.querySelector('.sku-radio[data-sku="' + skuKey + '"]');
+  if (activeRadio) activeRadio.classList.add('active');
+  renderSkuArea();
+  refreshSpuHeaderNameModel();
+  renderPreview();
+}
+
+// ========================================
+// ③ RENDER SKU AREA
+// ========================================
+function renderSkuArea() {
+  var sku = data.skus[currentSku];
+
+  // 营销买赠SKU（组合C-SKU）：渲染SKU信息条 + 子件绑定折叠区（PRD §5.2）
+  // 供货价=平台采购成本，销售价在定价推品(05)别处定，此处只展示成本
+  if (sku.isCombo) {
+    document.getElementById('skuArea').innerHTML = renderComboSkuArea(sku);
+    return;
+  }
+
+  var suppliers = sku.suppliers;
+  var isPending = spuMode === 'pending';
+  // Find lowest price supplier (for green highlight)
+  let lowestIdx = 0;
+  suppliers.forEach((s,i) => { if (parseFloat(s.supplyPrice) < parseFloat(suppliers[lowestIdx].supplyPrice)) lowestIdx = i; });
+
+  let html = '';
+
+  // SKU Info Bar
+  html += '<div class="sku-info-bar">';
+  if (isPending) {
+    html += '<span class="info-item"><span class="lbl">商城SKU:</span><span class="val pending">待生成</span></span><span class="sep">|</span>';
+    html += '<span class="info-item"><span class="lbl">供应链SKU:</span><span class="val">' + sku.supplySKUs.map(baseSupplyCode).join(', ') + '</span></span><span class="sep">|</span>';
+  } else {
+    html += '<span class="info-item"><span class="lbl">商城SKU:</span><span class="val">' + sku.code + '</span></span><span class="sep">|</span>';
+  }
+  html += '<span class="info-item"><span class="lbl">规格:</span><span class="val">' + sku.spec + '</span></span><span class="sep">|</span>';
+  if (!isPending) {
+    html += '<span class="info-item"><span class="lbl">关联供应链SKU:</span><span class="val muted">' + sku.supplySKUs.map(baseSupplyCode).join(', ') + ' (共' + sku.supplySKUs.length + '个)</span></span>';
+  }
+  // SKU标签
+  if (!isPending && (sku.tags && sku.tags.length > 0 || document.body.classList.contains('edit-mode'))) {
+    html += '<span class="sep">|</span>';
+    html += '<span class="info-item"><span class="lbl">标签:</span>';
+    if (sku.tags && sku.tags.length > 0) {
+      sku.tags.forEach(function(tag) {
+        html += '<span class="tag ' + tag.cls + '" style="margin-left:4px;">' + tag.label;
+        if (document.body.classList.contains('edit-mode')) {
+          html += '<span class="tag-remove" onclick="event.stopPropagation();removeSkuTag(\'' + tag.label + '\')">&times;</span>';
+        }
+        html += '</span>';
+      });
+    }
+    if (document.body.classList.contains('edit-mode')) {
+      html += '<button class="btn-link" style="margin-left:4px;" onclick="openSkuTagModal()">[+ 添加标签]</button>';
+    }
+    html += '</span>';
+  }
+  html += '</div>';
+
+  // Supplier Table
+  html += '<div class="table-wrap"><div class="table-scroll"><table>';
+  html += '<thead><tr>';
+  html += '<th style="width:30%;">供应商</th><th style="width:132px;">供应链SKU</th><th>条码</th><th style="width:152px;">供货价</th><th>电商参考</th><th>毛利空间(¥)</th>';
+  html += '<th>集采起订量</th><th>结算方式</th><th style="width:140px;">供货方式</th><th>库存</th>';
+  html += '<th>发货 / 物流</th><th>采购对接人</th><th>状态</th>';
+  if (!isPending) html += '<th>SKU主图</th><th>备注</th>';
+  html += '</tr></thead><tbody>';
+
+  suppliers.forEach((s,i) => {
+    const jcOff = (s.supplyMode || '').indexOf('集采') === -1; // 供货方式不含集采直发 → 供货价不显示集采行、起订量显示不支持（口径同供应链商品详情）
+    const dfOff = (s.supplyMode || '').indexOf('一件代发') === -1; // 供货方式不含一件代发 → 供货价不显示代发行
+    const supRefPrice = parseFloat(s.refPrice);
+    const marginVal = (!isNaN(supRefPrice) && !dfOff) ? (supRefPrice - parseFloat(s.supplyPrice)).toFixed(2) : '—';
+    const isLowestPrice = i === lowestIdx;
+    // 供货价列：代发/集采两行合并展示，不支持的供货方式不显示该行
+    // 供应链SKU列：按供货方式显示对应履约编码（代发-DF / 集采-JC）；双行时中间加虚线分隔，单行不加
+    const lineSep = (!dfOff && !jcOff) ? 'padding-bottom:3px;margin-bottom:3px;border-bottom:1px dashed var(--border);' : '';
+    const priceHtml =
+      (dfOff ? '' : '<div style="font-size:12.5px;' + lineSep + '">一件代发：<span class="price ' + (isLowestPrice ? 'lowest' : '') + '">¥' + s.supplyPrice + '</span></div>') +
+      (jcOff ? '' : '<div style="font-size:12.5px;">集采直发：<span class="price">' + (s.jcPrice ? '¥' + s.jcPrice : '—') + '</span></div>');
+    const supplyBase = baseSupplyCode(s.supplySKU);
+    const supplySkuHtml =
+      (dfOff ? '' : '<div style="font-size:11.5px;' + lineSep + 'font-family:\'Microsoft YaHei\',sans-serif;">' + supplyBase + '-DF</div>') +
+      (jcOff ? '' : '<div style="font-size:11.5px;font-family:\'Microsoft YaHei\',sans-serif;">' + supplyBase + '-JC</div>');
+
+    html += '<tr>';
+    html += '<td><strong>' + s.name + '</strong>';
+    if (isLowestPrice) html += ' <span class="tag tag-blue">最低价</span>';
+    if (s.preferred) html += ' <span class="tag tag-green" style="cursor:pointer;" onclick="event.stopPropagation();openPreferredModal(\''+s.id+'\')">优选</span>';
+    html += '</td>';
+    html += `<td>${supplySkuHtml || supplyBase}</td>`;
+    html += `<td><span style="font-family:"Microsoft YaHei",sans-serif;font-size:11.5px;">${s.barcode}</span></td>`;
+    html += `<td>${priceHtml || '<span class="cell-muted">—</span>'}</td>`;
+    html += `<td>${s.refPrice !== '—' ? '<div style="font-size:12.5px;">电商价：<span class="price">¥' + s.refPrice + '</span></div>' : '<span class="cell-muted">—</span>'}${s.ecomLink !== '—' ? '<div style="font-size:11px;color:var(--blue);cursor:pointer;" onclick="window.open(\'#\',\'_blank\')">电商链接：点击跳转</div>' : ''}</td>`;
+    html += `<td>${marginVal === '—' ? '<span class="cell-muted">—</span>' : '<span class="price">¥' + marginVal + '</span>'}</td>`;
+    html += `<td>${jcOff ? '<span class="cell-muted">不支持</span>' : s.moq}</td>`;
+    html += `<td>${s.settlement}</td>`;
+    html += `<td>${s.supplyMode}</td>`;
+    html += `<td>${s.stock.toLocaleString()}</td>`;
+    html += `<td><div style="font-size:13px;">${s.shipping}</div><div style="font-size:11.5px;color:var(--text-muted);">${s.region} · ${s.leadTime}内发货</div></td>`;
+    html += '<td>' + renderContactCell(s.contact) + '</td>';
+    html += '<td><span class="tag ' + (s.status==='合作中'?'tag-green':'tag-gray') + '">' + s.status + '</span></td>';
+    if (!isPending) {
+      // SKU主图 — view mode: label + preview; edit mode: checkbox + preview
+      if (s.hasImage) {
+        html += '<td>';
+        html += '<span class="sku-image-label">' + (s.imageSelected ? '<span style="color:var(--green);font-weight:500;">&#10003; 已选</span>' : '<span class="cell-muted">—</span>') + '</span>';
+        html += '<span class="sku-image-check"><input type="checkbox" class="checkbox" ' + (s.imageSelected?'checked':'') + ' onchange="toggleSkuImage(\''+s.id+'\',this.checked)"> </span>';
+        html += '<button class="btn-link btn-sm" onclick="previewContent(\''+s.id+'\',\'image\')">预览</button>';
+        html += '</td>';
+      } else {
+        html += '<td><span class="cell-muted">—</span></td>';
+      }
+      html += '<td><span class="cell-muted">' + (s.note || '—') + '</span></td>';
+    }
+    html += '</tr>';
+  });
+
+  html += '</tbody></table></div></div>';
+  document.getElementById('skuArea').innerHTML = html;
+}
+
+// ========================================
+// ③ RENDER COMBO/GIFT SKU AREA (子件绑定折叠区 — 组合商品PRD §5.2)
+// 供货价=平台采购成本(子件供货价×用量汇总)，销售价在定价推品(05)别处定
+// ========================================
+function renderComboSkuArea(sku) {
+  var comps = sku.components;
+  var html = '';
+  // SKU 信息条
+  html += '<div class="sku-info-bar">';
+  html += '<span class="info-item"><span class="lbl">商城SKU:</span><span class="val">' + sku.code + '</span></span><span class="sep">|</span>';
+  html += '<span class="info-item"><span class="lbl">规格:</span><span class="val">' + sku.spec + '</span></span>';
+  // SKU标签
+  if (sku.tags && sku.tags.length > 0 || document.body.classList.contains('edit-mode')) {
+    html += '<span class="sep">|</span>';
+    html += '<span class="info-item"><span class="lbl">标签:</span>';
+    if (sku.tags && sku.tags.length > 0) {
+      sku.tags.forEach(function(tag) {
+        html += '<span class="tag ' + tag.cls + '" style="margin-left:4px;">' + tag.label;
+        if (document.body.classList.contains('edit-mode')) {
+          html += '<span class="tag-remove" onclick="event.stopPropagation();removeSkuTag(\'' + tag.label + '\')">&times;</span>';
+        }
+        html += '</span>';
+      });
+    }
+    if (document.body.classList.contains('edit-mode')) {
+      html += '<button class="btn-link" style="margin-left:4px;" onclick="openSkuTagModal()">[+ 添加标签]</button>';
+    }
+    html += '</span>';
+  }
+  html += '</div>';
+
+  // 子件清单表格
+  html += '<div class="table-wrap" style="margin-top:12px;"><div class="table-scroll">';
+  html += '<table><thead><tr>';
+  html += '<th>角色</th><th>子件名称</th><th>子件商城SKU</th><th>关联供应链SKU</th><th>状态</th><th>SKU主图</th><th>备注</th><th>操作</th>';
+  html += '</tr></thead><tbody>';
+  comps.forEach(function(c){
+    var roleTag = c.role === '主件' ? 'tag-blue' : 'tag-gray';
+    var refHtml = c.refPrice ? '<div style="font-size:12.5px;">电商价：<span class="price">¥' + c.refPrice + '</span></div>' + (c.ecomLink ? '<div style="font-size:11px;color:var(--blue);cursor:pointer;" onclick="window.open(\'#\',\'_blank\')">电商链接：点击跳转</div>' : '') : '<span class="cell-muted">—</span>';
+    var imageHtml = c.hasImage ? '<button class="btn-link btn-sm" onclick="previewComponentImage(\'' + c.mallSku + '\')">预览</button>' : '<span class="cell-muted">—</span>';
+    html += '<tr>';
+    html += '<td><span class="tag ' + roleTag + '">' + c.role + '</span> ×' + c.qty + '</td>';
+    html += '<td>' + c.name + ' · ' + c.spec.replace(/[{}]/g,'') + '</td>';
+    html += '<td><span style="font-family:\'Microsoft YaHei\',sans-serif;font-size:11.5px;color:var(--blue);cursor:pointer;" onclick="location.href=\'04a.商品详情页-原型页面.html?sku=' + c.mallSku + '\'">' + c.mallSku + '</span></td>';
+    html += '<td><span style="font-family:\'Microsoft YaHei\',sans-serif;font-size:11.5px;">' + c.supplySKUs.map(baseSupplyCode).join(', ') + ' (共' + c.supplySKUs.length + '个)</span></td>';
+    html += '<td><span class="tag tag-green">' + c.status + '</span></td>';
+    html += '<td>' + imageHtml + '</td>';
+    html += '<td><span class="cell-muted">' + (c.note || '—') + '</span></td>';
+    html += '<td><button class="btn-link" onclick="location.href=\'04a.商品详情页-原型页面.html?sku=' + c.mallSku + '\'">查看</button></td>';
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  html += '</div></div>';
+
+  return html;
+}
+
+// CONTENT SOURCE TOGGLE — SKU主图 (SKU-level only)
+// ========================================
+function toggleSkuImage(supId, checked) {
+  const sku = data.skus[currentSku];
+  sku.suppliers.forEach(s => { s.imageSelected = (s.id === supId && checked); });
+  if (checked) {
+    toast('已切换SKU {' + sku.spec + '} 主图来源为' + sku.suppliers.find(s => s.id === supId).name, 'success');
+  } else {
+    toast('已取消SKU {' + sku.spec + '} 主图指定，将默认使用主供图片', 'info');
+  }
+  updateSpuImageNote();
+  renderSkuArea();
+  renderPreview();
+}
+
+// SPU-LEVEL CONTENT SOURCE (Params + Detail)
+// SPU-level content source state
+var spuImageSourceMode = 'auto'; // 'auto' or supplier id
+var spuParamsSource = '';  // supplier id
+var spuDetailSource = '';  // supplier id
+
+function renderSpuContentSources() {
+  // Initialize defaults
+  if (typeof spuImageSourceMode === 'undefined') spuImageSourceMode = 'auto';
+  if (typeof spuParamsSource === 'undefined') spuParamsSource = '';
+  if (typeof spuDetailSource === 'undefined') spuDetailSource = '';
+
+  var all = getAllSuppliers();
+  var ps = document.getElementById('spuParamsSource');
+  var ds = document.getElementById('spuDetailSource');
+  var is = document.getElementById('spuImageSource');
+  // SPU主图源: auto + all suppliers with images
+  is.innerHTML = '<option value="auto">自动（最近上架SKU主图）</option>';
+  all.forEach(function(s) {
+    if (s.hasImage) is.innerHTML += '<option value="' + s.id + '" ' + (spuImageSourceMode===s.id?'selected':'') + '>' + s.name + ' (' + s.supplySKU + ')</option>';
+  });
+  ps.innerHTML = '<option value="">自动（主供）</option>';
+  ds.innerHTML = '<option value="">自动（主供）</option>';
+  all.forEach(function(s) {
+    if (s.hasParams) ps.innerHTML += '<option value="' + s.id + '" ' + (spuParamsSource===s.id?'selected':'') + '>' + s.name + ' (' + s.supplySKU + ')</option>';
+    if (s.hasDetail) ds.innerHTML += '<option value="' + s.id + '" ' + (spuDetailSource===s.id?'selected':'') + '>' + s.name + ' (' + s.supplySKU + ')</option>';
+  });
+}
+function onSpuContentSourceChange(type) {
+  if (type === 'params') { spuParamsSource = document.getElementById('spuParamsSource').value; }
+  else { spuDetailSource = document.getElementById('spuDetailSource').value; }
+  const sup = getAllSuppliers().find(s => s.id === (type==='params'?spuParamsSource:spuDetailSource));
+  if (sup) toast('SPU' + (type==='params'?'产品参数':'图文详情') + '源已切换为' + sup.name, 'success');
+  if (type === 'params') refreshSpuHeaderNameModel();
+  renderPreview();
+}
+function previewSpuContent(type) {
+  const supId = type === 'params' ? spuParamsSource : spuDetailSource;
+  if (!supId) { toast('请先选择来源供应商', 'warn'); return; }
+  const sup = getAllSuppliers().find(s => s.id === supId);
+  const tl = type === 'params' ? '产品参数' : '图文详情';
+  document.getElementById('confirmTitle').textContent = 'SPU' + tl + '预览 - ' + sup.name;
+  var b = type === 'params' ? '<table class="param-table"><tbody><tr><td>商品名称</td><td>' + (sup.supName||'—') + '</td></tr><tr><td>产品型号</td><td>' + (sup.supModel||'—') + '</td></tr><tr><td>材质</td><td>无纺布+静电滤棉</td></tr><tr><td>防护标准</td><td>KN95</td></tr></tbody></table>' : '<div class="detail-content">供应商' + sup.name + '提供的SPU图文详情</div>';
+  document.getElementById('confirmBody').innerHTML = b;
+  document.getElementById('confirmFooter').innerHTML = '<button class="btn btn-outline" onclick="closeModal(\'confirmModal\')">关闭</button><button class="btn btn-primary" onclick="selectSpuContent(\'' + type + '\')">选用为SPU默认' + tl + '</button>';
+  document.getElementById('confirmModal').classList.add('open');
+}
+function setSpuContentDefault(type) {
+  var supId = document.getElementById(type==='params'?'spuParamsSource':'spuDetailSource').value;
+  if (!supId) { toast('请先选择来源供应商','warn'); return; }
+  if (type === 'params') spuParamsSource = supId; else spuDetailSource = supId;
+  var sup = getAllSuppliers().find(function(s) { return s.id === supId; });
+  if (sup) toast('SPU默认' + (type==='params'?'产品参数':'图文详情') + '已设为' + sup.name, 'success');
+  if (type === 'params') refreshSpuHeaderNameModel();
+  renderPreview();
+}
+
+function selectSpuContent(type) {
+  closeModal('confirmModal');
+  const sup = getAllSuppliers().find(s => s.id === (type==='params'?spuParamsSource:spuDetailSource));
+  toast('SPU默认' + (type==='params'?'产品参数':'图文详情') + '来源已设为' + sup.name, 'success');
+  if (type === 'params') refreshSpuHeaderNameModel();
+  renderPreview();
+}
+
+// SPU Header 商品名称/产品型号 跟随"产品参数源"切换
+// 选了哪个供应商作参数源，就用该供应商对商品的命名/型号；未指定则用主供叫法（与预览区一致）
+function getParamsSourceSupplier() {
+  var allSup = getAllSuppliers();
+  var primary = getPrimarySupplier();
+  return allSup.find(function(s) { return s.id === spuParamsSource; }) || primary;
+}
+function refreshSpuHeaderNameModel() {
+  if (spuMode !== 'established') return; // 未建SPU模式由 renderPendingView 单独处理
+  var sup = getParamsSourceSupplier();
+  var nameEl = document.getElementById('spuNameDisplay');
+  var modelEl = document.getElementById('spuModelDisplay');
+  if (!nameEl || !modelEl || !sup) return;
+  nameEl.textContent = sup.supName || data.spu.name;
+  modelEl.textContent = sup.supModel || data.spu.model;
+}
+
+// ========================================
+// SUPPLY MODE (Channel-level)
+// ========================================
+function openSupplyConfigModal(chId) {
+  var ch = data.channels.find(function(c) { return c.id === chId; });
+  if (!ch) return;
+  var sku = data.skus[ch.skuKey];
+  var suppliers = sku.suppliers;
+  var currentMode = ch.supplyMode || 'lowest';
+
+  // Find lowest price index
+  var lowestIdx = 0;
+  suppliers.forEach(function(s, i) { if (parseFloat(s.supplyPrice) < parseFloat(suppliers[lowestIdx].supplyPrice)) lowestIdx = i; });
+
+  var html = '';
+  // Header
+  html += '<div style="margin-bottom:16px;">';
+  html += '<div style="font-size:14px;font-weight:600;margin-bottom:4px;">' + data.spu.name + '</div>';
+  html += '<div style="font-size:12px;color:var(--text-muted);">商城: <strong>' + ch.channel + '</strong> | SKU: ' + sku.code + ' {' + sku.spec + '}</div>';
+  html += '</div>';
+
+  // Mode radio
+  html += '<div style="display:flex;gap:20px;margin-bottom:16px;padding:10px 14px;background:#fafaf9;border-radius:var(--radius);">';
+  html += '<span style="font-size:13px;color:var(--text-muted);line-height:30px;">切换模式：</span>';
+  html += '<label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;" onclick="supplyConfigModeChange(\'lowest\')"><input type="radio" name="supplyConfigMode" value="lowest"' + (currentMode==='lowest'?' checked':'') + ' style="accent-color:var(--accent);"> 最低价优先</label>';
+  html += '<label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;" onclick="supplyConfigModeChange(\'manual\')"><input type="radio" name="supplyConfigMode" value="manual"' + (currentMode==='manual'?' checked':'') + ' style="accent-color:var(--accent);"> 供应商指定</label>';
+  html += '</div>';
+
+  // Lowest-price mode tip
+  html += '<div id="supplyConfigLowestTip" style="display:' + (currentMode==='lowest'?'flex':'none') + ';gap:8px;align-items:flex-start;margin:-6px 0 14px;padding:10px 14px;background:#f5f8ff;border:1px solid #d4e0fc;border-radius:6px;font-size:12.5px;color:#2563eb;line-height:1.6;">'
+    + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:3px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>'
+    + '<div>最低价优先模式下，当前由 <strong>' + suppliers[lowestIdx].name + '</strong>（¥' + suppliers[lowestIdx].supplyPrice + '）供货；后续若出现更低价供应商，将在待处理选品中提醒您更换。</div></div>';
+
+  // Supplier table (always visible; radio unchecked under lowest-price mode)
+  html += '<div id="supplyConfigTable">';
+  html += '<div class="table-wrap"><div class="table-scroll"><table>';
+  html += '<thead><tr>';
+  html += '<th style="width:40px;">选择</th><th>供应商</th><th>供货价</th><th>发货物流</th><th>订单量</th><th>售后率</th><th>结算方式</th><th>状态</th>';
+  html += '</tr></thead><tbody>';
+
+  var currentDesignated = ch.designatedSupplier;
+  supplyCfgDefaultSup = currentDesignated || suppliers[lowestIdx].id;
+  supplyCfgLowestSup = suppliers[lowestIdx].id;
+  suppliers.forEach(function(s, i) {
+    var isLowest = i === lowestIdx;
+    var isCurrent = s.id === currentDesignated;
+    var checked = (currentMode==='manual' && (currentDesignated ? isCurrent : isLowest)) ? ' checked' : (currentMode==='lowest' && isLowest ? ' checked' : '');
+    var disabled = currentMode==='lowest' ? ' disabled' : '';
+    html += '<tr>';
+    html += '<td style="text-align:center;"><input type="radio" name="manualSup" value="' + s.id + '"' + checked + disabled + ' class="radio"></td>';
+    html += '<td><strong>' + s.name + '</strong>';
+    if (isLowest) html += ' <span class="tag tag-green">最低价</span>';
+    if (isCurrent) html += ' <span class="tag tag-blue">当前指定</span>';
+    html += '</td>';
+    html += '<td><span class="price' + (isLowest?' lowest':'') + '">¥' + s.supplyPrice + '</span></td>';
+    html += '<td>' + (s.shipping || '—') + '</td>';
+    html += '<td>' + (s.orderVolume || '—') + '</td>';
+    html += '<td>' + (s.afterSale || '—') + '</td>';
+    html += '<td>' + s.settlement + '</td>';
+    html += '<td><span class="tag ' + (s.status==='合作中'?'tag-green':'tag-gray') + '">' + s.status + '</span></td>';
+    html += '</tr>';
+  });
+
+  html += '</tbody></table></div></div>';
+  html += '<div class="warning-box" id="supplyConfigOAWarning" style="margin-top:12px;' + (currentMode==='lowest'?'display:none;':'') + '"><span>&#9888;</span><div>切换为供应商指定将触发OA审批，审批期间商品暂不可售</div></div>';
+  html += '</div>';
+
+  document.getElementById('confirmTitle').textContent = '供货配置';
+  document.getElementById('confirmBody').innerHTML = html;
+  document.getElementById('confirmFooter').innerHTML = '<button class="btn btn-outline" onclick="closeModal(\'confirmModal\')">取消</button><button class="btn btn-primary" id="supplyConfigSubmit" onclick="submitSupplyConfig(\'' + chId + '\')">确认</button>';
+  document.getElementById('confirmModal').classList.add('open');
+}
+
+var supplyCfgDefaultSup = null;
+var supplyCfgLowestSup = null;
+function supplyConfigModeChange(mode) {
+  var tip = document.getElementById('supplyConfigLowestTip');
+  if (tip) tip.style.display = (mode === 'lowest') ? 'flex' : 'none';
+  var warn = document.getElementById('supplyConfigOAWarning');
+  if (warn) warn.style.display = (mode === 'manual') ? '' : 'none';
+  var radios = document.querySelectorAll('input[name="manualSup"]');
+  Array.prototype.forEach.call(radios, function(r) { r.disabled = (mode === 'lowest'); });
+  if (mode === 'manual') {
+    var hasChecked = Array.prototype.some.call(radios, function(r) { return r.checked; });
+    if (!hasChecked && supplyCfgDefaultSup) {
+      var def = document.querySelector('input[name="manualSup"][value="' + supplyCfgDefaultSup + '"]');
+      if (def) def.checked = true;
+    }
+  } else if (supplyCfgLowestSup) {
+    var low = document.querySelector('input[name="manualSup"][value="' + supplyCfgLowestSup + '"]');
+    if (low) low.checked = true;
+  }
+}
+
+function submitSupplyConfig(chId) {
+  var mode = document.querySelector('input[name="supplyConfigMode"]:checked');
+  if (!mode) { toast('请选择供货模式', 'warn'); return; }
+  var ch = data.channels.find(function(c) { return c.id === chId; });
+  var sku = data.skus[ch.skuKey];
+  var suppliers = sku.suppliers;
+
+  if (mode.value === 'lowest') {
+    ch.supplyMode = 'lowest';
+    ch.designatedSupplier = null;
+    ch.oaPending = false;
+    closeModal('confirmModal');
+    toast(ch.channel + ' 已切换为最低价优先供货模式', 'success');
+    renderChannelTable();
+  } else {
+    var sel = document.querySelector('input[name="manualSup"]:checked');
+    if (!sel) { toast('请选择一个供应商', 'warn'); return; }
+    var supId = sel.value;
+    var selectedSup = suppliers.find(function(s) { return s.id === supId; });
+    var lowestIdx = 0;
+    suppliers.forEach(function(s, i) { if (parseFloat(s.supplyPrice) < parseFloat(suppliers[lowestIdx].supplyPrice)) lowestIdx = i; });
+    closeModal('confirmModal');
+    ch.supplyMode = 'manual';
+    ch.designatedSupplier = selectedSup.id;
+    ch.supplyPrice = selectedSup.supplyPrice;
+    openChannelOAModal(ch, suppliers, lowestIdx, selectedSup);
+  }
+}
+
+function openChannelOAModal(ch, suppliers, lowestIdx, targetSup) {
+  var lowestSup = suppliers[lowestIdx];
+  var diff = (parseFloat(targetSup.supplyPrice) - parseFloat(lowestSup.supplyPrice)).toFixed(2);
+  var sku = data.skus[ch.skuKey];
+  var preferredSup = suppliers.find(function(s) { return s.preferred; });
+
+  var body = '';
+  body += '<div style="margin-bottom:14px;">';
+  body += '<div style="font-size:13px;font-weight:600;margin-bottom:4px;">' + data.spu.name + '</div>';
+  body += '<div style="font-size:12px;color:var(--text-muted);">商城: <strong>' + ch.channel + '</strong> | 商城SKU: ' + sku.code + ' {' + sku.spec + '}</div>';
+  body += '</div>';
+
+  body += '<div style="margin-bottom:10px;font-size:13px;line-height:1.8;">';
+  body += '<div>已选供应商: <strong>' + targetSup.name + '</strong></div>';
+  body += '<div>供货价: ¥' + targetSup.supplyPrice + '<span style="font-size:12px;color:var(--orange);">（非最低价，最低价为' + lowestSup.name + ' ¥' + lowestSup.supplyPrice + '）</span></div>';
+  body += '<div style="color:var(--red);font-size:12px;">差价: ¥' + diff + '</div>';
+  body += '<div>供应链推荐: <span style="font-weight:500;color:var(--blue);">' + (preferredSup ? (preferredSup.name + '（优选，¥' + preferredSup.supplyPrice + '）') : '暂无推荐') + '</span></div>';
+  body += '</div>';
+
+  // Reason
+  body += '<div style="margin-bottom:8px;">';
+  body += '<div style="font-size:13px;font-weight:500;color:var(--text-primary);margin-bottom:8px;padding-top:8px;border-top:1px solid var(--border-light);">为什么不选最低价/优选？</div>';
+  body += '<div style="font-size:12.5px;font-weight:500;color:var(--text-secondary);margin-bottom:6px;">指定理由（必填）</div>';
+  body += '<textarea id="oaReason" rows="4" placeholder="请详细说明不选最低价供应商或优选供应商的业务理由..."></textarea>';
+  body += '</div>';
+
+  // Warning box
+  body += '<div class="warning-box" style="margin-top:0;"><span>&#9888;</span><div>提交后该渠道商品将暂时设为不可售，OA审批通过后自动恢复可售</div></div>';
+
+  // Comparison table
+  body += '<div style="font-size:12.5px;font-weight:500;color:var(--text-muted);margin-bottom:8px;">参考数据（系统自动汇总）</div>';
+  body += '<div class="table-wrap"><div class="table-scroll"><table style="min-width:696px;table-layout:fixed;">';
+  body += '<colgroup><col style="width:160px;"><col style="width:90px;"><col style="width:100px;"><col style="width:90px;"><col style="width:78px;"><col style="width:100px;"><col style="width:78px;"></colgroup>';
+  body += '<thead><tr><th>供应商</th><th>供货价</th><th>发货物流</th><th>订单量</th><th>售后率</th><th>结算方式</th><th>状态</th></tr></thead><tbody>';
+  suppliers.forEach(function(s, i) {
+    var isLowest = i === lowestIdx;
+    var isTarget = s.id === targetSup.id;
+    var isPreferred = !!s.preferred;
+    var rowStyle = isTarget ? 'background:#fffbf0;' : '';
+    body += '<tr style="' + rowStyle + '">';
+    body += '<td><strong>' + s.name + '</strong>' + (isPreferred?' <span class="tag tag-blue">优选</span>':'') + (isLowest?' <span class="tag tag-green">最低价</span>':'') + (isTarget?' <span class="tag tag-orange">已选</span>':'') + '</td>';
+    body += '<td><span class="price' + (isLowest?' lowest':'') + '">¥' + s.supplyPrice + '</span></td>';
+    body += '<td>' + s.shipping + '</td>';
+    body += '<td style="text-align:right;">' + s.orderVolume + '</td>';
+    body += '<td style="text-align:right;">' + s.afterSale + '</td>';
+    body += '<td>' + s.settlement + '</td>';
+    body += '<td><span class="tag ' + (s.status==='合作中'?'tag-green':'tag-gray') + '">' + s.status + '</span></td>';
+    body += '</tr>';
+  });
+  body += '</tbody></table></div></div>';
+
+  body += '<input type="hidden" id="oaChId" value="' + ch.id + '"><input type="hidden" id="oaSupId" value="' + targetSup.id + '">';
+
+  document.getElementById('oaModalTitle').textContent = '供应商指定申请';
+  document.getElementById('oaModalBody').innerHTML = body;
+  document.getElementById('oaSubmitBtn').setAttribute('onclick', 'submitOA()');
+  var backBtn = document.getElementById('oaBackBtn');
+  backBtn.style.display = '';
+  backBtn.setAttribute('onclick', 'oaBackToSupplyConfig(\'' + ch.id + '\')');
+  document.getElementById('oaModal').classList.add('open');
+}
+
+function oaBackToSupplyConfig(chId) {
+  closeModal('oaModal');
+  openSupplyConfigModal(chId);
+}
+
+function submitOA() {
+  var reason = document.getElementById('oaReason').value.trim();
+  if (!reason) { toast('请填写指定原因','warn'); return; }
+  var chId = document.getElementById('oaChId').value;
+  var supId = document.getElementById('oaSupId').value;
+  var ch = data.channels.find(function(c) { return c.id === chId; });
+  ch.oaPending = true;
+  ch.designatedSupplier = supId;
+  ch.sellable = 'off';
+  ch.locked = true;
+  ch.lockedReason = 'OA审批中 - 供应商指定特批';
+  closeModal('oaModal');
+  toast('特批申请已提交，' + ch.channel + '商品暂设为不可售', 'info');
+  renderChannelTable();
+}
+
+// ========================================
+// COMBO SUPPLY CONFIG MODAL
+// ========================================
+var comboCurrentChId = null;
+
+function openComboSupplyModal(chId) {
+  comboCurrentChId = chId;
+  var ch = data.channels.find(function(c) { return c.id === chId; });
+  var skuKey = ch.skuKey;
+  var sku = data.skus[skuKey];
+  if (!sku || !sku.isCombo) return;
+
+  var comps = sku.components;
+  var html = '<div style="display:flex;flex-direction:column;gap:16px;">';
+
+  comps.forEach(function(comp, i) {
+    var label = comp.role;
+    var mode = comp.supplyMode || 'lowest';
+    var modeText = mode === 'lowest' ? '最低价优先' : '供应商指定';
+    var currentSup = comp.supplier;
+    var currentPrice = comp.supplyPrice;
+    if (mode === 'lowest' && comp.altSuppliers) {
+      var lowest = comp.altSuppliers[0];
+      comp.altSuppliers.forEach(function(s) { if (parseFloat(s.price) < parseFloat(lowest.price)) lowest = s; });
+      currentSup = lowest.name;
+      currentPrice = lowest.price;
+    }
+
+    html += '<div style="border:1px solid var(--border);border-radius:var(--radius);padding:16px;">';
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">';
+    html += '<div><span class="tag ' + (comp.role==='主件'?'tag-blue':'tag-gray') + '">' + label + '</span> <strong>' + comp.name + '</strong> <span style="color:var(--text-muted);">' + comp.spec.replace(/[{}]/g,'') + '</span> ×' + comp.qty + '</div>';
+    html += '<button class="btn btn-outline btn-sm" onclick="event.stopPropagation();openCompoCompConfigModal(' + i + ')">变更供货模式</button>';
+    html += '</div>';
+    html += '<div style="font-size:12.5px;color:var(--text-secondary);">供货模式：<strong style="color:var(--text-primary);">' + modeText + '</strong> | 当前供应商：<strong style="color:var(--text-primary);">' + currentSup + '</strong> <span class="price" style="margin-left:4px;">¥' + currentPrice + '</span> ×' + comp.qty + ' = <span class="price">¥' + (parseFloat(currentPrice) * comp.qty).toFixed(2) + '</span></div>';
+    html += '</div>';
+  });
+
+  html += '</div>';
+  document.getElementById('comboSupplyModalBody').innerHTML = html;
+  document.getElementById('comboSupplyModal').classList.add('open');
+}
+
+var comboCompConfigIdx = null;
+
+function openCompoCompConfigModal(compIdx) {
+  comboCompConfigIdx = compIdx;
+  closeModal('comboSupplyModal'); // replace with sub-item config
+  var sku = data.skus['sku5'];
+  var comp = sku.components[compIdx];
+  var mode = comp.supplyMode || 'lowest';
+  var suppliers = comp.altSuppliers || [];
+  var currentDesignated = comp.designatedSupplier;
+
+  // Find lowest price
+  var lowestIdx = 0;
+  suppliers.forEach(function(s, i) { if (parseFloat(s.price) < parseFloat(suppliers[lowestIdx].price)) lowestIdx = i; });
+
+  var html = '';
+  // Header
+  html += '<div style="margin-bottom:16px;">';
+  html += '<div style="font-size:14px;font-weight:600;margin-bottom:4px;">' + comp.name + ' <span style="color:var(--text-muted);font-weight:400;">' + comp.spec.replace(/[{}]/g,'') + '</span></div>';
+  html += '<div style="font-size:12px;color:var(--text-muted);">商城: <strong>' + (data.channels.find(function(c){return c.id===comboCurrentChId;})||{}).channel + '</strong> | 组合商品: ' + sku.code + '</div>';
+  html += '</div>';
+
+  // Mode radio
+  html += '<div style="display:flex;gap:20px;margin-bottom:16px;padding:10px 14px;background:#fafaf9;border-radius:var(--radius);">';
+  html += '<span style="font-size:13px;color:var(--text-muted);line-height:30px;">切换模式：</span>';
+  html += '<label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;" onclick="compoConfigModeChange(\'lowest\')"><input type="radio" name="compoConfigMode" value="lowest"' + (mode==='lowest'?' checked':'') + ' style="accent-color:var(--accent);"> 最低价优先</label>';
+  html += '<label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;" onclick="compoConfigModeChange(\'manual\')"><input type="radio" name="compoConfigMode" value="manual"' + (mode==='manual'?' checked':'') + ' style="accent-color:var(--accent);"> 供应商指定</label>';
+  html += '</div>';
+
+  // Lowest-price mode tip
+  html += '<div id="compoConfigLowestTip" style="display:' + (mode==='lowest'?'flex':'none') + ';gap:8px;align-items:flex-start;margin:-6px 0 14px;padding:10px 14px;background:#f5f8ff;border:1px solid #d4e0fc;border-radius:6px;font-size:12.5px;color:#2563eb;line-height:1.6;">'
+    + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:3px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>'
+    + '<div>最低价优先模式下，当前由 <strong>' + suppliers[lowestIdx].name + '</strong>（¥' + suppliers[lowestIdx].price + '）供货；后续若出现更低价供应商，将在待处理选品中提醒您更换。</div></div>';
+
+  // Supplier table (always visible; radios disabled under lowest mode)
+  html += '<div id="compoConfigTable">';
+  html += '<div class="table-wrap"><div class="table-scroll"><table>';
+  html += '<thead><tr>';
+  html += '<th style="width:40px;">选择</th><th>供应商</th><th>供货价</th><th>发货物流</th><th>订单量</th><th>售后率</th><th>结算方式</th><th>状态</th>';
+  html += '</tr></thead><tbody>';
+
+  compoCfgDefaultSup = currentDesignated || suppliers[lowestIdx].name;
+  compoCfgLowestSup = suppliers[lowestIdx].name;
+  suppliers.forEach(function(s, i) {
+    var isLowest = i === lowestIdx;
+    var isCurrent = s.name === currentDesignated;
+    var checked = (mode==='manual' && (currentDesignated ? isCurrent : isLowest)) ? ' checked' : (mode==='lowest' && isLowest ? ' checked' : '');
+    var disabled = mode==='lowest' ? ' disabled' : '';
+    html += '<tr>';
+    html += '<td style="text-align:center;"><input type="radio" name="compoManualSup" value="' + s.name + '"' + checked + disabled + ' class="radio"></td>';
+    html += '<td><strong>' + s.name + '</strong>';
+    if (isLowest) html += ' <span class="tag tag-green">最低价</span>';
+    if (isCurrent) html += ' <span class="tag tag-blue">当前指定</span>';
+    html += '</td>';
+    html += '<td><span class="price' + (isLowest?' lowest':'') + '">¥' + s.price + '</span></td>';
+    html += '<td>' + (s.shipping || '—') + '</td>';
+    html += '<td>' + (s.orderVolume || '—') + '</td>';
+    html += '<td>' + (s.afterSale || '—') + '</td>';
+    html += '<td>' + (s.settlement || '—') + '</td>';
+    html += '<td><span class="tag ' + (s.status==='合作中'?'tag-green':'tag-gray') + '">' + (s.status || '—') + '</span></td>';
+    html += '</tr>';
+  });
+
+  html += '</tbody></table></div></div>';
+  html += '<div class="warning-box" id="compoConfigOAWarning" style="margin-top:12px;' + (mode==='lowest'?'display:none;':'') + '"><span>&#9888;</span><div>切换为供应商指定将触发OA审批，审批期间商品暂不可售</div></div>';
+  html += '</div>';
+
+  document.getElementById('confirmTitle').textContent = '子件供货配置';
+  document.getElementById('confirmBody').innerHTML = html;
+  document.getElementById('confirmFooter').innerHTML = '<button class="btn btn-outline" onclick="compoConfigBack()">上一步</button><button class="btn btn-outline" onclick="closeModal(\'confirmModal\')">取消</button><button class="btn btn-primary" onclick="submitCompoCompConfig()">确认</button>';
+  document.getElementById('confirmModal').style.zIndex = '';
+  document.getElementById('confirmModal').classList.add('open');
+}
+
+function compoConfigBack() {
+  closeModal('confirmModal');
+  openComboSupplyModal(comboCurrentChId);
+}
+
+var compoCfgDefaultSup = null;
+var compoCfgLowestSup = null;
+function compoConfigModeChange(mode) {
+  var tip = document.getElementById('compoConfigLowestTip');
+  if (tip) tip.style.display = (mode === 'lowest') ? 'flex' : 'none';
+  var warn = document.getElementById('compoConfigOAWarning');
+  if (warn) warn.style.display = (mode === 'manual') ? '' : 'none';
+  var radios = document.querySelectorAll('input[name="compoManualSup"]');
+  Array.prototype.forEach.call(radios, function(r) { r.disabled = (mode === 'lowest'); });
+  if (mode === 'manual') {
+    var hasChecked = Array.prototype.some.call(radios, function(r) { return r.checked; });
+    if (!hasChecked && compoCfgDefaultSup) {
+      var def = document.querySelector('input[name="compoManualSup"][value="' + compoCfgDefaultSup + '"]');
+      if (def) def.checked = true;
+    }
+  } else if (compoCfgLowestSup) {
+    var low = document.querySelector('input[name="compoManualSup"][value="' + compoCfgLowestSup + '"]');
+    if (low) low.checked = true;
+  }
+}
+
+function submitCompoCompConfig() {
+  var mode = document.querySelector('input[name="compoConfigMode"]:checked');
+  if (!mode) { toast('请选择供货模式', 'warn'); return; }
+  var sku = data.skus['sku5'];
+  var comp = sku.components[comboCompConfigIdx];
+  var suppliers = comp.altSuppliers || [];
+
+  if (mode.value === 'lowest') {
+    comp.supplyMode = 'lowest';
+    comp.designated = false;
+    comp.designatedSupplier = null;
+    if (suppliers.length) {
+      var lowest = suppliers[0];
+      suppliers.forEach(function(s) { if (parseFloat(s.price) < parseFloat(lowest.price)) lowest = s; });
+      comp.supplier = lowest.name;
+      comp.supplyPrice = lowest.price;
+    }
+    closeModal('confirmModal');
+    openComboSupplyModal(comboCurrentChId);
+    renderChannelTable();
+    toast(comp.name + ' 已切换为最低价优先', 'success');
+  } else {
+    var sel = document.querySelector('input[name="compoManualSup"]:checked');
+    if (!sel) { toast('请选择一个供应商', 'warn'); return; }
+    var supName = sel.value;
+    comp.supplyMode = 'manual';
+    comp.designated = true;
+    comp.designatedSupplier = supName;
+    closeModal('confirmModal');
+    openComboOAModal(comp, suppliers, supName);
+  }
+}
+
+function openComboOAModal(comp, suppliers, selectedName) {
+  var lowestIdx = 0;
+  suppliers.forEach(function(s, i) { if (parseFloat(s.price) < parseFloat(suppliers[lowestIdx].price)) lowestIdx = i; });
+  var lowestSup = suppliers[lowestIdx];
+  var targetSup = suppliers.find(function(s) { return s.name === selectedName; });
+  var diff = (parseFloat(targetSup.price) - parseFloat(lowestSup.price)).toFixed(2);
+
+  var sku5 = data.skus['sku5'];
+  var body = '';
+  body += '<div style="margin-bottom:14px;">';
+  body += '<div style="font-size:13px;font-weight:600;margin-bottom:4px;">组合商品：' + sku5.code + ' 3M 工业防护专业套装 营销买赠A</div>';
+  body += '<div style="font-size:12px;color:var(--text-muted);">子件: ' + comp.name + ' ' + comp.spec.replace(/[{}]/g,'') + ' | 角色: ' + comp.role + '</div>';
+  body += '</div>';
+
+  body += '<div style="margin-bottom:10px;font-size:13px;line-height:1.8;">';
+  body += '<div>已选供应商: <strong>' + targetSup.name + '</strong></div>';
+  body += '<div>供货价: ¥' + targetSup.price + '<span style="font-size:12px;color:var(--orange);">' + (targetSup.name !== lowestSup.name ? '（非最低价，最低价为' + lowestSup.name + ' ¥' + lowestSup.price + '）' : '（当前最低价）') + '</span></div>';
+  if (diff > 0) body += '<div style="color:var(--red);font-size:12px;">差价: ¥' + diff + '</div>';
+  body += '</div>';
+
+  // Reason
+  body += '<div style="margin-bottom:8px;">';
+  body += '<div style="font-size:13px;font-weight:500;color:var(--text-primary);margin-bottom:8px;padding-top:8px;border-top:1px solid var(--border-light);">指定理由（必填）</div>';
+  body += '<textarea id="comboOaReason" rows="4" placeholder="请详细说明指定该供应商的业务理由..."></textarea>';
+  body += '</div>';
+
+  // Warning box
+  body += '<div class="warning-box" style="margin-top:0;"><span>&#9888;</span><div>提交后该渠道商品将暂时设为不可售，OA审批通过后自动恢复可售</div></div>';
+
+  // Comparison table
+  body += '<div style="font-size:12.5px;font-weight:500;color:var(--text-muted);margin:12px 0 8px;">参考数据（系统自动汇总）</div>';
+  body += '<div class="table-wrap"><div class="table-scroll"><table>';
+  body += '<thead><tr><th>供应商</th><th>供货价</th><th>发货物流</th><th>订单量</th><th>售后率</th><th>结算方式</th><th>状态</th></tr></thead><tbody>';
+  suppliers.forEach(function(s, i) {
+    var isLowest = i === lowestIdx;
+    var isTarget = s.name === selectedName;
+    var rowStyle = isTarget ? 'background:#fffbf0;' : '';
+    body += '<tr style="' + rowStyle + '">';
+    body += '<td><strong>' + s.name + '</strong>' + (isLowest?' <span class="tag tag-green">最低价</span>':'') + (isTarget?' <span class="tag tag-orange">已选</span>':'') + '</td>';
+    body += '<td><span class="price' + (isLowest?' lowest':'') + '">¥' + s.price + '</span></td>';
+    body += '<td>' + (s.shipping || '—') + '</td>';
+    body += '<td style="text-align:right;">' + (s.orderVolume || '—') + '</td>';
+    body += '<td style="text-align:right;">' + (s.afterSale || '—') + '</td>';
+    body += '<td>' + (s.settlement || '—') + '</td>';
+    body += '<td><span class="tag ' + (s.status==='合作中'?'tag-green':'tag-gray') + '">' + (s.status || '—') + '</span></td>';
+    body += '</tr>';
+  });
+  body += '</tbody></table></div></div>';
+
+  // Hidden fields
+  body += '<input type="hidden" id="comboOaSupName" value="' + selectedName + '">';
+  body += '<input type="hidden" id="comboOaSupPrice" value="' + targetSup.price + '">';
+
+  document.getElementById('oaModalTitle').textContent = '子件供应商指定申请';
+  document.getElementById('oaModalBody').innerHTML = body;
+  document.getElementById('oaSubmitBtn').setAttribute('onclick', 'submitComboOA()');
+  var backBtn = document.getElementById('oaBackBtn');
+  backBtn.style.display = '';
+  backBtn.setAttribute('onclick', 'comboOaBack()');
+  document.getElementById('oaModal').classList.add('open');
+}
+
+function comboOaBack() {
+  closeModal('oaModal');
+  openCompoCompConfigModal(comboCompConfigIdx);
+}
+
+function submitComboOA() {
+  var reason = document.getElementById('comboOaReason').value.trim();
+  if (!reason) { toast('请填写指定理由', 'warn'); return; }
+  var supName = document.getElementById('comboOaSupName').value;
+  var supPrice = document.getElementById('comboOaSupPrice').value;
+  var sku = data.skus['sku5'];
+  var comp = sku.components[comboCompConfigIdx];
+  var ds = comp.altSuppliers.find(function(s) { return s.name === supName; });
+  if (ds) { comp.supplier = ds.name; comp.supplyPrice = ds.price; }
+
+  var ch = data.channels.find(function(c) { return c.id === comboCurrentChId; });
+  if (ch) {
+    ch.oaPending = true;
+    ch.sellable = 'off';
+    ch.locked = true;
+    ch.lockedReason = 'OA审批中 - 组合供货子件供应商指定特批';
+  }
+  closeModal('oaModal');
+  closeModal('comboSupplyModal');
+  renderChannelTable();
+  toast('已生成OA特批申请：' + comp.name + ' 供应商指定，审批中...', 'info');
+}
+
+// ========================================
+// ④ PREVIEW
+// ========================================
+// Get primary supplier for current SKU (fallback when no content source selected)
+function getPrimarySupplier() {
+  if (spuMode === 'combo') return null;
+  var sku = data.skus[currentSku];
+  // 营销买赠SKU无供应商表，主图/参数强制继承主件(组合商品PRD §4.4)，回退到主件sku1的主供
+  if (sku.isCombo) { sku = data.skus.sku1; }
+  var suppliers = sku.suppliers;
+  if (sku.supplyMode === 'manual' && sku.designatedSupplier) {
+    return suppliers.find(function(s) { return s.id === sku.designatedSupplier; });
+  }
+  // Lowest price mode - find cheapest
+  var lowest = suppliers[0];
+  suppliers.forEach(function(s) { if (parseFloat(s.supplyPrice) < parseFloat(lowest.supplyPrice)) lowest = s; });
+  return lowest;
+}
+
+function renderPreview() {
+  if (spuMode === 'combo') {
+    document.getElementById('previewContent').innerHTML = '<div class="detail-content">组合商品内容由创建时自定义，主件供应商内容作为参考</div>';
+    return;
+  }
+  if (spuMode === 'pending') {
+    document.getElementById('previewContent').innerHTML = '<div class="empty-state"><div class="empty-icon">&#128196;</div><div>建立商城SPU后可配置前台默认展示内容</div></div>';
+    return;
+  }
+  var allSup = getAllSuppliers();
+  var primary = getPrimarySupplier();
+
+  // Resolve content source: if selected → use it; if not → fallback to primary supplier (卖哪个展示哪个)
+  var paramsSup = allSup.find(function(s) { return s.id === spuParamsSource; }) || primary;
+  var detailSup = allSup.find(function(s) { return s.id === spuDetailSource; }) || primary;
+
+  var paramsSourceLabel = spuParamsSource ? (paramsSup.name + ' · 已指定') : (primary.name + ' · 自动');
+  var detailSourceLabel = spuDetailSource ? (detailSup.name + ' · 已指定') : (primary.name + ' · 自动');
+
+  var html = '';
+
+  // Params (SPU-level)
+  html += '<div style="margin-bottom:16px;">';
+  html += '<div style="font-size:13px;font-weight:600;margin-bottom:8px;">&#9660; 默认产品参数 <span style="font-size:11px;font-weight:400;color:var(--text-muted);">(来源: <em>' + paramsSourceLabel + '</em>)</span></div>';
+  if (paramsSup && paramsSup.hasParams) {
+    html += '<table class="param-table"><tbody>';
+    html += '<tr><td>商品名称</td><td>' + (paramsSup.supName || '—') + '</td></tr>';
+    html += '<tr><td>产品型号</td><td>' + (paramsSup.supModel || '—') + '</td></tr>';
+    html += '<tr><td>材质</td><td>无纺布 + 静电滤棉</td></tr>';
+    html += '<tr><td>防护标准</td><td>KN95 (GB 2626-2019)</td></tr>';
+    html += '<tr><td>佩戴方式</td><td>耳戴式</td></tr>';
+    html += '<tr><td>包装规格</td><td>50只/盒</td></tr>';
+    html += '</tbody></table>';
+  } else {
+    html += '<div class="empty-state"><div class="empty-icon">&#128196;</div><div>主供供应商未提供产品参数</div></div>';
+  }
+  html += '</div>';
+
+  // Detail (SPU-level)
+  html += '<div>';
+  html += '<div style="font-size:13px;font-weight:600;margin-bottom:8px;">&#9660; 默认图文详情 <span style="font-size:11px;font-weight:400;color:var(--text-muted);">(来源: <em>' + detailSourceLabel + '</em>)</span></div>';
+  if (detailSup && detailSup.hasDetail) {
+    html += '<div class="detail-content"><div>';
+    html += '<div style="font-size:16px;font-weight:600;margin-bottom:8px;">3M 9001V KN95防护口罩</div>';
+    html += '<div style="margin-bottom:4px;">采用高效静电过滤技术，过滤效率≥95%</div>';
+    html += '<div style="margin-bottom:4px;">符合GB 2626-2019标准</div>';
+    html += '<div style="margin-top:12px;color:var(--text-muted);">（图文详情由供应商提供）</div>';
+    html += '</div></div>';
+  } else {
+    html += '<div class="empty-state"><div class="empty-icon">&#128196;</div><div>主供供应商未提供图文详情</div></div>';
+  }
+  html += '</div>';
+
+  document.getElementById('previewContent').innerHTML = html;
+}
+
+// ========================================
+// SPU IMAGE SOURCE
+// ========================================
+function getSkuPrimaryImage(sku) {
+  // If a supplier's image is selected, use it; otherwise fallback to primary supplier
+  var sel = sku.suppliers.find(function(s) { return s.imageSelected && s.hasImage; });
+  if (sel) return sel;
+  // Fallback to primary supplier (卖哪个展示哪个)
+  if (sku.supplyMode === 'manual' && sku.designatedSupplier) {
+    return sku.suppliers.find(function(s) { return s.id === sku.designatedSupplier && s.hasImage; });
+  }
+  var lowest = sku.suppliers[0];
+  sku.suppliers.forEach(function(s) { if (parseFloat(s.supplyPrice) < parseFloat(lowest.supplyPrice)) lowest = s; });
+  return lowest.hasImage ? lowest : null;
+}
+
+function setSpuImageDefault() {
+  var val = document.getElementById('spuImageSource').value;
+  if (val === 'auto') { toast('自动模式已是默认', 'info'); return; }
+  spuImageSourceMode = val;
+  updateSpuImageNote();
+  refreshCarousel();
+  var sup = getAllSuppliers().find(function(s) { return s.id === val; });
+  if (sup) toast('SPU主图源已设为' + sup.name, 'success');
+}
+
+function onSpuImageSourceChange() {
+  var val = document.getElementById('spuImageSource').value;
+  spuImageSourceMode = val;
+  updateSpuImageNote();
+  refreshCarousel();
+  if (val !== 'auto') {
+    var sup = getAllSuppliers().find(function(s) { return s.id === val; });
+    if (sup) toast('SPU主图源已锁定为' + sup.name, 'info');
+  }
+}
+
+function previewSpuImage() {
+  var mode = spuImageSourceMode || 'auto';
+  if (mode === 'auto') {
+    var firstKey = Object.keys(data.skus)[0];
+    var sku = data.skus[firstKey];
+    var imgSup = getSkuPrimaryImage(sku);
+    if (!imgSup) { toast('未找到可用主图','warn'); return; }
+    document.getElementById('confirmTitle').textContent = 'SPU主图预览 - 自动（' + sku.spec + '）';
+    document.getElementById('confirmBody').innerHTML = '<div style="text-align:center;padding:40px;font-size:48px;opacity:.3;">&#128203;</div><div style="text-align:center;font-size:12px;color:var(--text-muted);">自动模式：展示最近上架SKU的主图（' + imgSup.name + '提供）</div>';
+  } else {
+    var sup = getAllSuppliers().find(function(s) { return s.id === mode; });
+    if (!sup) { toast('未找到该供应商','warn'); return; }
+    document.getElementById('confirmTitle').textContent = 'SPU主图预览 - ' + sup.name;
+    document.getElementById('confirmBody').innerHTML = '<div style="text-align:center;padding:40px;font-size:48px;opacity:.3;">&#128203;</div><div style="text-align:center;font-size:12px;color:var(--text-muted);">' + sup.name + '提供的商品图集（白底图/场景图/细节图）</div>';
+  }
+  document.getElementById('confirmFooter').innerHTML = '<button class="btn btn-outline" onclick="closeModal(\'confirmModal\')">关闭</button>';
+  document.getElementById('confirmModal').classList.add('open');
+}
+
+function updateSpuImageNote() {
+  var mode = spuImageSourceMode || 'auto';
+  var label = '';
+  if (mode === 'auto') {
+    // Auto: use most recently listed SKU (first key = default/最近上架)
+    var firstKey = Object.keys(data.skus)[0];
+    var sku = data.skus[firstKey];
+    var imgSup = getSkuPrimaryImage(sku);
+    label = '自动: ' + (imgSup ? imgSup.name + ' · SKU {' + sku.spec + '}' : '未选择');
+  } else {
+    var sup = getAllSuppliers().find(function(s) { return s.id === mode; });
+    label = '已锁定: ' + (sup ? sup.name : '未选择');
+  }
+  document.getElementById('spuImageSourceNote').textContent = label;
+}
+
+// ========================================
+// TAB2: CHANNEL TABLE
+// ========================================
+// Track expanded SKU rows and filters
+var expandedSkus = {};
+var channelFilters = { channel:'', sku:'', saleMode:'', supplyMode:'', sellable:'', keyword:'' };
+
+function updateChannelStats() {
+  // Use all channels (unfiltered) for the stats cards
+  var all = data.channels;
+  if (all.length === 0) return;
+  var totalOrders = all.reduce(function(s,ch){ return s + (ch.totalOrders||0); }, 0);
+  var recentOrders = all.reduce(function(s,ch){ return s + (ch.recentOrders||0); }, 0);
+  var totalPlatforms = 20; // mock: total brand malls on platform
+  var listedCount = all.length;
+  var coverRate = totalPlatforms > 0 ? Math.round(listedCount / totalPlatforms * 100) : 0;
+  // Compute weighted after-sale rates
+  var totalAfterSaleCount = all.reduce(function(s,ch){ var p=parseFloat(ch.totalAfterSale)||0; return s + Math.round((ch.totalOrders||0) * p / 100); }, 0);
+  var totalAfterSale = totalOrders > 0 ? (totalAfterSaleCount / totalOrders * 100).toFixed(1) : '0.0';
+  var recentAS = all.reduce(function(s,ch){ var p=parseFloat(ch.recentAfterSale)||0; return s + Math.round((ch.recentOrders||0) * p / 100); }, 0);
+  var recentAfterSale = recentOrders > 0 ? (recentAS / recentOrders * 100).toFixed(1) : '0.0';
+  // Trend: compare recent-30d vs previous-30d (mock: use ratio against total avg as reference)
+  var avgMonthlyOrders = totalOrders / Math.max(all.length, 1);
+  var orderTrend = recentOrders > 0 && avgMonthlyOrders > 0 ? Math.round((recentOrders - avgMonthlyOrders) / avgMonthlyOrders * 100) : 0;
+  var trendOrderStr = (orderTrend >= 0 ? '+' : '') + orderTrend + '%';
+  // Mock after-sale trend: compare recent vs total
+  var totalAS = parseFloat(totalAfterSale)||0;
+  var recentASVal = parseFloat(recentAfterSale)||0;
+  var asTrend = totalAS > 0 ? (recentASVal - totalAS).toFixed(1) : '0.0';
+  var trendASStr = (parseFloat(asTrend) >= 0 ? '+' : '') + asTrend + '%';
+
+  document.getElementById('statTotalOrders').textContent = totalOrders.toLocaleString() + ' 单';
+  document.getElementById('statRecentOrders').textContent = recentOrders.toLocaleString() + ' 单';
+  document.getElementById('statChannelCover').textContent = listedCount + ' / ' + totalPlatforms + ' 个';
+  document.getElementById('statCoverRate').textContent = coverRate + '%';
+  document.getElementById('statTotalAfterSale').textContent = totalAfterSale + '%';
+  document.getElementById('statRecentAfterSale').textContent = recentAfterSale + '%';
+  document.getElementById('statTrend').textContent = '订单 ' + trendOrderStr + '  售后 ' + trendASStr;
+  document.getElementById('statTrendDetail').textContent = '对比上周期';
+}
+
+function applyChannelFilter() {
+  channelFilters.channel = document.getElementById('chFilterChannel').value;
+  channelFilters.sku = document.getElementById('chFilterSku').value;
+  channelFilters.saleMode = document.getElementById('chFilterSaleMode').value;
+  channelFilters.supplyMode = document.getElementById('chFilterSupplyMode').value;
+  channelFilters.sellable = document.getElementById('chFilterSellable').value;
+  channelFilters.keyword = document.getElementById('chFilterKeyword').value.toLowerCase();
+  renderChannelTable();
+}
+
+function resetChannelFilter() {
+  document.getElementById('chFilterChannel').value = '';
+  document.getElementById('chFilterSku').value = '';
+  document.getElementById('chFilterSaleMode').value = '';
+  document.getElementById('chFilterSupplyMode').value = '';
+  document.getElementById('chFilterSellable').value = '';
+  document.getElementById('chFilterKeyword').value = '';
+  channelFilters = { channel:'', sku:'', saleMode:'', supplyMode:'', sellable:'', keyword:'' };
+  renderChannelTable();
+}
+
+function renderChannelTable() {
+  // Filter channels
+  var filtered = data.channels.filter(function(ch) {
+    if (channelFilters.channel && ch.channel !== channelFilters.channel) return false;
+    if (channelFilters.sku && ch.skuKey !== channelFilters.sku) return false;
+    if (channelFilters.saleMode && ch.mode !== channelFilters.saleMode) return false;
+    if (channelFilters.supplyMode && ch.supplyMode !== channelFilters.supplyMode) return false;
+    if (channelFilters.sellable && ch.sellable !== channelFilters.sellable) return false;
+    if (channelFilters.keyword && ch.channel.toLowerCase().indexOf(channelFilters.keyword) === -1) return false;
+    return true;
+  });
+
+  // Populate filter dropdowns
+  var channels = data.channels;
+  var chSel = document.getElementById('chFilterChannel');
+  if (!chSel.dataset.init) {
+    chSel.innerHTML = '<option value="">全部渠道</option>';
+    var seenCh = {};
+    channels.forEach(function(c) { if (!seenCh[c.channel]) { seenCh[c.channel]=true; chSel.innerHTML += '<option value="'+c.channel+'">'+c.channel+'</option>'; } });
+    chSel.dataset.init = '1';
+  }
+  var skuSel = document.getElementById('chFilterSku');
+  if (!skuSel.dataset.init) {
+    skuSel.innerHTML = '<option value="">全部SKU</option>';
+    Object.keys(data.skus).forEach(function(k) {
+      var s = data.skus[k];
+      skuSel.innerHTML += '<option value="'+k+'">'+s.code+' {'+s.spec+'}</option>';
+    });
+    skuSel.dataset.init = '1';
+  }
+
+  // Group filtered channels by SKU
+  var groups = {};
+  filtered.forEach(function(ch) {
+    if (!groups[ch.skuKey]) groups[ch.skuKey] = [];
+    groups[ch.skuKey].push(ch);
+  });
+
+  var totalVisible = filtered.length;
+  // Group channels by SKU
+  var groups = {};
+  data.channels.forEach(function(ch) {
+    if (!groups[ch.skuKey]) groups[ch.skuKey] = [];
+    groups[ch.skuKey].push(ch);
+  });
+
+  var html = '';
+  Object.keys(groups).forEach(function(skuKey) {
+    var sku = data.skus[skuKey];
+    var chs = groups[skuKey];
+    var isExpanded = expandedSkus[skuKey] !== false; // default expanded
+
+    // SKU main row — only show SKU info + spec
+    html += '<tr class="tab2-main" onclick="toggleSkuRow(\'' + skuKey + '\')">';
+    html += '<td><span class="expand-arrow' + (isExpanded?' expanded':'') + '">&#9654;</span></td>';
+    html += '<td colspan="15"><strong>' + sku.code + '</strong> <span style="color:var(--text-muted);">{' + sku.spec + '}</span> <span style="font-size:11px;color:var(--text-muted);margin-left:8px;">' + chs.length + '个商城</span></td>';
+    html += '</tr>';
+
+    // Channel sub-rows
+    if (isExpanded) {
+      chs.forEach(function(ch) {
+        var sellable = ch.sellable;
+        var toggleClass = '', toggleLabel = '', dotHtml = '';
+        if (sellable === 'on') { toggleClass = 'on clickable'; toggleLabel = '可售'; }
+        else if (ch.locked) { toggleClass = 'locked'; toggleLabel = '不可售·系统'; dotHtml = '<div class="red-dot"></div>'; }
+        else { toggleClass = 'off clickable'; toggleLabel = '不可售'; }
+
+        var isComboSku = !!sku.isCombo;
+        var currentSupName = '', currentSupPrice = ch.supplyPrice;
+        if (isComboSku) {
+          currentSupName = sku.components.map(function(comp) {
+            var label = comp.role;
+            return label + '：' + comp.supplier + (comp.designated ? ' <span class="tag tag-orange">指定</span>' : '');
+          }).join('；');
+        } else if (ch.supplyMode === 'manual' && ch.designatedSupplier) {
+          var ds = sku.suppliers.find(function(s){return s.id===ch.designatedSupplier;});
+          if (ds) { currentSupName = ds.name; currentSupPrice = ds.supplyPrice; }
+        } else {
+          var lowest = sku.suppliers[0];
+          sku.suppliers.forEach(function(s){ if(parseFloat(s.supplyPrice)<parseFloat(lowest.supplyPrice)) lowest=s; });
+          currentSupName = lowest.name;
+          currentSupPrice = lowest.supplyPrice;
+        }
+
+        html += '<tr class="tab2-sub">';
+        html += '<td></td>';
+        html += '<td><strong>' + ch.channel + '</strong> <span style="font-size:11px;color:var(--text-muted);">' + formatDateTime(ch.listedDate) + '</span></td>';
+        html += '<td><span class="tag ' + (ch.mode==='直销'?'tag-gray':'tag-blue') + '">' + ch.mode + '</span></td>';
+        var sm = ch.supplyMode;
+        if (isComboSku) {
+          html += '<td><button class="btn btn-outline btn-sm" onclick="event.stopPropagation();openComboSupplyModal(\''+ch.id+'\')">组合供货</button></td>';
+        } else {
+          var smLabel = sm === 'manual' ? '供应商指定' : '最低价优先';
+          html += '<td><button class="btn btn-outline btn-sm" onclick="event.stopPropagation();openSupplyConfigModal(\''+ch.id+'\')"' + (ch.oaPending?' disabled':'') + '>' + smLabel + '</button>' + (ch.oaPending?' <span class="oa-badge">OA审批中</span>':'') + '</td>';
+        }
+        html += '<td>' + currentSupName;
+        if (!isComboSku && ch.supplyMode==='manual'&&ch.designatedSupplier) {
+          html += ' <span class="tag tag-orange" style="cursor:pointer;" onclick="event.stopPropagation();openDesignationModal(\''+ch.id+'\')">指定</span>';
+        }
+        html += '</td>';
+        html += '<td><span class="price">¥' + currentSupPrice + '</span></td>';
+        html += '<td><span class="price" style="color:var(--text-muted);text-decoration:line-through;">¥' + (ch.linePrice || ch.mallPrice) + '</span></td>';
+        html += '<td><span class="price">¥' + ch.channelPrice + '</span></td>';
+        html += '<td><span class="price">¥' + ch.mallPrice + '</span></td>';
+        html += '<td>' + ch.myMargin + '</td>';
+        html += '<td>' + ch.chMargin + '</td>';
+        html += '<td><span class="price">' + ((ch.totalOrders||0).toLocaleString()) + '</span> <span style="color:var(--text-muted);font-size:11px;">/ ' + ((ch.recentOrders||0).toLocaleString()) + '</span></td>';
+        html += '<td>' + (ch.totalAfterSale||'—') + ' <span style="color:var(--text-muted);font-size:11px;">/ ' + (ch.recentAfterSale||'—') + '</span></td>';
+        html += '<td><span style="font-size:11.5px;">' + formatDateTime(ch.listedDate) + '</span><br><span style="font-size:11px;color:var(--text-muted);">' + (ch.listedBy||'—') + '</span></td>';
+        html += '<td><div class="toggle ' + toggleClass + '" onclick="event.stopPropagation();' + (ch.locked?'':"toggleSellable('"+ch.id+"')") + '" title="' + (ch.locked?ch.lockedReason:'') + '"><div class="toggle-track"><div class="toggle-knob"></div></div>' + dotHtml + '<span class="toggle-label">' + toggleLabel + '</span></div></td>';
+        html += '<td><button class="btn-link" onclick="event.stopPropagation();">改价</button> <button class="btn-link danger" onclick="event.stopPropagation();openRemoveModal(\''+ch.id+'\')">移出</button></td>';
+        html += '</tr>';
+      });
+    }
+  });
+
+  document.getElementById('channelTbody').innerHTML = html;
+  document.getElementById('channelCount').textContent = '(' + totalVisible + '/' + data.channels.length + ')';
+  document.getElementById('chFilterResult').textContent = '共 ' + totalVisible + ' 条';
+  updateChannelStats();
+}
+
+function toggleSkuRow(skuKey) {
+  expandedSkus[skuKey] = !(expandedSkus[skuKey] !== false);
+  renderChannelTable();
+}
+
+// ========================================
+// PREFERRED SUPPLIER MODAL
+// ========================================
+function openPreferredModal(supId) {
+  // Find supplier across all SKUs
+  var sup = null, sku = null;
+  Object.keys(data.skus).forEach(function(k) {
+    var found = data.skus[k].suppliers.find(function(s) { return s.id === supId; });
+    if (found) { sup = found; sku = data.skus[k]; }
+  });
+  if (!sup) return;
+
+  var body = '';
+  body += '<div style="margin-bottom:12px;">';
+  body += '<div style="font-size:12px;color:var(--text-muted);">商品: ' + data.spu.name + ' | SKU: ' + sku.code + ' {' + sku.spec + '}</div>';
+  body += '<div style="font-size:13px;font-weight:600;margin-top:6px;">供应商: ' + sup.name + '</div>';
+  body += '<div style="font-size:12px;color:var(--text-muted);">供货价: ¥' + sup.supplyPrice + '</div>';
+  body += '</div>';
+
+  body += '<div style="margin-bottom:8px;font-size:12px;font-weight:500;color:var(--text-muted);">供应链推荐理由</div>';
+  body += '<div style="background:var(--bg-input);border-radius:var(--radius-sm);padding:12px 14px;font-size:13px;line-height:1.8;color:var(--text-primary);">';
+  body += sup.preferredReason || '暂无推荐理由';
+  body += '</div>';
+
+  body += '<div style="margin-top:12px;font-size:11px;color:var(--text-muted);">标记方: 张三（供应链端） | 标记时间: 2026-05-10</div>';
+
+  document.getElementById('preferredModalBody').innerHTML = body;
+  document.getElementById('preferredModal').classList.add('open');
+}
+
+function openDesignationModal(chId) {
+  var ch = data.channels.find(function(c) { return c.id === chId; });
+  if (!ch || !ch.designatedSupplier) return;
+  var sku = data.skus[ch.skuKey];
+  var ds = sku.suppliers.find(function(s) { return s.id === ch.designatedSupplier; });
+  if (!ds) return;
+
+  var isPreferred = ds.preferred;
+  var title = isPreferred ? '指定来源：采纳供应链优选' : '指定来源：审批指定';
+  var body = '';
+
+  body += '<div style="margin-bottom:12px;">';
+  body += '<div style="font-size:12px;color:var(--text-muted);">商城: ' + ch.channel + ' | SKU: ' + sku.code + ' {' + sku.spec + '}</div>';
+  body += '<div style="font-size:13px;font-weight:600;margin-top:6px;">指定供应商: ' + ds.name + '（供货价 ¥' + ds.supplyPrice + '）</div>';
+  body += '</div>';
+
+  if (isPreferred) {
+    // Scenario A: adopted preferred supplier
+    body += '<div style="margin-bottom:8px;font-size:12px;font-weight:500;color:var(--text-muted);">供应链推荐理由</div>';
+    body += '<div style="background:var(--bg-input);border-radius:var(--radius-sm);padding:12px 14px;font-size:13px;line-height:1.8;color:var(--text-primary);">';
+    body += ds.preferredReason || '暂无推荐理由';
+    body += '</div>';
+    body += '<div style="margin-top:12px;font-size:11px;color:var(--text-muted);">操作人: 李四（商城运营端） | 时间: ' + ch.listedDate + '</div>';
+    body += '<div style="font-size:11px;color:var(--green);">备注: 自动通过（优选豁免）</div>';
+  } else {
+    // Scenario B: OA approval
+    body += '<div style="margin-bottom:8px;font-size:12px;font-weight:500;color:var(--text-muted);">运营申请理由</div>';
+    body += '<div style="background:var(--bg-input);border-radius:var(--radius-sm);padding:12px 14px;font-size:13px;line-height:1.8;color:var(--text-primary);">';
+    body += '指定' + ds.name + '为本渠道供货商。该供应商仓库位于目标区域，综合到货成本更低，库存充足可支撑日常销量。';
+    body += '</div>';
+    body += '<div style="margin-top:12px;font-size:11px;color:var(--text-muted);">申请人: 张三（商城运营端） | 申请时间: 2026-04-08</div>';
+    body += '<div style="font-size:11px;color:var(--text-muted);">审批人: 王经理 | 审批时间: 2026-04-09</div>';
+    body += '<div style="font-size:11px;color:var(--blue);">审批意见: 同意，注意监控售后率变化</div>';
+  }
+
+  document.getElementById('designationTitle').textContent = title;
+  document.getElementById('designationModalBody').innerHTML = body;
+  document.getElementById('designationModal').classList.add('open');
+}
+
+// SPU Image Carousel — per-supplier image sets
+var carouselIdx = 0;
+var carouselImages = [];
+// Mock supplier image sets
+var supplierImageSets = {
+  'supA': [
+    {label:'白底图'},{label:'场景图'},{label:'细节图'},{label:'包装图'}
+  ],
+  'supD': [
+    {label:'白底图'},{label:'场景图'},{label:'尺寸标注图'}
+  ],
+  'supA2': [
+    {label:'白底图'},{label:'模特图'},{label:'细节图'},{label:'包装图'}
+  ],
+  'supB': [
+    {label:'白底图'},{label:'场景图'}
+  ],
+  'supC': [
+    {label:'白底图'},{label:'场景图'},{label:'细节图'}
+  ],
+  'supG': [
+    {label:'白底图'}
+  ],
+  'supH': [
+    {label:'白底图'},{label:'场景图'},{label:'细节图'},{label:'包装图'},{label:'尺寸标注图'}
+  ],
+  'supJ': [
+    {label:'白底图'},{label:'场景图'},{label:'细节图'}
+  ]
+};
+function getCarouselImages() {
+  // Get images based on SPU主图源
+  var mode = spuImageSourceMode || 'auto';
+  var supId;
+  if (mode === 'auto') {
+    var firstKey = Object.keys(data.skus)[0];
+    var sku = data.skus[firstKey];
+    var imgSup = getSkuPrimaryImage(sku);
+    supId = imgSup ? imgSup.id : null;
+  } else {
+    supId = mode;
+  }
+  if (supId && supplierImageSets[supId]) {
+    return supplierImageSets[supId].map(function(img) {
+      return {label: img.label + ' (' + (getAllSuppliers().find(function(s){return s.id===supId;})||{}).name + ')'};
+    });
+  }
+  return [{label:'暂无商品图'}];
+}
+function initCarousel() {
+  carouselImages = getCarouselImages();
+  carouselIdx = 0;
+  renderCarousel();
+}
+function refreshCarousel() {
+  carouselImages = getCarouselImages();
+  carouselIdx = Math.min(carouselIdx, carouselImages.length - 1);
+  renderCarousel();
+}
+function renderCarousel() {
+  var container = document.getElementById('spuCarousel');
+  var slides = container.querySelectorAll('.carousel-slide');
+  slides.forEach(function(s) { s.remove(); });
+  var dotsHtml = '';
+  carouselImages.forEach(function(img, i) {
+    var slide = document.createElement('div');
+    slide.className = 'carousel-slide' + (i === carouselIdx ? ' active' : '');
+    slide.innerHTML = '<div style="text-align:center;padding:20px;"><div style="font-size:36px;margin-bottom:6px;">&#128203;</div><div style="font-size:11px;color:var(--text-muted);">' + img.label + '</div></div>';
+    container.insertBefore(slide, container.querySelector('.carousel-dots'));
+    dotsHtml += '<span class="dot' + (i === carouselIdx ? ' active' : '') + '" onclick="carouselTo(' + i + ')"></span>';
+  });
+  document.getElementById('carouselDots').innerHTML = dotsHtml;
+  var thumbsHtml = '';
+  carouselImages.forEach(function(img, i) {
+    thumbsHtml += '<div class="thumb' + (i === carouselIdx ? ' active' : '') + '" onclick="carouselTo(' + i + ')" title="' + img.label + '">&#128203;</div>';
+  });
+  document.getElementById('carouselThumbs').innerHTML = thumbsHtml;
+}
+function carouselNav(dir) {
+  carouselIdx = (carouselIdx + dir + carouselImages.length) % carouselImages.length;
+  renderCarousel();
+}
+function carouselTo(i) {
+  carouselIdx = i;
+  renderCarousel();
+}
+
+// Page mode: established (已建SPU 实物) vs pending (未建SPU) vs combo (已建SPU 组合)
+var spuMode = 'established';
+
+// Combo mode — saved established SPU data for restore
+var establishedData = null;
+
+// Combo mode mock data — Z-encoded combo SPU
+var comboData = {
+  spu: {
+    code:'C001A00001', name:'家庭营养过年礼包', frontName:'天润 家庭营养过年礼包 组合套装', model:'Z001', brand:'天润',
+    sysCategory:'食品饮料 > 乳制品 > 纯牛奶', type:'组合商品',
+    supplySPUs:['ZD-C00001','ZD-C00002'],
+    mallCreated:'2026-05-20 09:00', supplyCreated:'2026-05-15 14:30',
+    frontCategories:['食品饮料 > 乳品烘焙 > 牛奶礼盒'],
+    tags:[
+      {label:'新品推荐',cls:'tag-orange'},
+      {label:'员工福利',cls:'tag-green'}
+    ]
+  },
+  skus: {
+    skuZ1: {
+      code:'C001A00001001', spec:'主件(天润 新疆纯牛奶200ml*12)×1 + 配件(北大荒 有机黑木耳200g)×1', isCombo:true, comboMode:'combo',
+      attachSpu:'C001A00001',
+      supplySKUs:['HZ-A00023-001-DF','HZ-A00024-001-DF'],
+      components:[
+        {mallSku:'S023A00001001',supplySKUs:['HZ-A00023-001-DF','HZ-A00023-002-DF'],name:'新疆纯牛奶200ml*12',spec:'{200ml*12盒}',supplier:'恒通供应链',qty:1,role:'主件',supplyPrice:'45.00',supplyMode:'manual',designated:true,designatedSupplier:'恒通供应链',altSuppliers:[{name:'恒通供应链',price:'45.00',shipping:'顺丰/中通',orderVolume:'11,200',afterSale:'2.8%',settlement:'现款现货',status:'合作中'},{name:'鹏程优品',price:'42.00',shipping:'顺丰/中通',orderVolume:'15,600',afterSale:'1.2%',settlement:'月结30天',status:'合作中'}],stock:5000,refPrice:'59.00',refPlatform:'天猫',ecomLink:'tmall.com/xxx',leadTime:'48h',shipping:'中通/圆通',region:'全国',status:'合作中',hasImage:true},
+        {mallSku:'S024A00001001',supplySKUs:['HZ-A00024-001-DF','HZ-A00024-002-DF'],name:'有机黑木耳200g',spec:'{200g}',supplier:'环球优选',qty:1,role:'配件',supplyPrice:'28.00',supplyMode:'lowest',designated:false,designatedSupplier:null,altSuppliers:[{name:'星辰商贸',price:'25.00',shipping:'顺丰/中通',orderVolume:'12,300',afterSale:'1.5%',settlement:'月结30天',status:'合作中'},{name:'环球优选',price:'28.00',shipping:'京东物流',orderVolume:'18,700',afterSale:'4.5%',settlement:'账期45天',status:'合作中'},{name:'恒通供应链',price:'30.00',shipping:'中通/圆通',orderVolume:'7,500',afterSale:'2.3%',settlement:'现款现货',status:'合作中'}],stock:2000,refPrice:'35.00',refPlatform:'京东',ecomLink:'jd.com/xxx',leadTime:'72h',shipping:'京东物流',region:'全国',status:'合作中',hasImage:false}
+      ]
+    },
+    skuZ2: {
+      code:'C001A00001002', spec:'主件(天润 新疆纯牛奶200ml*12)×1 + 配件(天润 新疆纯牛奶200ml*12)×1 + 配件(北大荒 有机黑木耳200g)×2', isCombo:true, comboMode:'combo',
+      attachSpu:'C001A00001',
+      supplySKUs:['HZ-A00023-001-DF','HZ-A00024-001-DF'],
+      components:[
+        {mallSku:'S023A00001001',supplySKUs:['HZ-A00023-001-DF','HZ-A00023-002-DF'],name:'新疆纯牛奶200ml*12',spec:'{200ml*12盒}',supplier:'恒通供应链',qty:1,role:'主件',supplyPrice:'45.00',supplyMode:'manual',designated:true,designatedSupplier:'恒通供应链',altSuppliers:[{name:'恒通供应链',price:'45.00',shipping:'顺丰/中通',orderVolume:'11,200',afterSale:'2.8%',settlement:'现款现货',status:'合作中'},{name:'鹏程优品',price:'42.00',shipping:'顺丰/中通',orderVolume:'15,600',afterSale:'1.2%',settlement:'月结30天',status:'合作中'}],stock:5000,refPrice:'59.00',refPlatform:'天猫',ecomLink:'tmall.com/xxx',leadTime:'48h',shipping:'中通/圆通',region:'全国',status:'合作中',hasImage:true},
+        {mallSku:'S023A00001001',supplySKUs:['HZ-A00023-001-DF','HZ-A00023-002-DF'],name:'新疆纯牛奶200ml*12',spec:'{200ml*12盒}',supplier:'鹏程优品',qty:1,role:'配件',supplyPrice:'42.00',supplyMode:'lowest',designated:false,designatedSupplier:null,altSuppliers:[{name:'鹏程优品',price:'42.00',shipping:'顺丰/中通',orderVolume:'15,600',afterSale:'1.2%',settlement:'月结30天',status:'合作中'},{name:'恒通供应链',price:'45.00',shipping:'顺丰/中通',orderVolume:'11,200',afterSale:'2.8%',settlement:'现款现货',status:'合作中'}],stock:5000,refPrice:'59.00',refPlatform:'天猫',ecomLink:'tmall.com/xxx',leadTime:'24h',shipping:'顺丰/中通',region:'全国',status:'合作中',hasImage:true},
+        {mallSku:'S024A00001001',supplySKUs:['HZ-A00024-001-DF','HZ-A00024-002-DF'],name:'有机黑木耳200g',spec:'{200g}',supplier:'环球优选',qty:2,role:'配件',supplyPrice:'28.00',supplyMode:'lowest',designated:false,designatedSupplier:null,altSuppliers:[{name:'星辰商贸',price:'25.00',shipping:'顺丰/中通',orderVolume:'12,300',afterSale:'1.5%',settlement:'月结30天',status:'合作中'},{name:'环球优选',price:'28.00',shipping:'京东物流',orderVolume:'18,700',afterSale:'4.5%',settlement:'账期45天',status:'合作中'},{name:'恒通供应链',price:'30.00',shipping:'中通/圆通',orderVolume:'7,500',afterSale:'2.3%',settlement:'现款现货',status:'合作中'}],stock:2000,refPrice:'35.00',refPlatform:'京东',ecomLink:'jd.com/xxx',leadTime:'72h',shipping:'京东物流',region:'全国',status:'合作中',hasImage:false}
+      ]
+    }
+  },
+  channels: [
+    {id:'zch1',channel:'锦程员工福利商城',skuSpec:'{组合套装A}',mode:'直销',supplyPrice:'73.00',linePrice:'129.00',channelPrice:'99.00',mallPrice:'99.00',myMargin:'26%',chMargin:'—',listedDate:'2026-06-01 10:00',listedBy:'李四 (商城运营端)',sellable:'on',locked:false,skuKey:'skuZ1',supplyMode:'combo',designatedSupplier:null,oaPending:false,totalOrders:1250,recentOrders:189,totalAfterSale:'3.2%',recentAfterSale:'2.1%',firstOrderDate:'2026-06-02'},
+    {id:'zch2',channel:'泡泡玛特官方商城',skuSpec:'{组合套装A}',mode:'分销',supplyPrice:'73.00',linePrice:'129.00',channelPrice:'85.00',mallPrice:'99.00',myMargin:'14%',chMargin:'14%',listedDate:'2026-06-15 09:00',listedBy:'张三 (商城运营端)',sellable:'on',locked:false,skuKey:'skuZ1',supplyMode:'combo',designatedSupplier:null,oaPending:false,totalOrders:520,recentOrders:88,totalAfterSale:'2.5%',recentAfterSale:'1.8%',firstOrderDate:'2026-06-16'},
+    {id:'zch3',channel:'锦程员工福利商城',skuSpec:'{组合套装B}',mode:'直销',supplyPrice:'143.00',linePrice:'229.00',channelPrice:'189.00',mallPrice:'189.00',myMargin:'24%',chMargin:'—',listedDate:'2026-06-20 10:00',listedBy:'李四 (商城运营端)',sellable:'on',locked:false,skuKey:'skuZ2',supplyMode:'combo',designatedSupplier:null,oaPending:false,totalOrders:380,recentOrders:56,totalAfterSale:'1.8%',recentAfterSale:'0.9%',firstOrderDate:'2026-06-21'},
+    {id:'zch4',channel:'泡泡玛特官方商城',skuSpec:'{组合套装B}',mode:'分销',supplyPrice:'128.00',linePrice:'199.00',channelPrice:'150.00',mallPrice:'169.00',myMargin:'15%',chMargin:'11%',listedDate:'2026-07-01 09:00',listedBy:'张三 (商城运营端)',sellable:'on',locked:false,skuKey:'skuZ2',supplyMode:'combo',designatedSupplier:null,oaPending:false,totalOrders:156,recentOrders:42,totalAfterSale:'2.1%',recentAfterSale:'1.5%',firstOrderDate:'2026-07-02'}
+  ],
+  logs: [
+    {date:'2026-07-01',time:'09:00',type:'渠道上架',dot:'green',actor:'张三 (商城运营端)',content:'商品上架至 [泡泡玛特官方商城] — SKU C001A00001002 组合套装B / 组合供货',change:'销售模式=分销 | 商城价=¥169.00 | 渠道价=¥150.00 | 毛利=15%',result:'success',resultText:'成功'},
+    {date:'2026-06-20',time:'10:00',type:'渠道上架',dot:'green',actor:'李四 (商城运营端)',content:'商品上架至 [锦程员工福利商城] — SKU C001A00001002 组合套装B / 组合供货',change:'销售模式=直销 | 商城价=¥189.00 | 毛利=24%',result:'success',resultText:'成功'},
+    {date:'2026-06-15',time:'09:00',type:'渠道上架',dot:'green',actor:'张三 (商城运营端)',content:'商品上架至 [泡泡玛特官方商城] — SKU C001A00001001 组合套装A / 组合供货',change:'销售模式=分销 | 商城价=¥99.00 | 渠道价=¥85.00 | 毛利=14%',result:'success',resultText:'成功'},
+    {date:'2026-06-01',time:'10:00',type:'渠道上架',dot:'green',actor:'李四 (商城运营端)',content:'商品上架至 [锦程员工福利商城] — SKU C001A00001001 组合套装A / 组合供货',change:'销售模式=直销 | 商城价=¥99.00 | 毛利=26%',result:'success',resultText:'成功'},
+    {date:'2026-05-28',time:'15:00',type:'商品创建',dot:'gray',actor:'系统 (商城运营端)',content:'商城组合SPU C001A00001 首次创建，生成2个组合SKU规格 C001A00001001、C001A00001002',change:'组合商品类型=实物组合套装 | 内容源=自定义',result:'success',resultText:'成功'},
+    {date:'2026-05-15',time:'10:00',type:'商品创建',dot:'gray',actor:'系统 (供应链端)',content:'供应商[天润]创建组合供应链SPU ZD-C00001 — 家庭营养过年礼包 组合套装',change:'品牌=天润 | 类目=食品饮料 > 乳制品 > 纯牛奶',result:'success',resultText:'成功'}
+  ]
+};
+
+// Pending mode mock data — supply chain SPU with multiple SKUs
+var pendingData = {
+  supplySPU: 'ZD-B00003',
+  supplySPUName: 'OPPO Find X8',
+  supplyModel: 'Find X8',
+  supplyBrand: 'OPPO',
+  supplyCategory: '数码 > 手机通讯 > 智能手机',
+  supplyType: '实物商品',
+  supplyCreated: '2026-02-20 14:30',
+  skus: [
+    {
+      supplySKU:'HZ-B00003-001-DF', spec:'星野黑,12+256GB', gift:null,
+      supplier:{id:'supX1',name:'OPPO官方旗舰店',supName:'OPPO Find X8',supModel:'Find X8',supplySKU:'HZ-B00003-001-DF',barcode:'6901234567890',supplyPrice:'3999.00',jcPrice:'3899.00',moq:10,stock:500,leadTime:'1天',settlement:'月结30天',supplyMode:'一件代发、集采直发',shipping:'顺丰',region:'全国',contact:'张经理 13800001111',status:'合作中',refPrice:'4299.00',refPlatform:'天猫',ecomLink:'tmall.com/oppo',hasImage:true,hasParams:true,hasDetail:true}
+    },
+    {
+      supplySKU:'HZ-B00003-002-DF', spec:'漫步云端,12+256GB', gift:null,
+      supplier:{id:'supX2',name:'OPPO官方旗舰店',supName:'OPPO Find X8',supModel:'Find X8',supplySKU:'HZ-B00003-002-DF',barcode:'6901234567891',supplyPrice:'3999.00',moq:10,stock:320,leadTime:'1天',settlement:'月结30天',supplyMode:'一件代发',shipping:'顺丰',region:'全国',contact:'张经理 13800001111',status:'合作中',refPrice:'4299.00',refPlatform:'天猫',ecomLink:'tmall.com/oppo',hasImage:true,hasParams:true,hasDetail:true}
+    },
+    {
+      supplySKU:'HZ-B00003-003-DF', spec:'星野黑,16+256GB', gift:null,
+      supplier:{id:'supX3',name:'OPPO官方旗舰店',supName:'OPPO Find X8',supModel:'Find X8',supplySKU:'HZ-B00003-003-DF',barcode:'6901234567892',supplyPrice:'4599.00',moq:10,stock:200,leadTime:'2天',settlement:'月结30天',supplyMode:'一件代发',shipping:'顺丰',region:'全国',contact:'张经理 13800001111',status:'合作中',refPrice:'4999.00',refPlatform:'天猫',ecomLink:'tmall.com/oppo',hasImage:true,hasParams:true,hasDetail:true}
+    },
+    {
+      supplySKU:'HZ-B00003-004-DF', spec:'漫步云端,16+512GB', gift:null,
+      supplier:{id:'supX4',name:'OPPO官方旗舰店',supName:'OPPO Find X8',supModel:'Find X8',supplySKU:'HZ-B00003-004-DF',barcode:'6901234567893',supplyPrice:'4599.00',moq:10,stock:150,leadTime:'2天',settlement:'月结30天',supplyMode:'一件代发',shipping:'顺丰',region:'全国',contact:'张经理 13800001111',status:'合作中',refPrice:'4999.00',refPlatform:'天猫',ecomLink:'tmall.com/oppo',hasImage:true,hasParams:true,hasDetail:true}
+    },
+    {
+      supplySKU:'HZ-B00003-005-DF', spec:'星野黑,16+1TB', gift:null,
+      supplier:{id:'supX5',name:'OPPO官方旗舰店',supName:'OPPO Find X8',supModel:'Find X8',supplySKU:'HZ-B00003-005-DF',barcode:'6901234567894',supplyPrice:'5299.00',moq:5,stock:80,leadTime:'3天',settlement:'月结30天',supplyMode:'一件代发',shipping:'顺丰',region:'全国',contact:'张经理 13800001111',status:'合作中',refPrice:'5999.00',refPlatform:'OPPO官网',ecomLink:'oppo.com/xxx',hasImage:true,hasParams:true,hasDetail:true}
+    }
+  ]
+};
+
+function switchSpuMode(mode) {
+  // Save/restore established data when switching modes
+  if (spuMode === 'established' && mode !== 'established') {
+    establishedData = { spu: JSON.parse(JSON.stringify(data.spu)), skus: JSON.parse(JSON.stringify(data.skus)), channels: JSON.parse(JSON.stringify(data.channels)), logs: JSON.parse(JSON.stringify(data.logs)) };
+  }
+  spuMode = mode;
+  var banner = document.getElementById('noSpuBanner');
+  var editBtn = document.getElementById('editBtn');
+  var spuCode = document.getElementById('spuCodeDisplay');
+  var mallBlock = document.querySelector('.info-block.mall');
+
+  if (mode === 'pending') {
+    banner.classList.remove('hidden');
+    editBtn.style.display = 'none';
+    document.body.classList.remove('edit-mode');
+    isEditing = false;
+    data.logs = [
+      {date:'2026-02-20',time:'14:30',type:'商品创建',dot:'gray',actor:'系统 (供应链端)',content:'供应商[OPPO官方旗舰店]创建供应链SPU ZD-B00003 — OPPO Find X8',change:'品牌=OPPO | 类目=数码 > 手机通讯 > 智能手机 | 含5个SKU规格',result:'success',resultText:'成功'}
+    ];
+    if (mallBlock) {
+      mallBlock.innerHTML =
+        '<div class="section-label">商城信息</div>' +
+        '<div class="info-row"><span class="label">商城SPU</span><span id="spuCodeDisplay"><span class="value pending">未生成</span> <button class="btn-link btn-sm" onclick="openCreateSpuModal()">[立刻生成]</button></span></div>' +
+        '<div class="info-row"><span class="label">前台商品名称</span><span class="value muted">—</span></div>' +
+        '<div class="info-row"><span class="label">前台分类</span><span class="value muted">—</span></div>' +
+        '<div class="info-row"><span class="label">标签</span><span class="value muted">—</span></div>' +
+        '<div class="info-row"><span class="label">商城创建时间</span><span class="value muted">—</span></div>';
+    }
+  } else if (mode === 'combo') {
+    banner.classList.add('hidden');
+    editBtn.style.display = '';
+    document.body.classList.remove('edit-mode');
+    isEditing = false;
+    // Swap data to combo
+    data.spu = comboData.spu;
+    data.skus = comboData.skus;
+    data.channels = comboData.channels;
+    data.logs = comboData.logs;
+    currentSku = 'skuZ1';
+    var comboFrontName = data.spu.frontName || data.spu.name;
+    if (mallBlock) {
+      mallBlock.innerHTML =
+        '<div class="section-label">商城信息</div>' +
+        '<div class="info-row"><span class="label">前台商品名称</span><span class="value" id="frontNameDisplay">' + comboFrontName + '</span><button class="btn-link edit-only" onclick="editFrontName()">[修改]</button></div>' +
+        '<div class="info-row"><span class="label">商城SPU</span><span id="spuCodeDisplay"><span class="value code">C001A00001</span></span></div>' +
+        '<div class="info-row"><span class="label">前台分类</span><span class="value" id="frontCatsDisplay">' + (data.spu.frontCategories||[]).join(', ') + '</span><button class="btn-link" onclick="openCategoryModal()"><span class="edit-only">[修改]</span></button></div>' +
+        '<div class="info-row gap-8" style="align-items:center;"><span class="label">标签</span><span id="spuTags">' + (data.spu.tags||[]).map(function(t){return '<span class="tag '+t.cls+'">'+t.label+' <span class="tag-remove" onclick="removeTag(\''+t.label+'\')">&times;</span></span>';}).join(' ') + '</span><button class="btn-link" onclick="openTagModal()"><span class="edit-only">[+ 添加标签]</span></button></div>' +
+        '<div class="info-row"><span class="label">商城创建时间</span><span class="value muted">' + data.spu.mallCreated + '</span></div>';
+    }
+    // Update 商品类型 for combo
+    var typeRow = document.querySelector('.info-row .label');
+    var allRows = document.querySelectorAll('.info-row');
+    allRows.forEach(function(row) {
+      var label = row.querySelector('.label');
+      if (label && label.textContent.trim() === '商品类型') {
+        row.querySelector('.value').innerHTML = '<span class="tag tag-purple">组合套装</span>';
+      }
+      if (label && label.textContent.trim() === '所属品牌') {
+        row.querySelector('.value').textContent = data.spu.brand;
+      }
+      if (label && label.textContent.trim() === '系统类目') {
+        row.querySelector('.value').textContent = data.spu.sysCategory;
+      }
+      if (label && label.textContent.trim() === '商品名称') {
+        row.querySelector('.value').textContent = data.spu.name;
+      }
+      if (label && label.textContent.trim() === '产品型号') {
+        row.querySelector('.value').textContent = data.spu.model;
+      }
+      if (label && label.textContent.trim() === '关联供应链SPU') {
+        row.querySelector('.value').textContent = data.spu.supplySPUs.join(', ') + ' (共' + data.spu.supplySPUs.length + '个)';
+        row.querySelector('.value').className = 'value muted';
+      }
+      if (label && label.textContent.trim() === '供应链创建时间') {
+        row.querySelector('.value').textContent = data.spu.supplyCreated;
+      }
+    });
+    // Update SPU content bar for combo
+    var contentBar = document.getElementById('spuContentBar');
+    if (contentBar) {
+      var comboMainSuppliers = [];
+      Object.values(data.skus).forEach(function(sku) {
+        if (sku.components) sku.components.forEach(function(c) {
+          if (c.role === '主件') {
+            if (c.altSuppliers) c.altSuppliers.forEach(function(s) {
+              comboMainSuppliers.push({name: s.name, label: c.name + '（' + s.name + '）'});
+            });
+          }
+        });
+      });
+      contentBar.innerHTML = '<span class="info-item"><span class="lbl">SPU级内容源:</span></span>' +
+        '<span class="info-item"><span class="lbl">SPU主图源:</span><select style="font-size:12px;padding:2px 6px;border:1px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;"><option value="custom" selected>组合商品自定义</option>' + comboMainSuppliers.map(function(s,i) { return '<option value="sub' + i + '">' + s.label + '</option>'; }).join('') + '</select><button class="btn-link" onclick="previewSpuImage()">预览</button></span>' +
+        '<span class="sep">|</span>' +
+        '<span class="info-item"><span class="lbl">产品参数源:</span><select style="font-size:12px;padding:2px 6px;border:1px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;"><option value="custom" selected>组合商品自定义</option>' + comboMainSuppliers.map(function(s,i) { return '<option value="sub' + i + '">' + s.label + '</option>'; }).join('') + '</select><button class="btn-link" onclick="previewSpuContent(\'params\')">预览</button></span>' +
+        '<span class="sep">|</span>' +
+        '<span class="info-item"><span class="lbl">图文详情源:</span><select style="font-size:12px;padding:2px 6px;border:1px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;"><option value="custom" selected>组合商品自定义</option>' + comboMainSuppliers.map(function(s,i) { return '<option value="sub' + i + '">' + s.label + '</option>'; }).join('') + '</select><button class="btn-link" onclick="previewSpuContent(\'detail\')">预览</button></span>';
+    }
+    // Render combo SKU switcher
+    var switcher = document.querySelector('.sku-switcher');
+    switcher.style.display = '';
+    switcher.innerHTML = '<span class="switcher-label">SKU切换:</span>' +
+      '<label class="sku-radio active" data-sku="skuZ1" onclick="switchSku(\'skuZ1\')">' +
+      '<div class="sku-thumb">&#128203;</div>' +
+      '<div class="sku-info"><span class="sku-code">C001A00001001</span><span class="sku-spec">天润 家庭营养过年礼包 组合套装A</span></div>' +
+      '</label>' +
+      '<label class="sku-radio" data-sku="skuZ2" onclick="switchSku(\'skuZ2\')">' +
+      '<div class="sku-thumb">&#128203;</div>' +
+      '<div class="sku-info"><span class="sku-code">C001A00001002</span><span class="sku-spec">天润 家庭营养元宵礼包 组合套装B</span></div>' +
+      '</label>';
+  } else {
+    banner.classList.add('hidden');
+    editBtn.style.display = '';
+    // Restore established data (logs already set above, but restore full data)
+    if (establishedData) {
+      data.spu = establishedData.spu;
+      data.skus = establishedData.skus;
+      data.channels = establishedData.channels;
+    }
+    // Always restore established logs
+    data.logs = [
+      {date:'2026-06-02',time:'14:30',type:'改价',dot:'yellow',actor:'系统 (商城运营端)',content:'[汇通内购平台] SKU S001A00001001 {白,常规} 改价审批通过，商品恢复可售',change:'渠道价 ¥13.00 → ¥15.00（直销，商城价同步）',result:'success',resultText:'成功'},
+      {date:'2026-06-01',time:'08:00',type:'渠道下架',dot:'red',actor:'系统 (供应链端)',content:'[蜀味员工专区] SKU S001A00001001 {白,常规} 供应商A断供/终止，渠道商品自动下架',change:'可售 → 不可售·系统',result:'success',resultText:'成功'},
+      {date:'2026-05-28',time:'16:00',type:'渠道上架',dot:'green',actor:'王五 (商城运营端)',content:'商品上架至 [长江科技福利商城] — SKU S001A00001002 {蓝,常规} / 供应商E ¥13.50',change:'销售模式=分销 | 商城价=¥22.00 | 渠道价=¥18.00',result:'success',resultText:'成功'},
+      {date:'2026-04-10',time:'09:00',type:'渠道上架',dot:'green',actor:'李四 (商城运营端)',content:'商品上架至 [蜀味员工专区] — SKU S001A00001001 {白,常规} / 供应商A ¥15.00',change:'销售模式=分销 | 商城价=¥25.00 | 渠道价=¥20.00',result:'success',resultText:'成功'},
+      {date:'2026-03-20',time:'10:00',type:'渠道上架',dot:'green',actor:'李四 (商城运营端)',content:'商品上架至 [汇通内购平台] — SKU S001A00001001 {白,常规} / 供应商A ¥15.00',change:'销售模式=直销 | 渠道价=¥15.00（商城价同步）',result:'success',resultText:'成功'},
+      {date:'2026-03-15',time:'08:00',type:'商品创建',dot:'gray',actor:'系统 (商城运营端)',content:'商城SPU S001A00001 首次创建，关联供应链SPU: ZD-A00001（供应商A·3M 9001V KN95防护口罩）, ZD-A00081（星辰商贸·3M KN95口罩 9001V）共2个',change:'商品类型=实物商品 | 含营销SKU',result:'success',resultText:'成功'},
+      {date:'2026-02-20',time:'14:30',type:'商品创建',dot:'gray',actor:'系统 (供应链端)',content:'供应商[供应商A]创建供应链SPU ZD-A00001 — 3M 9001V KN95防护口罩',change:'品牌=3M | 类目=劳保用品 > 防护口罩 > KN95口罩',result:'success',resultText:'成功'}
+    ];
+    currentSku = 'sku1';
+    if (mallBlock) {
+      mallBlock.innerHTML =
+        '<div class="section-label">商城信息</div>' +
+        '<div class="info-row"><span class="label">前台商品名称</span><span class="value" id="frontNameDisplay">' + (data.spu.frontName || data.spu.spuName) + '</span><button class="btn-link edit-only" onclick="editFrontName()">[修改]</button></div>' +
+        '<div class="info-row"><span class="label">商城SPU</span><span id="spuCodeDisplay"><span class="value code">S001A00001</span></span></div>' +
+        '<div class="info-row"><span class="label">前台分类</span><span class="value" id="frontCatsDisplay">医疗用品 > 日常防护 > 防护口罩</span><button class="btn-link" onclick="openCategoryModal()"><span class="edit-only"><span class="edit-only">[修改]</span></span></button></div>' +
+        '<div class="info-row gap-8" style="align-items:center;"><span class="label">标签</span><span id="spuTags"><span class="tag tag-red">限时特价 <span class="tag-remove" onclick="removeTag(\'限时特价\')">&times;</span></span> <span class="tag tag-green">正品认证 <span class="tag-remove" onclick="removeTag(\'正品认证\')">&times;</span></span></span><button class="btn-link" onclick="openTagModal()"><span class="edit-only"><span class="edit-only">[+ 添加标签]</span></span></button></div>' +
+        '<div class="info-row"><span class="label">商城创建时间</span><span class="value muted">2026-03-15 08:00</span></div>';
+    }
+    // Restore SPU header fields
+    var allRows2 = document.querySelectorAll('.info-row');
+    allRows2.forEach(function(row) {
+      var label = row.querySelector('.label');
+      if (label && label.textContent.trim() === '商品类型') {
+        row.querySelector('.value').innerHTML = '<span class="tag tag-blue">实物商品</span> <span class="tag tag-purple">含营销SKU</span>';
+      }
+      if (label && label.textContent.trim() === '商品名称') {
+        row.querySelector('.value').textContent = data.spu.name;
+      }
+      if (label && label.textContent.trim() === '产品型号') {
+        row.querySelector('.value').textContent = data.spu.model;
+      }
+      if (label && label.textContent.trim() === '所属品牌') {
+        row.querySelector('.value').textContent = data.spu.brand;
+      }
+      if (label && label.textContent.trim() === '系统类目') {
+        row.querySelector('.value').textContent = data.spu.sysCategory;
+      }
+      if (label && label.textContent.trim() === '关联供应链SPU') {
+        row.querySelector('.value').textContent = data.spu.supplySPUs.join(', ') + ' (共' + data.spu.supplySPUs.length + '个)';
+        row.querySelector('.value').className = 'value muted';
+      }
+      if (label && label.textContent.trim() === '供应链创建时间') {
+        row.querySelector('.value').textContent = data.spu.supplyCreated;
+      }
+    });
+    // Restore SPU content bar
+    var contentBar2 = document.getElementById('spuContentBar');
+    if (contentBar2) {
+      contentBar2.innerHTML = '<span class="info-item"><span class="lbl">SPU级内容源:</span></span>' +
+        '<span class="info-item"><span class="lbl">SPU主图源:</span><select id="spuImageSource" onchange="onSpuImageSourceChange()" style="font-size:12px;padding:2px 6px;border:1px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;"><option value="auto">自动（最近上架SKU主图）</option></select><button class="btn-link" onclick="previewSpuImage()">预览</button><button class="btn-link edit-only" onclick="setSpuImageDefault()">设为默认</button></span>' +
+        '<span class="sep">|</span>' +
+        '<span class="info-item"><span class="lbl">产品参数源:</span><select id="spuParamsSource" onchange="onSpuContentSourceChange(\'params\')" style="font-size:12px;padding:2px 6px;border:1px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;"><option value="">自动（主供）</option></select><button class="btn-link" onclick="previewSpuContent(\'params\')">预览</button><button class="btn-link edit-only" onclick="setSpuContentDefault(\'params\')">设为默认</button></span>' +
+        '<span class="sep">|</span>' +
+        '<span class="info-item"><span class="lbl">图文详情源:</span><select id="spuDetailSource" onchange="onSpuContentSourceChange(\'detail\')" style="font-size:12px;padding:2px 6px;border:1px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;"><option value="">自动（主供）</option></select><button class="btn-link" onclick="previewSpuContent(\'detail\')">预览</button><button class="btn-link edit-only" onclick="setSpuContentDefault(\'detail\')">设为默认</button></span>';
+    }
+    // Restore SKU switcher
+    document.querySelector('.sku-switcher').style.display = '';
+  }
+  renderAll();
+}
+
+function renderAll() {
+  try {
+    if (spuMode === 'pending') {
+      renderPendingView();
+    } else if (spuMode === 'combo') {
+      renderSkuArea();
+      refreshSpuHeaderNameModel();
+      refreshFrontName();
+      renderPreview();
+    } else {
+      renderSkuArea();
+      renderSpuContentSources();
+      refreshSpuHeaderNameModel();
+      refreshFrontName();
+      renderPreview();
+    }
+    renderChannelTable();
+    renderLogTable();
+  } catch(e) {
+    console.error('renderAll error:', e);
+  }
+}
+
+var pendingCurrentSku = 0;
+function openCreateSpuModal() {
+  document.getElementById('confirmTitle').textContent = '建立商城SPU';
+  var body = '<p>检测到该供应链SPU下共有 <strong>5个供应链SKU</strong></p>';
+  body += '<p style="margin-top:6px;">系统检测到以下同款组信息：</p>';
+  body += '<div style="margin:8px 0;padding:10px;background:var(--bg-input);border-radius:var(--radius-sm);font-size:12px;">';
+  body += '<div>· 同款组 SAME-FINDX8-001（OPPO Find X8系列）</div>';
+  body += '<div style="color:var(--text-muted);margin-top:4px;">包含：星野黑 12+256GB、漫步云端 12+256GB、星野黑 16+512GB、漫步云端 16+512GB、星野黑 16+1TB</div>';
+  body += '</div>';
+  body += '<p style="margin-top:10px;">是否合并建立商城SPU？</p>';
+  body += '<p style="color:var(--text-muted);font-size:12px;">合并后将生成：商城SPU S001B00001 + 5个商城SKU编码</p>';
+  document.getElementById('confirmBody').innerHTML = body;
+  document.getElementById('confirmFooter').innerHTML = '<button class="btn btn-outline" onclick="closeModal(\'confirmModal\')">取消</button><button class="btn btn-primary" onclick="doCreateSpu()">确认合并建立</button>';
+  document.getElementById('confirmModal').classList.add('open');
+}
+
+function doCreateSpu() {
+  closeModal('confirmModal');
+  spuMode = 'established';
+  document.getElementById('spuModeSwitcher').value = 'established';
+  switchSpuMode('established');
+  toast('商城SPU已建立：S001B00001，生成5个商城SKU', 'success');
+}
+
+function switchPendingSku(i) {
+  pendingCurrentSku = i;
+  renderPendingView();
+}
+
+function renderPendingView() {
+  var pd = pendingData;
+  var sku = pd.skus[pendingCurrentSku];
+  var sup = sku.supplier;
+
+  // Update SPU header
+  document.getElementById('spuMainImage').innerHTML = '<div class="spu-carousel" id="spuCarousel"><button class="carousel-arrow prev" onclick="carouselNav(-1)">&#10094;</button><button class="carousel-arrow next" onclick="carouselNav(1)">&#10095;</button><div class="carousel-dots" id="carouselDots"></div></div>';
+  document.getElementById('spuImageSourceNote').textContent = '来源: ' + sup.name + ' · 供应链SPU';
+
+  // Update SPU header info fields
+  var infoRows = document.querySelectorAll('.info-row');
+  infoRows.forEach(function(row) {
+    var label = row.querySelector('.label');
+    if (!label) return;
+    var val = row.querySelector('.value');
+    if (!val) return;
+    var lbl = label.textContent.trim();
+    if (lbl === '商品名称') val.textContent = pd.supplySPUName;
+    if (lbl === '产品型号') val.textContent = pd.supplyModel;
+    if (lbl === '商城SPU') return; // 已在 switchSpuMode 中渲染
+    if (lbl === '关联供应链SPU') { val.textContent = pd.supplySPU; val.className = 'value code'; }
+    if (lbl === '所属品牌') val.textContent = pd.supplyBrand;
+    if (lbl === '系统类目') val.textContent = pd.supplyCategory;
+    if (lbl === '商品类型') val.innerHTML = '<span class="tag tag-gray">' + pd.supplyType + '</span>';
+    if (lbl === '商城创建时间') val.textContent = '—';
+    if (lbl === '供应链创建时间') val.textContent = pd.supplyCreated;
+  });
+
+  // Show 商城配置 section (editable even without 商城SPU)
+  var mallBlock = document.querySelector('.info-block.mall');
+  if (mallBlock) mallBlock.style.display = '';
+
+  // SKU area — single supply SKU info + supplier table
+  var html = '';
+  html += '<div class="sku-info-bar">';
+  html += '<span class="info-item"><span class="lbl">商城SKU:</span><span class="val pending">未生成</span></span>';
+  html += '<span class="sep">|</span>';
+  html += '<span class="info-item"><span class="lbl">规格:</span><span class="val">' + sku.spec + '</span></span>';
+  html += '<span class="sep">|</span>';
+  html += '<span class="info-item"><span class="lbl">关联供应链SKU:</span><span class="val">' + baseSupplyCode(sup.supplySKU) + '</span></span>';
+  if (sku.gift) html += '<span class="sep">|</span><span class="info-item"><span class="lbl" style="color:var(--red);">赠品:</span><span class="val" style="color:var(--red);">' + sku.gift + '</span></span>';
+  html += '</div>';
+
+  // Supplier table — single supplier, simplified
+  html += '<div class="table-wrap"><div class="table-scroll"><table>';
+  html += '<thead><tr>';
+  html += '<th style="width:30%;">供应商</th><th style="width:132px;">供应链SKU</th><th>条码</th><th style="width:152px;">供货价</th><th>电商参考</th><th>毛利空间(¥)</th>';
+  html += '<th>集采起订量</th><th>结算方式</th><th style="width:140px;">供货方式</th><th>库存</th>';
+  html += '<th>发货 / 物流</th><th>采购对接人</th><th>状态</th><th>SKU主图</th><th>备注</th>';
+  html += '</tr></thead><tbody>';
+  var jcOff = (sup.supplyMode || '').indexOf('集采') === -1; // 供货方式不含集采直发 → 供货价不显示集采行、起订量显示不支持（口径同供应链商品详情）
+  var dfOff = (sup.supplyMode || '').indexOf('一件代发') === -1; // 供货方式不含一件代发 → 供货价不显示代发行
+  var marginVal = (!isNaN(parseFloat(sup.refPrice)) && !dfOff) ? (parseFloat(sup.refPrice) - parseFloat(sup.supplyPrice)).toFixed(2) : '—';
+  // 供货价列：代发/集采两行合并展示，不支持的供货方式不显示该行；供应链SKU列按供货方式显示对应履约编码（代发-DF / 集采-JC）；双行时中间加虚线分隔，单行不加
+  var lineSep = (!dfOff && !jcOff) ? 'padding-bottom:3px;margin-bottom:3px;border-bottom:1px dashed var(--border);' : '';
+  var supplyBase = baseSupplyCode(sup.supplySKU);
+  var priceHtml =
+    (dfOff ? '' : '<div style="font-size:12.5px;' + lineSep + '">一件代发：<span class="price">¥' + sup.supplyPrice + '</span></div>') +
+    (jcOff ? '' : '<div style="font-size:12.5px;">集采直发：<span class="price">' + (sup.jcPrice ? '¥' + sup.jcPrice : '—') + '</span></div>');
+  var supplySkuHtml =
+    (dfOff ? '' : '<div style="font-size:11.5px;' + lineSep + 'font-family:\'Microsoft YaHei\',sans-serif;">' + supplyBase + '-DF</div>') +
+    (jcOff ? '' : '<div style="font-size:11.5px;font-family:\'Microsoft YaHei\',sans-serif;">' + supplyBase + '-JC</div>');
+  html += '<tr>';
+  html += '<td>' + sup.name + '</td>';
+  html += '<td>' + (supplySkuHtml || supplyBase) + '</td>';
+  html += '<td><span style="font-family:\'Microsoft YaHei\',sans-serif;font-size:11.5px;">' + sup.barcode + '</span></td>';
+  html += '<td>' + (priceHtml || '<span class="cell-muted">—</span>') + '</td>';
+  html += '<td>' + (sup.refPrice !== '—' ? '<div style="font-size:12.5px;">电商价：<span class="price">¥' + sup.refPrice + '</span></div>' : '<span class="cell-muted">—</span>') + (sup.ecomLink !== '—' ? '<div style="font-size:11px;color:var(--blue);cursor:pointer;" onclick="window.open(\'#\',\'_blank\')">电商链接：点击跳转</div>' : '') + '</td>';
+  html += '<td>' + (marginVal === '—' ? '<span class="cell-muted">—</span>' : '<span class="price">¥' + marginVal + '</span>') + '</td>';
+  html += '<td>' + (jcOff ? '<span class="cell-muted">不支持</span>' : sup.moq) + '</td>';
+  html += '<td>' + sup.settlement + '</td>';
+  html += '<td>' + sup.supplyMode + '</td>';
+  html += '<td>' + sup.stock.toLocaleString() + '</td>';
+  html += '<td><div style="font-size:13px;">' + sup.shipping + '</div><div style="font-size:11.5px;color:var(--text-muted);">' + sup.region + ' · ' + sup.leadTime + '内发货</div></td>';
+  html += '<td>' + renderContactCell(sup.contact) + '</td>';
+  html += '<td><span class="tag tag-green">' + sup.status + '</span></td>';
+  html += '<td>' + (sup.hasImage ? '<span class="sku-image-label"><span style="color:var(--green);font-weight:500;">&#10003; 已选</span></span><button class="btn-link btn-sm" onclick="previewContent(\''+sup.id+'\',\'image\')">预览</button>' : '<span class="cell-muted">—</span>') + '</td>';
+  html += '<td><span class="cell-muted">' + (sup.note || '—') + '</span></td>';
+  html += '</tr></tbody></table></div></div>';
+  document.getElementById('skuArea').innerHTML = html;
+
+  // SKU switcher — show supply chain SKUs
+  var switcher = document.querySelector('.sku-switcher');
+  switcher.style.display = '';
+  var skuHtml = '<span class="switcher-label">供应链SKU切换:</span>';
+  pd.skus.forEach(function(s, i) {
+    skuHtml += '<label class="sku-radio' + (i === pendingCurrentSku ? ' active' : '') + '" onclick="switchPendingSku(' + i + ')">';
+    skuHtml += '<div class="sku-thumb">&#128241;</div>';
+    skuHtml += '<div class="sku-info"><span class="sku-code">' + s.supplySKU + '</span><span class="sku-spec">{' + s.spec + '}</span>';
+    if (s.gift) skuHtml += '<span class="sku-gift" style="font-size:10px;color:var(--red);">' + s.gift + '</span>';
+    skuHtml += '</div></label>';
+  });
+  switcher.innerHTML = skuHtml;
+
+  // Content source bar — simplified
+  var contentBar = document.querySelectorAll('.sku-info-bar')[1];
+  if (contentBar) {
+    contentBar.innerHTML = '<span class="info-item"><span class="lbl">供应商内容预览:</span></span>' +
+      '<span class="info-item"><button class="btn-link" onclick="previewContent(\''+sup.id+'\',\'image\')">主图预览</button></span>' +
+      '<span class="sep">|</span>' +
+      '<span class="info-item"><button class="btn-link" onclick="previewContent(\''+sup.id+'\',\'params\')">参数预览</button></span>' +
+      '<span class="sep">|</span>' +
+      '<span class="info-item"><button class="btn-link" onclick="previewContent(\''+sup.id+'\',\'detail\')">详情预览</button></span>';
+  }
+
+  // Preview area
+  document.getElementById('previewContent').innerHTML = '<div class="empty-state"><div class="empty-icon">&#128196;</div><div>商品图文详情内容</div></div>';
+
+  // Init carousel for OPPO
+  carouselImages = [{label:'白底图 (OPPO官方旗舰店)'},{label:'场景图 (OPPO官方旗舰店)'},{label:'细节图 (OPPO官方旗舰店)'},{label:'包装图 (OPPO官方旗舰店)'}];
+  carouselIdx = 0;
+  renderCarousel();
+
+  // Channel table — empty
+  document.getElementById('channelTbody').innerHTML = '<tr><td colspan="16" style="text-align:center;padding:40px;color:var(--text-muted);">该商品尚未上架至任何渠道</td></tr>';
+  document.getElementById('channelCount').textContent = '(0)';
+}
+
+// Also need to wrap channel rendering
+var origRenderChannelTable = renderChannelTable;
+renderChannelTable = function() {
+  if (spuMode === 'pending') {
+    document.getElementById('channelTbody').innerHTML = '<tr><td colspan="16" style="text-align:center;padding:40px;color:var(--text-muted);">该商品尚未上架至任何渠道</td></tr>';
+    document.getElementById('channelCount').textContent = '(0)';
+    document.getElementById('statTotalOrders').textContent = '—';
+    document.getElementById('statRecentOrders').textContent = '—';
+    document.getElementById('statChannelCover').textContent = '0 / 20 个';
+    document.getElementById('statCoverRate').textContent = '0%';
+    document.getElementById('statTotalAfterSale').textContent = '—';
+    document.getElementById('statRecentAfterSale').textContent = '—';
+    document.getElementById('statTrend').textContent = '—';
+    document.getElementById('statTrendDetail').textContent = '暂无数据';
+    return;
+  }
+  origRenderChannelTable();
+};
+
+var origRenderLogTable = renderLogTable;
+renderLogTable = function() {
+  if (spuMode === 'pending') {
+    var logs = data.logs;
+    var html = '';
+    logs.forEach(function(log) {
+      html += '<tr>';
+      html += '<td><input type="checkbox" class="checkbox log-check" disabled></td>';
+      html += '<td style="white-space:nowrap;">' + formatDateTime(log.date + ' ' + log.time) + '</td>';
+      html += '<td><span class="log-type-dot ' + log.dot + '"></span>' + log.type + '</td>';
+      html += '<td><span style="font-size:11.5px;">' + log.actor + '</span></td>';
+      html += '<td>' + log.content + '</td>';
+      html += '<td>' + (log.change || '—') + '</td>';
+      html += '<td><span style="color:var(--green);font-size:12px;">&#10004; ' + log.resultText + '</span></td>';
+      html += '</tr>';
+    });
+    document.getElementById('logTbody').innerHTML = html;
+    document.getElementById('logSelectedInfo').textContent = '已选 0 条';
+    return;
+  }
+  origRenderLogTable();
+};
+
+// Edit mode for mall config
+var isEditing = false;
+
+function refreshFrontName() {
+  var el = document.getElementById('frontNameDisplay');
+  if (!el) return;
+  el.textContent = data.spu.frontName || data.spu.spuName;
+}
+
+// 前台名称变更后，SKU切换器中「生效SPU名 · 规格」的名称部分联动刷新（组合/买赠SKU无「·」分隔，不受影响）
+function refreshSkuSwitcherNames() {
+  var eff = data.spu.frontName || data.spu.spuName;
+  document.querySelectorAll('.sku-switcher .sku-spec').forEach(function(el) {
+    var t = el.textContent;
+    var i = t.lastIndexOf(' · ');
+    if (i > 0) el.textContent = eff + t.slice(i);
+  });
+}
+
+function editFrontName() {
+  var full = data.spu.frontName || data.spu.spuName;
+  // 尝试拆分品牌和名称
+  var brand = data.spu.brand;
+  var name = full;
+  if (full.indexOf(brand) === 0) {
+    name = full.slice(brand.length).trim();
+  }
+  var brands = ['3M','霍尼韦尔','代尔塔','UVEX','安思尔','雷克兰','梅思安','赛纳','星宇'];
+  if (brands.indexOf(brand) === -1) brands.unshift(brand);
+  var brandOpts = brands.map(function(b){ return '<option value="'+b+'"'+(b===brand?' selected':'')+'>'+b+'</option>'; }).join('');
+  document.getElementById('confirmTitle').textContent = '修改前台商品名称';
+  var body = '';
+  body += '<div style="display:flex;gap:10px;align-items:center;">';
+  body += '<select id="frontNameBrand" style="height:36px;padding:0 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;background:var(--bg-surface);">' + brandOpts + '</select>';
+  body += '<input id="frontNameInput" type="text" value="' + name.replace(/"/g,'&quot;') + '" style="flex:1;height:36px;padding:0 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;" placeholder="请输入商品名称">';
+  body += '</div>';
+  body += '<div style="font-size:11px;color:var(--text-muted);margin-top:8px;">预览：<span id="frontNamePreview" style="color:var(--text-primary);">' + brand + ' ' + name + '</span></div>';
+  document.getElementById('confirmBody').innerHTML = body;
+  document.getElementById('confirmFooter').innerHTML = '<button class="btn btn-outline" onclick="closeModal(\'confirmModal\')">取消</button><button class="btn btn-primary" onclick="saveFrontName()">确认</button>';
+  document.getElementById('confirmModal').classList.add('open');
+  // 实时预览
+  var brandEl = document.getElementById('frontNameBrand');
+  var nameEl = document.getElementById('frontNameInput');
+  var previewEl = document.getElementById('frontNamePreview');
+  function updatePreview() { previewEl.textContent = brandEl.value + ' ' + nameEl.value; }
+  brandEl.onchange = updatePreview;
+  nameEl.oninput = updatePreview;
+}
+
+function saveFrontName() {
+  var brand = document.getElementById('frontNameBrand').value.trim();
+  var name = document.getElementById('frontNameInput').value.trim();
+  if (!name) { toast('请输入商品名称', 'warn'); return; }
+  data.spu.frontName = brand + ' ' + name;
+  closeModal('confirmModal');
+  refreshFrontName();
+  refreshSkuSwitcherNames();
+  toast('前台商品名称已更新', 'success');
+}
+
+function toggleEditMode() {
+  isEditing = !isEditing;
+  var btn = document.getElementById('editBtn');
+  var mallBlock = document.querySelector('.info-block.mall');
+  if (isEditing) {
+    btn.textContent = '完成';
+    btn.classList.add('editing');
+    document.body.classList.add('edit-mode');
+    if (mallBlock) mallBlock.classList.add('editing');
+    toast('已进入编辑模式', 'info');
+  } else {
+    btn.textContent = '编辑';
+    btn.classList.remove('editing');
+    document.body.classList.remove('edit-mode');
+    if (mallBlock) mallBlock.classList.remove('editing');
+    toast('编辑完成，商城配置已保存', 'success');
+  }
+}
+
+// Tab switching - hide edit button on non-Tab1 views
+document.addEventListener('DOMContentLoaded', function() {
+  var origTabClick = document.querySelectorAll('.tab');
+  origTabClick.forEach(function(t) {
+    t.addEventListener('click', function() {
+      var tabId = this.dataset.tab;
+      var editBtn = document.getElementById('editBtn');
+      if (tabId === 'tab1') {
+        editBtn.style.display = '';
+      } else {
+        editBtn.style.display = 'none';
+        if (isEditing) toggleEditMode(); // auto-exit edit mode
+      }
+    });
+  });
+});
+
+function toggleSellable(chId) {
+  const ch = data.channels.find(c => c.id === chId);
+  if (ch.sellable === 'on') {
+    // To off: confirm
+    document.getElementById('confirmTitle').textContent = '设为不可售';
+    document.getElementById('confirmBody').innerHTML = `<p>确认将该商品在<strong>${ch.channel}</strong>设为不可售？</p><p style="color:var(--text-muted);font-size:12px;">C端将隐藏该商品，后台数据保留</p>`;
+    document.getElementById('confirmFooter').innerHTML = `<button class="btn btn-outline" onclick="closeModal('confirmModal')">取消</button><button class="btn btn-danger" onclick="confirmToggle('${chId}','off')">确认设为不可售</button>`;
+  } else {
+    // To on: no confirm
+    ch.sellable = 'on';
+    ch.locked = false;
+    toast(`已将${ch.channel}商品设为可售`,'success');
+    renderChannelTable();
+    return;
+  }
+  document.getElementById('confirmModal').classList.add('open');
+}
+
+function confirmToggle(chId, state) {
+  const ch = data.channels.find(c => c.id === chId);
+  ch.sellable = state;
+  ch.locked = false;
+  closeModal('confirmModal');
+  toast(`已将${ch.channel}商品设为${state==='on'?'可售':'不可售'}`,'success');
+  renderChannelTable();
+}
+
+function openPriceModal(chId) {
+  // 原型占位：详情页改价复用「渠道商品管理」(04) 的改价弹窗，此处仅保留按钮入口
+  toast('演示：详情页改价弹窗复用「渠道商品管理」(04)，此处仅保留入口','info');
+  return;
+  const ch = data.channels.find(c => c.id === chId);
+  const isDirect = ch.mode === '直销';
+  const draft = window._priceBack && window._priceEdit && window._priceEdit.chId === chId ? window._priceEdit : null;
+  window._priceBack = false;
+  const mallDef = draft ? draft.mallPrice : ch.mallPrice;
+  const chDef = draft ? draft.channelPrice : ch.channelPrice;
+  document.getElementById('confirmTitle').textContent = '修改价格';
+  let body = `<p>商城: <strong>${ch.channel}</strong></p>`;
+  body += `<div style="margin-top:10px;"><label>当前商城价:</label> <span class="price">¥${ch.mallPrice}</span></div>`;
+  body += `<div style="margin-top:6px;"><label>新商城价:</label> <input type="text" id="newMallPrice" value="${mallDef}" style="width:100px;height:34px;padding:0 8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:"Microsoft YaHei",sans-serif;"></div>`;
+  if (!isDirect) {
+    body += `<div style="margin-top:10px;"><label>当前渠道价:</label> <span class="price">¥${ch.channelPrice}</span></div>`;
+    body += `<div style="margin-top:6px;"><label>新渠道价:</label> <input type="text" id="newChannelPrice" value="${chDef}" style="width:100px;height:34px;padding:0 8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:"Microsoft YaHei",sans-serif;"></div>`;
+  } else {
+    body += `<div style="font-size:11.5px;color:var(--text-muted);margin-top:6px;">直销模式下商城价=渠道价，改价同步生效</div>`;
+  }
+  body += `<div class="warning-box" style="margin-top:12px;"><span style="font-size:16px;">&#9888;</span><div>若新渠道价低于供货价（负利润）将生成负利润定价申请，商品暂设为不可售；其余改价提交后直接生效</div></div>`;
+  document.getElementById('confirmBody').innerHTML = body;
+  document.getElementById('confirmFooter').innerHTML = `<button class="btn btn-outline" onclick="closeModal('confirmModal')">取消</button><button class="btn btn-primary" onclick="submitPriceChange('${chId}')">确认改价</button>`;
+  document.getElementById('confirmModal').classList.add('open');
+}
+
+function submitPriceChange(chId) {
+  const newMallPriceEl = document.getElementById('newMallPrice');
+  const newChannelPriceEl = document.getElementById('newChannelPrice');
+  const ch = data.channels.find(c => c.id === chId);
+  const isDirect = ch.mode === '直销';
+  window._priceEdit = { chId: chId, mallPrice: newMallPriceEl.value, channelPrice: newChannelPriceEl ? newChannelPriceEl.value : null };
+  if (!isDirect && newChannelPriceEl && parseFloat(newChannelPriceEl.value) < parseFloat(ch.supplyPrice)) {
+    renderNegProfitStep(chId);
+    return;
+  }
+  ch.mallPrice = newMallPriceEl.value;
+  if (newChannelPriceEl) ch.channelPrice = newChannelPriceEl.value;
+  closeModal('confirmModal');
+  window._priceEdit = null;
+  toast(`已更新${ch.channel}商品价格`,'success');
+  renderChannelTable();
+}
+function renderNegProfitStep(chId) {
+  const ch = data.channels.find(c => c.id === chId);
+  const e = window._priceEdit;
+  const newChannelVal = parseFloat(e.channelPrice);
+  const supply = parseFloat(ch.supplyPrice);
+  const loss = (supply - newChannelVal).toFixed(2);
+  const margin = (((newChannelVal - supply) / newChannelVal) * 100).toFixed(1);
+  document.getElementById('confirmTitle').textContent = '负利润定价申请';
+  let body = `<div class="warning-box" style="margin-top:0;"><span style="font-size:16px;">&#9888;</span><div>新渠道价低于供货价，提交后将生成负利润定价申请，商品暂设为不可售，审批通过后恢复可售。</div></div>`;
+  body += `<div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px;">`;
+  body += `<div><div style="font-size:11.5px;color:var(--text-muted);">渠道</div><div style="font-weight:500;">${ch.channel}</div></div>`;
+  body += `<div><div style="font-size:11.5px;color:var(--text-muted);">新商城价</div><div style="font-weight:500;">¥${e.mallPrice}</div></div>`;
+  body += `<div><div style="font-size:11.5px;color:var(--text-muted);">供货价</div><div style="font-weight:500;">¥${supply.toFixed(2)}</div></div>`;
+  body += `<div><div style="font-size:11.5px;color:var(--text-muted);">新渠道价</div><div style="font-weight:500;color:#da3e3a;">¥${newChannelVal.toFixed(2)}</div></div>`;
+  body += `<div><div style="font-size:11.5px;color:var(--text-muted);">单件亏损</div><div style="font-weight:500;color:#da3e3a;">¥${loss}</div></div>`;
+  body += `<div><div style="font-size:11.5px;color:var(--text-muted);">毛利率</div><div style="font-weight:500;color:#da3e3a;">${margin}%</div></div>`;
+  body += `</div>`;
+  body += `<div style="margin-top:12px;"><label style="font-size:11.5px;color:var(--text-muted);">申请原因 <span style="color:#da3e3a;">*</span></label><textarea id="negProfitReason" rows="3" placeholder="请填写负利润定价的申请原因，如促销清仓、战略补贴等" style="width:100%;margin-top:4px;padding:8px 10px;border:1px solid var(--border);border-radius:4px;font-size:13px;font-family:inherit;resize:vertical;"></textarea></div>`;
+  document.getElementById('confirmBody').innerHTML = body;
+  document.getElementById('confirmFooter').innerHTML = `<button class="btn btn-outline" onclick="window._priceBack=true;openPriceModal('${chId}')">上一步</button><button class="btn btn-primary" onclick="submitNegProfitApply('${chId}')">提交申请</button>`;
+}
+function submitNegProfitApply(chId) {
+  const reason = (document.getElementById('negProfitReason').value || '').trim();
+  if (!reason) { toast('请填写申请原因','info'); return; }
+  const ch = data.channels.find(c => c.id === chId);
+  const e = window._priceEdit;
+  ch.sellable = 'off';
+  ch.locked = true;
+  ch.lockedReason = '改价审批中';
+  ch.pendingMallPrice = e.mallPrice;
+  ch.pendingChannelPrice = e.channelPrice;
+  closeModal('confirmModal');
+  window._priceEdit = null;
+  toast(`已生成负利润定价申请，${ch.channel}商品暂设为不可售`,'info');
+  renderChannelTable();
+}
+
+function openRemoveModal(chId) {
+  const ch = data.channels.find(c => c.id === chId);
+  document.getElementById('confirmTitle').textContent = '确认移出';
+  document.getElementById('confirmBody').innerHTML = `
+    <p>确认将以下商品从渠道移出？</p>
+    <p style="margin-top:8px;"><strong>商品:</strong> ${data.spu.name}</p>
+    <p><strong>SKU:</strong> ${ch.skuSpec}</p>
+    <p><strong>目标商城:</strong> ${ch.channel}</p>
+    <div class="warning-box"><span style="font-size:16px;">&#9888;</span><div>移出操作不可逆，若需重新上架需从选品清单重新走定价推品流程</div></div>
+  `;
+  document.getElementById('confirmFooter').innerHTML = `<button class="btn btn-outline" onclick="closeModal('confirmModal')">取消</button><button class="btn btn-danger" onclick="confirmRemove('${chId}')">确认移出</button>`;
+  document.getElementById('confirmModal').classList.add('open');
+}
+
+function confirmRemove(chId) {
+  const ch = data.channels.find(c => c.id === chId);
+  toast(`已从${ch.channel}移出`,'success');
+  data.channels = data.channels.filter(c => c.id !== chId);
+  closeModal('confirmModal');
+  renderChannelTable();
+}
+
+// ========================================
+// TAB3: TIMELINE
+// ========================================
+function renderLogTable() {
+  let html = '';
+  data.logs.forEach((log, i) => {
+    const dotColor = log.dot;
+    const resultIcon = log.result === 'success' ? '&#10004;' : '&#9203;';
+    const resultColor = log.result === 'success' ? 'var(--green)' : 'var(--orange)';
+    html += '<tr>';
+    html += `<td><input type="checkbox" class="checkbox log-check" data-idx="${i}" onchange="updateLogSelection()"></td>`;
+    html += `<td style="white-space:nowrap;">${formatDateTime(log.date + ' ' + log.time)}</td>`;
+    html += `<td><span class="log-type-dot ${dotColor}"></span>${log.type}</td>`;
+    html += `<td><span style="font-size:11.5px;">${log.actor}</span></td>`;
+    html += `<td>${log.content}${log.note ? '<br><span style="font-size:11px;color:var(--text-muted);font-style:italic;">'+log.note+'</span>' : ''}</td>`;
+    html += `<td>${log.change ? '<span style="font-family:\'Microsoft YaHei\',sans-serif;font-size:11.5px;color:var(--orange);">'+log.change+'</span>' : '—'}</td>`;
+    html += `<td><span style="color:${resultColor};font-size:12px;">${resultIcon} ${log.resultText}</span></td>`;
+    html += '</tr>';
+  });
+  document.getElementById('logTbody').innerHTML = html;
+  document.getElementById('logSelectAll').checked = false;
+  updateLogSelection();
+}
+
+// ========================================
+// MODALS
+// ========================================
+function openCategoryModal() {
+  // 回显当前已选分类
+  var cur = data.spu.frontCategories;
+  document.querySelectorAll('#catMultiSelect .ms-opt input').forEach(function(cb) {
+    cb.checked = cur.indexOf(cb.value) !== -1;
+  });
+  document.getElementById('catMultiSelect').classList.remove('open');
+  document.getElementById('categoryModal').classList.add('open');
+}
+function saveCategory() {
+  var checked = document.querySelectorAll('#catMultiSelect .ms-opt input:checked');
+  data.spu.frontCategories = Array.from(checked).map(function(c) { return c.value; });
+  document.getElementById('frontCatsDisplay').textContent = data.spu.frontCategories.join('、') || '未设置';
+  closeModal('categoryModal');
+  toast('前台分类已更新','success');
+}
+function openTagModal() {
+  // 回显当前已选标签
+  var curLabels = data.spu.tags.map(function(t) { return t.label; });
+  document.querySelectorAll('#tagMultiSelect .ms-opt input').forEach(function(cb) {
+    cb.checked = curLabels.indexOf(cb.value) !== -1;
+  });
+  document.getElementById('tagMultiSelect').classList.remove('open');
+  document.getElementById('tagModal').classList.add('open');
+}
+function saveTags() {
+  var checked = document.querySelectorAll('#tagMultiSelect .ms-opt input:checked');
+  data.spu.tags = Array.from(checked).map(function(cb) {
+    return { label: cb.value, cls: cb.dataset.cls };
+  });
+  closeModal('tagModal');
+  refreshTags();
+  toast('标签已更新','success');
+}
+
+function removeTag(label) {
+  data.spu.tags = data.spu.tags.filter(t => t.label !== label);
+  toast(`已移除标签"${label}"`,'info');
+  refreshTags();
+}
+
+function refreshTags() {
+  let html = '';
+  data.spu.tags.forEach(t => {
+    html += `<span class="tag ${t.cls}">${t.label} <span class="tag-remove" onclick="removeTag('${t.label}')">&times;</span></span> `;
+  });
+  document.getElementById('spuTags').innerHTML = html;
+}
+
+// SKU-level tags
+function openSkuTagModal() {
+  // Pre-check existing tags
+  const sku = data.skus[currentSku];
+  const container = document.getElementById('skuTagMultiSelect');
+  container.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+    const label = cb.value;
+    cb.checked = sku.tags && sku.tags.some(t => t.label === label);
+  });
+  openModal('skuTagModal');
+}
+
+function removeSkuTag(label) {
+  const sku = data.skus[currentSku];
+  if (!sku.tags) sku.tags = [];
+  sku.tags = sku.tags.filter(t => t.label !== label);
+  toast(`已移除SKU标签"${label}"`,'info');
+  renderSkuArea();
+}
+
+function saveSkuTags() {
+  const sku = data.skus[currentSku];
+  if (!sku.tags) sku.tags = [];
+  sku.tags = [];
+  document.querySelectorAll('#skuTagMultiSelect input[type="checkbox"]:checked').forEach(cb => {
+    sku.tags.push({
+      label: cb.value,
+      cls: cb.dataset.cls
+    });
+  });
+  closeModal('skuTagModal');
+  toast('SKU标签已更新','success');
+  renderSkuArea();
+}
+
+function previewContent(supId, type) {
+  const sup = data.skus[currentSku].suppliers.find(s => s.id === supId);
+  const typeLabel = {image:'主图',params:'参数',detail:'详情'}[type];
+  document.getElementById('confirmTitle').textContent = `${typeLabel}预览 - ${sup.name}`;
+  let body = '';
+  if (type === 'image') {
+    body = '<div style="text-align:center;padding:40px;font-size:48px;opacity:.3;">&#128203;</div><div style="text-align:center;font-size:12px;color:var(--text-muted);">供应商'+sup.name+'提供的商品图集（白底图/场景图/细节图）</div>';
+  } else if (type === 'params') {
+    body = '<table class="param-table"><tbody><tr><td>材质</td><td>无纺布 + 静电滤棉</td></tr><tr><td>防护标准</td><td>KN95 (GB 2626-2019)</td></tr><tr><td>佩戴方式</td><td>耳戴式</td></tr><tr><td>包装规格</td><td>50只/盒</td></tr></tbody></table>';
+  } else {
+    body = '<div class="detail-content"><div>供应商'+sup.name+'提供的图文详情完整内容</div></div>';
+  }
+  document.getElementById('confirmBody').innerHTML = body;
+  document.getElementById('confirmFooter').innerHTML = `<button class="btn btn-outline" onclick="closeModal('confirmModal')">关闭</button><button class="btn btn-primary" onclick="selectAsDefault('${supId}','${type}')">选用为默认${typeLabel}</button>`;
+  document.getElementById('confirmModal').classList.add('open');
+}
+
+function selectAsDefault(supId, type) {
+  // SKU主图 only (params/detail handled at SPU level via selectSpuContent)
+  const sku = data.skus[currentSku];
+  if (type === 'image') {
+    sku.suppliers.forEach(s => { s.imageSelected = (s.id === supId); });
+    const supName = sku.suppliers.find(s => s.id === supId).name;
+    toast('已切换SKU {' + sku.spec + '} 主图来源为' + supName, 'success');
+    renderSkuArea();
+    renderPreview();
+  }
+  closeModal('confirmModal');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+// ========================================
+// LOG BATCH OPERATIONS
+// ========================================
+let selectedLogs = new Set();
+
+function toggleAllLogs(checked) {
+  document.querySelectorAll('.log-check').forEach(cb => {
+    cb.checked = checked;
+    const idx = parseInt(cb.dataset.idx);
+    if (checked) selectedLogs.add(idx); else selectedLogs.delete(idx);
+  });
+  updateLogSelection();
+}
+
+function updateLogSelection() {
+  selectedLogs.clear();
+  document.querySelectorAll('.log-check:checked').forEach(cb => {
+    selectedLogs.add(parseInt(cb.dataset.idx));
+  });
+  const count = selectedLogs.size;
+  document.getElementById('logSelectedInfo').textContent = `已选 ${count} 条`;
+  document.getElementById('logExportBtn').disabled = count === 0;
+}
+
+function exportLogs() {
+  if (selectedLogs.size === 0) { toast('请先勾选要导出的日志','warn'); return; }
+  const items = [];
+  selectedLogs.forEach(idx => {
+    const log = data.logs[idx];
+    items.push(`${log.date} ${log.time}\t${log.type}\t${log.actor}\t${log.content}\t${log.change||'—'}\t${log.resultText}`);
+  });
+  const content = '时间\t操作类型\t操作人\t内容\t变更\t结果\n' + items.join('\n');
+  toast(`已导出 ${selectedLogs.size} 条日志记录`,'success');
+  // In production: trigger file download
+  console.log('Exported logs:\n', content);
+}
+
+// ========================================
+// TOAST
+// ========================================
+function toast(msg, type) {
+  type = type || 'info';
+  const container = document.getElementById('toastContainer');
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = msg;
+  container.appendChild(el);
+  setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity 200ms'; setTimeout(() => el.remove(), 200); }, 2500);
+}
+
+function renderContactCell(contact) {
+  var name = (contact || '-').replace(/\s+\d+.*$/, '');
+  if (!name) name = contact;
+  var avatar = (name || '?').charAt(0);
+  return '<div class="cell-row"><div class="person-avatar">' + avatar + '</div><div class="cell-stack"><div class="primary">' + name + '</div><div class="secondary">采购部</div></div></div>';
+}
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(ov => {
+  ov.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('open'); });
+});
+
+// Multi-select: close on outside click, update trigger text
+document.addEventListener('click', function(e) {
+  document.querySelectorAll('.multi-select.open').forEach(function(ms) {
+    if (!ms.contains(e.target)) ms.classList.remove('open');
+  });
+});
+document.querySelectorAll('.multi-select').forEach(function(ms) {
+  var checkboxes = ms.querySelectorAll('.ms-opt input[type="checkbox"]');
+  var tagsEl = ms.querySelector('.ms-tags');
+  var ph = ms.querySelector('.ms-placeholder');
+  function updateTrigger() {
+    var checked = ms.querySelectorAll('.ms-opt input:checked');
+    var tagsHtml = '';
+    checked.forEach(function(cb) {
+      var cls = cb.dataset.cls || '';
+      tagsHtml += '<span class="ms-tag' + (cls ? ' ' + cls : '') + '">' + cb.value + '<span class="ms-tag-remove" data-val="' + cb.value + '">&times;</span></span>';
+    });
+    tagsEl.innerHTML = tagsHtml;
+    if (checked.length === 0) {
+      ph.style.display = '';
+    } else {
+      ph.style.display = 'none';
+    }
+    // 点击 tag 上的 × 取消勾选
+    tagsEl.querySelectorAll('.ms-tag-remove').forEach(function(rm) {
+      rm.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var cb = ms.querySelector('.ms-opt input[value="' + rm.dataset.val + '"]');
+        if (cb) { cb.checked = false; updateTrigger(); }
+      });
+    });
+  }
+  checkboxes.forEach(function(cb) { cb.addEventListener('change', updateTrigger); });
+  updateTrigger();
+});
+</script>
+</body>
+</html>

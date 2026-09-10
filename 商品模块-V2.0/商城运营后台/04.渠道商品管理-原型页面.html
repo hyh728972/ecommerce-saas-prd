@@ -1,0 +1,982 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>渠道商品管理 - 商城运营平台</title>
+<!-- B端统一字体：微软雅黑 -->
+<style>
+:root {
+  --bg-app: #f4f3f0;
+  --bg-sidebar: #1e1e22;
+  --bg-surface: #ffffff;
+  --bg-hover: #f7f6f4;
+  --bg-input: #f9f8f7;
+  --border: #e6e4e0;
+  --border-light: #f0eeeb;
+  --text-primary: #1a1a1c;
+  --text-secondary: #6b6b70;
+  --text-muted: #99999d;
+  --text-sidebar: #c4c4c9;
+  --text-sidebar-active: #ffffff;
+  --accent: #2d2d33;
+  --accent-soft: #f0eeeb;
+  --red: #da3e3a;
+  --red-bg: #fef4f3;
+  --red-border: #fcd9d7;
+  --orange: #d97706;
+  --orange-bg: #fffbf0;
+  --orange-border: #fde8c4;
+  --blue: #2563eb;
+  --blue-bg: #f5f8ff;
+  --blue-border: #d4e0fc;
+  --green: #16a34a;
+  --green-bg: #f4fdf6;
+  --green-border: #c6f0d4;
+  --gray: #6b7280;
+  --gray-bg: #f8f8f7;
+  --gray-border: #e8e6e3;
+  --dark-gray: #4b4b52;
+  --dark-gray-bg: #f5f4f3;
+  --dark-gray-border: #e0dedb;
+  --radius-sm: 4px;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.04);
+  --shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-lg: 0 4px 16px rgba(0,0,0,.10), 0 2px 6px rgba(0,0,0,.04);
+  --transition: 160ms ease;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: "Microsoft YaHei", sans-serif;
+  background: var(--bg-app);
+  color: var(--text-primary);
+  display: flex;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== Sidebar ===== */
+.sidebar {
+  width: 232px; min-width: 232px;
+  background: var(--bg-sidebar);
+  display: flex; flex-direction: column; padding: 0;
+  z-index: 10; position: sticky; top: 0; height: 100vh; overflow-y: auto;
+}
+.sidebar-brand { padding: 20px 20px 28px; border-bottom: 1px solid rgba(255,255,255,.06); }
+.sidebar-brand .logo { font-size: 17px; font-weight: 600; color: #fff; letter-spacing: -.02em; display: flex; align-items: center; gap: 10px; }
+.sidebar-brand .logo svg { flex-shrink: 0; }
+.sidebar-brand .sub { font-size: 11px; color: var(--text-sidebar); margin-top: 2px; letter-spacing: .02em; }
+.sidebar-nav { flex: 1; padding: 12px 10px; display: flex; flex-direction: column; gap: 2px; }
+.nav-section-label { font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: rgba(255,255,255,.25); padding: 14px 10px 6px; display: flex; align-items: center; gap: 4px; cursor: pointer; user-select: none; }
+.nav-section-label:hover { color: rgba(255,255,255,.45); }
+.section-arrow { font-size: 8px; transition: transform .2s ease; flex-shrink: 0; }
+.nav-section.collapsed .section-arrow { transform: rotate(-90deg); }
+.nav-section.collapsed .nav-section-items { display: none; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 6px; color: var(--text-sidebar); font-size: 13.5px; cursor: pointer; transition: all var(--transition); text-decoration: none; letter-spacing: .01em; }
+.nav-item:hover { background: rgba(255,255,255,.05); color: #fff; }
+.nav-item.active { background: rgba(255,255,255,.10); color: #fff; font-weight: 500; }
+.nav-item .badge { margin-left: auto; background: var(--red); color: #fff; font-size: 10px; font-weight: 600; padding: 1px 7px; border-radius: 10px; min-width: 20px; text-align: center; line-height: 18px; }
+.nav-icon { width: 18px; height: 18px; opacity: .55; flex-shrink: 0; }
+.nav-item.active .nav-icon { opacity: 1; }
+
+/* ===== Main ===== */
+.main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+/* ===== Top Bar ===== */
+.topbar { height: 52px; min-height: 52px; background: var(--bg-surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 28px; gap: 16px; z-index: 5; }
+.topbar .breadcrumb { font-size: 12.5px; color: var(--text-muted); letter-spacing: .01em; }
+.topbar .breadcrumb span { color: var(--text-primary); font-weight: 500; }
+.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 16px; }
+.topbar-right .user-avatar { width: 30px; height: 30px; border-radius: 50%; background: #e6e4e0; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); }
+
+/* ===== Content ===== */
+.content { display: flex; flex-direction: column; padding: 24px 28px; padding-bottom: 70px; }
+.page-header { margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; }
+.page-header h1 { font-size: 22px; font-weight: 600; letter-spacing: -.02em; }
+.page-header p { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+.page-header-right { display: flex; gap: 8px; }
+
+/* ===== Stats ===== */
+.stats-row { display: flex; gap: 14px; margin-bottom: 20px; }
+.stat-card { flex: 1; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 18px; display: flex; align-items: center; gap: 14px; }
+.stat-icon { width: 42px; height: 42px; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.stat-icon.blue   { background: var(--blue-bg);   color: var(--blue); }
+.stat-icon.green  { background: var(--green-bg);  color: var(--green); }
+.stat-icon.orange { background: var(--orange-bg); color: var(--orange); }
+.stat-icon.red-bg { background: var(--red-bg);    color: var(--red); }
+.stat-value { font-size: 22px; font-weight: 600; letter-spacing: -.02em; }
+.stat-label { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+
+/* ===== Channel Banner ===== */
+.ch-banner { margin-bottom: 16px; }
+.ch-banner-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.ch-banner-metric { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 18px; display: flex; align-items: center; gap: 14px; }
+.ch-banner-metric-icon { width: 42px; height: 42px; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.ch-banner-metric-body { flex: 1; min-width: 0; }
+.ch-banner-metric-value { font-size: 22px; font-weight: 600; letter-spacing: -.02em; color: var(--text-primary); }
+.ch-banner-metric-label { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+
+/* ===== Buttons ===== */
+.btn { display: inline-flex; align-items: center; padding: 5px 12px; border-radius: var(--radius-sm); font-size: 12px; font-family: inherit; cursor: pointer; border: 1px solid transparent; transition: all var(--transition); white-space: nowrap; font-weight: 500; gap: 5px; }
+.btn-sm { padding: 4px 10px; font-size: 11.5px; }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { opacity: .85; }
+.btn-outline { border-color: var(--border); color: var(--text-primary); background: var(--bg-surface); }
+.btn-outline:hover { border-color: var(--text-muted); background: var(--bg-hover); }
+.btn-danger { color: var(--red); border-color: var(--red-border); background: var(--red-bg); }
+.btn-danger:hover { background: #fde8e7; }
+.btn-filter { height: 36px; padding: 0 16px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius-sm); font-size: 13px; font-family: inherit; cursor: pointer; font-weight: 500; transition: opacity var(--transition); }
+.btn-filter:hover { opacity: .88; }
+.btn-reset { height: 36px; padding: 0 14px; background: transparent; color: var(--text-secondary); border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; font-family: inherit; cursor: pointer; transition: all var(--transition); }
+.btn-reset:hover { border-color: var(--text-muted); color: var(--text-primary); }
+
+/* ===== Tabs ===== */
+.tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+.tab {
+  padding: 10px 20px; font-size: 13.5px; font-weight: 500;
+  color: var(--text-muted); cursor: pointer;
+  border-bottom: 2px solid transparent; transition: all var(--transition);
+  font-family: inherit; background: none;
+  border-top: none; border-left: none; border-right: none;
+}
+.tab.active { color: var(--text-primary); border-bottom-color: var(--accent); }
+.tab:hover:not(.active) { color: var(--text-secondary); }
+
+/* ===== View State ===== */
+.view { display: none; flex-direction: column; }
+.view.active { display: flex; }
+
+/* ===== Filters ===== */
+.filter-bar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  flex-shrink: 0;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+.filter-bar select,
+.filter-bar input {
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-family: inherit;
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color var(--transition);
+}
+.filter-bar input[type="text"] { width: 220px; }
+.filter-bar input[type="date"] { width: 140px; }
+.filter-bar input[type="text"]::placeholder { color: var(--text-muted); }
+.filter-bar select { min-width: 150px; }
+.filter-bar select:focus,
+.filter-bar input:focus { border-color: var(--accent); }
+.filter-bar .date-sep,
+.filter-bar .sep { color: var(--text-muted); font-size: 12px; }
+.filter-bar .filter-extra { margin-left: auto; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.table-panel {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.table-panel > .filter-bar { margin-bottom: 0; border: none; border-bottom: 1px solid var(--border); border-radius: 0; }
+.table-panel > .table-wrap { border: none; border-radius: 0; background: transparent; }
+
+/* ===== Table ===== */
+.table-wrap { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-lg); display: flex; flex-direction: column; }
+.table-scroll { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: auto; min-width: 1500px; }
+thead th { background: #fafaf9; text-align: left; padding: 11px 14px; font-weight: 500; font-size: 12px; color: var(--text-muted); letter-spacing: .02em; border-bottom: 1px solid var(--border); white-space: nowrap; }
+thead th:first-child { padding-left: 20px; }
+tbody td { padding: 13px 14px; border-bottom: 1px solid var(--border-light); vertical-align: top; }
+tbody td:first-child { padding-left: 20px; }
+tbody tr { transition: background var(--transition); }
+tbody tr:hover { background: var(--bg-hover); }
+tbody tr:last-child td { border-bottom: none; }
+tbody tr.row-main { cursor: pointer; }
+tbody tr.row-sub { background: #fafaf9; }
+tbody tr.row-sub td { padding: 9px 14px; font-size: 12.5px; }
+tbody tr.row-sub td:first-child { padding-left: 20px; }
+tbody tr.row-sub:hover { background: #f4f3f0; }
+tbody tr.row-sku { background: #e8e6e1; }
+tbody tr.row-sku td { padding: 7px 14px; font-weight: 500; }
+tbody tr.row-sku:hover { background: #efede9; }
+.row-main .expand-arrow { display: inline-block; transition: transform var(--transition); font-size: 10px; margin-right: 6px; color: var(--text-muted); }
+.row-main .expand-arrow.expanded { transform: rotate(90deg); }
+.row-main .channel-summary { font-size: 12px; color: var(--text-secondary); }
+.row-main .channel-summary .price-wave { color: var(--orange); font-weight: 500; }
+
+.checkbox { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; flex-shrink: 0; }
+.price { font-family:"Microsoft YaHei",sans-serif; font-size: 12.5px; }
+.product-name { font-weight: 500; }
+.product-name .sku { font-family:"Microsoft YaHei",sans-serif; font-size: 11px; color: var(--text-muted); margin-left: 6px; font-weight: 400; }
+.cell-stack { display: flex; flex-direction: column; gap: 2px; }
+.cell-stack .primary { font-size: 13px; }
+.cell-stack .secondary { font-size: 11.5px; color: var(--text-muted); }
+
+/* ---- Merged cell: checkbox + 商品信息 ---- */
+.spu-merged-cell { display: flex; align-items: flex-start; gap: 8px; }
+.spu-merged-cell .checkbox { margin-top: 2px; flex-shrink: 0; }
+.spu-merged-cell .expand-arrow { flex-shrink: 0; margin-top: 2px; }
+.spu-lines { flex: 1; min-width: 0; }
+.spu-line { line-height: 1.5; font-size: 13px; }
+.spu-line.name-line { font-weight: 600; line-height: 1.5; color: var(--text-primary); display: flex; align-items: center; gap: 4px; min-width: 0; }
+.name-ellipsis { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.spu-line.code-line { line-height: 1.5; color: var(--text-secondary); }
+.spu-line.code-line .code-label { color: var(--text-muted); margin-right: 4px; }
+.spu-line.cat-line { line-height: 1.5; color: var(--text-muted); }
+.spu-line.tag-line { display: flex; gap: 6px; align-items: center; margin-top: 2px; }
+.sku-count-tag { display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 4px; font-size: 11.5px; font-weight: 500; background: var(--accent-soft); color: var(--text-secondary); }
+.sku-merged-cell { display: flex; align-items: flex-start; gap: 8px; }
+.sku-merged-cell .checkbox { margin-top: 2px; flex-shrink: 0; }
+.sku-spacer { display: inline-block; width: 12px; margin-right: 6px; flex-shrink: 0; }
+.sku-thumb-spacer { display: inline-block; width: 60px; margin-right: 2px; flex-shrink: 0; }
+.sku-lines { flex: 1; min-width: 0; }
+.sku-line { line-height: 1.5; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sku-line.name-line { font-weight: 500; color: var(--text-primary); display: flex; align-items: center; min-width: 0; }
+.sku-line.name-line > * { flex-shrink: 0; }
+.sku-line.name-line > .name-ellipsis { flex-shrink: 1; }
+.sku-line .spec-label { font-size: 13px; color: var(--text-muted); margin-right: 4px; font-weight: 500; white-space: nowrap; }
+.sku-line .spec-val { font-size: 13px; color: var(--text-muted); white-space: nowrap; max-width: 400px; }
+.sku-line .sku-code { font-family:"Microsoft YaHei",sans-serif; font-size: 13px; color: var(--text-secondary); }
+.channel-merged-cell { display: flex; align-items: center; gap: 8px; }
+.channel-merged-cell .checkbox { flex-shrink: 0; }
+
+.spu-code { font-family:"Microsoft YaHei",sans-serif; font-size: 11px; color: var(--text-muted); }
+.mall-code-label { font-size: 10.5px; color: var(--text-muted); margin-right: 4px; font-weight: 500; }
+.mall-sku-code { font-family:"Microsoft YaHei",sans-serif; font-size: 11px; color: var(--text-secondary); }
+.copy-icon-btn{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;padding:0;border:none;background:transparent;color:var(--text-muted);cursor:pointer;border-radius:4px;flex-shrink:0;transition:color var(--transition),background var(--transition);vertical-align:middle;opacity:0;visibility:hidden;}
+	tr:hover .copy-icon-btn{opacity:1;visibility:visible;}
+.copy-icon-btn:hover{color:var(--text-secondary);background:var(--bg-hover);}
+.copy-icon-btn svg{display:block;pointer-events:none;}
+.product-meta { font-size: 11.5px; color: var(--text-muted); margin-top: 3px; display: flex; gap: 8px; align-items: center; }
+.product-thumb { width: 60px; height: 60px; border-radius: var(--radius-sm); background: #e8e6e2; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600; color: var(--text-muted); margin-right: 2px; vertical-align: middle; }
+.product-thumb.hidden { display: none; }
+.tag { display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 4px; font-size: 11.5px; font-weight: 500; letter-spacing: .01em; white-space: nowrap; }
+.tag-duplicate  { background: var(--gray-bg);      color: var(--gray);      border: 1px solid var(--gray-border); }
+.tag-profit     { background: var(--red-bg);        color: var(--red);       border: 1px solid var(--red-border); }
+.tag-supplier   { background: var(--orange-bg);     color: var(--orange);    border: 1px solid var(--orange-border); }
+.tag-conflict   { background: var(--blue-bg);       color: var(--blue);      border: 1px solid var(--blue-border); }
+.tag-cost       { background: var(--orange-bg);     color: var(--orange);    border: 1px solid var(--orange-border); }
+.tag-outage     { background: var(--dark-gray-bg);  color: var(--dark-gray); border: 1px solid var(--dark-gray-border); }
+.tag-channel {
+  display: inline-flex; align-items: center; padding: 1px 8px;
+  border-radius: 4px; font-size: 11px; font-weight: 500;
+  background: var(--gray-bg); color: var(--text-secondary);
+  border: 1px solid var(--gray-border); margin-right: 4px;
+}
+.tag-mall { background: var(--gray-bg); color: var(--gray); border: 1px solid var(--gray-border); border-radius: 4px; padding: 2px 10px; }
+.tag-orange { background: var(--orange-bg); color: var(--orange); border: 1px solid var(--orange-border); }
+.tag-green { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+.tag-physical { background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue-border); }
+.tag-purple { background: #f5f3ff; color: #7c3aed; border: 1px solid #ddd6fe; }
+.tag-blue { background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue-border); }
+.tag-gray { background: var(--gray-bg); color: var(--gray); border: 1px solid var(--gray-border); }
+	.tag-red { background: #ff4d4f; color: #fff; border: 1px solid #ff4d4f; }
+.tag-virtual { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+.toggle { position: relative; display: inline-flex; align-items: center; gap: 6px; }
+.toggle.clickable { cursor: pointer; }
+.toggle-track { width: 36px; height: 20px; border-radius: 20px; background: #d1d5db; transition: all var(--transition); position: relative; flex-shrink: 0; }
+.toggle.on .toggle-track  { background: #9ca3af; }
+.toggle.locked .toggle-track { background: var(--red); }
+.toggle-knob { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.15); transition: transform var(--transition); }
+.toggle.on .toggle-knob     { transform: translateX(16px); }
+.toggle.off .toggle-knob    { transform: translateX(0); }
+.toggle.locked .toggle-knob { transform: translateX(0); }
+.toggle-label { font-size: 12px; font-weight: 500; }
+.toggle.on .toggle-label    { color: var(--text-secondary); }
+.toggle.off .toggle-label   { color: var(--red); }
+.toggle.locked .toggle-label { color: var(--red); }
+.toggle .red-dot { display: none; width: 6px; height: 6px; border-radius: 50%; background: var(--red); flex-shrink: 0; }
+.toggle.locked .red-dot { display: inline-block; }
+
+/* ===== Table Footer (Batch Bar) ===== */
+.page-footer-fixed { position: fixed; bottom: 0; left: 232px; right: 0; display: flex; align-items: center; justify-content: space-between; padding: 12px 28px; background: #fafaf9; border-top: 1px solid var(--border); z-index: 100; box-shadow: 0 -2px 8px rgba(0,0,0,.06); }
+.page-footer-left { display: flex; align-items: center; gap: 12px; }
+.page-footer-right { display: flex; align-items: center; }
+.pagination { display: flex; align-items: center; gap: 4px; }
+.pagination .page-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 12px; cursor: pointer; background: var(--bg-surface); color: var(--text-primary); transition: all var(--transition); }
+.pagination .page-btn:hover { border-color: var(--text-muted); }
+.pagination .page-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.pagination .page-btn.disabled { opacity: .35; pointer-events: none; }
+.pagination .page-info { font-size: 12px; color: var(--text-muted); margin: 0 8px; }
+
+/* ===== Channel Cards ===== */
+.channel-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+.channel-card {
+  background: var(--bg-surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 24px 26px; min-height: 168px;
+  cursor: pointer; transition: all var(--transition);
+  display: flex; flex-direction: column;
+}
+.channel-card:hover { border-color: var(--text-muted); box-shadow: var(--shadow); }
+.channel-card .ch-name { font-size: 17px; font-weight: 600; margin-bottom: 6px; letter-spacing: -.01em; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.channel-card .ch-status { font-size: 13px; color: var(--green); margin-bottom: 16px; display: flex; align-items: center; gap: 6px; }
+.channel-card .ch-stats { display: flex; flex-wrap: wrap; gap: 10px 28px; font-size: 13.5px; color: var(--text-secondary); flex: 1; }
+.channel-card .ch-stats strong { color: var(--text-primary); font-weight: 600; font-size: 15px; }
+.channel-card .ch-actions { display: flex; gap: 10px; margin-top: auto; padding-top: 16px; border-top: 1px solid var(--border-light); }
+.channel-card .ch-actions .btn { padding: 7px 16px; font-size: 13px; }
+
+/* ===== Channel Detail Back ===== */
+.detail-back { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+.detail-back .ch-title { font-weight: 600; font-size: 14px; }
+
+/* Export dropdown (全量导出) */
+.export-dropdown { position: relative; }
+.export-dropdown .caret { font-size: 10px; opacity: .7; }
+.export-menu { position: absolute; top: calc(100% + 6px); right: 0; min-width: 220px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-lg); padding: 5px; z-index: 50; display: none; }
+.export-menu.open { display: block; }
+.export-menu-item { padding: 8px 10px; border-radius: var(--radius-sm); cursor: pointer; transition: background var(--transition); font-size: 12.5px; }
+.export-menu-item:hover { background: var(--bg-hover); }
+
+/* ===== Modals ===== */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(2px); }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--bg-surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); width: 460px; max-width: 90vw; overflow: hidden; animation: modalIn .18s ease; }
+.modal.wide { width: 560px; }
+@keyframes modalIn { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+.modal-header { padding: 18px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.modal-header h3 { font-size: 16px; font-weight: 600; letter-spacing: -.01em; }
+.modal-close { width: 28px; height: 28px; border: none; background: none; cursor: pointer; font-size: 18px; color: var(--text-muted); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; transition: all var(--transition); }
+.modal-close:hover { background: var(--bg-hover); color: var(--text-primary); }
+.modal-body { padding: 20px 24px; font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+.modal.batch-price-modal { width: 1120px; max-width: 94vw; max-height: 88vh; display: flex; flex-direction: column; }
+.modal.batch-price-modal .modal-body { overflow: auto; flex: 1; }
+.batch-price-summary { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius); background: #fafaf9; }
+.batch-price-summary .summary-item { font-size: 12.5px; color: var(--text-secondary); }
+.batch-price-summary .summary-item strong { color: var(--text-primary); font-weight: 600; }
+.batch-price-list { display: flex; flex-direction: column; gap: 18px; }
+.batch-price-section { border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-surface); overflow: hidden; }
+.batch-price-section-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: #fafaf9; border-bottom: 1px solid var(--border); }
+.batch-price-section-title { font-size: 13.5px; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 8px; }
+.batch-price-section-hint { font-size: 12px; color: var(--text-muted); }
+.batch-price-table-wrap { overflow-x: auto; }
+.batch-price-table { width: 100%; min-width: 1040px; table-layout: fixed; border-collapse: collapse; font-size: 12.5px; }
+.batch-price-table th { padding: 9px 10px; background: #fafaf9; border-bottom: 1px solid var(--border); color: var(--text-muted); font-weight: 500; white-space: nowrap; }
+.batch-price-table td { padding: 9px 10px; border-bottom: 1px solid var(--border-light); vertical-align: top; }
+.batch-price-table tbody tr:last-child td { border-bottom: none; }
+.batch-price-table .product-cell { line-height: 1.45; }
+.batch-price-table .product-cell .name { font-weight: 500; color: var(--text-primary); }
+.batch-price-table .product-cell .meta { font-size: 11px; color: var(--text-muted); }
+.batch-price-table input { height: 32px; padding: 0 8px; font-size: 12.5px; }
+.batch-price-table .readonly-price { font-family:"Microsoft YaHei",sans-serif; color: var(--text-primary); }
+.batch-price-warning { color: var(--red); font-size: 12px; margin-top: 4px; }
+.batch-price-profit { font-size: 12px; color: var(--text-secondary); line-height: 1.45; }
+.batch-price-profit strong { font-weight: 600; }
+.modal-body .form-group { margin-bottom: 14px; }
+.modal-body .form-group label { display: block; font-size: 12px; font-weight: 500; color: var(--text-muted); margin-bottom: 6px; }
+.modal-body input,
+.modal-body textarea { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; font-family: inherit; outline: none; transition: border-color var(--transition); background: var(--bg-surface); color: var(--text-primary); }
+.modal-body input:focus,
+.modal-body textarea:focus { border-color: var(--accent); }
+.modal-body .hint { font-size: 11.5px; color: var(--text-muted); margin-top: 4px; }
+.modal-body .price-preview { background: #f9f8f7; padding: 10px 14px; border-radius: var(--radius-sm); font-size: 12.5px; color: var(--text-secondary); margin-top: 8px; }
+.modal-body .price-preview strong { font-weight: 600; }
+.price-modal-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.price-modal-readonly { min-height: 36px; padding: 8px 12px; border: 1px solid var(--border-light); border-radius: var(--radius-sm); background: #fafaf9; color: var(--text-primary); }
+.price-modal-readonly .sub { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+.modal-body .product-highlight { font-weight: 500; color: var(--text-primary); }
+.modal-body .warning-box { background: #fff8f7; border: 1px solid #fdd9d5; border-radius: var(--radius-sm); padding: 12px 14px; font-size: 12.5px; color: #b53a35; display: flex; gap: 8px; align-items: flex-start; margin-top: 12px; }
+.modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
+
+/* 改价第二步·负利润定价申请弹窗：按钮沉底，"申请原因"框填充剩余空间，避免底部留白 */
+#priceForceConfirmModal .modal { display: flex; flex-direction: column; }
+#priceForceConfirmModal .modal-body { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+#batchPriceForceConfirmModal .modal-body { display: flex; flex-direction: column; }
+#priceForceConfirmModal .modal-body > .form-group:last-child,
+#batchPriceForceConfirmModal .modal-body > .form-group:last-child { flex: 1; display: flex; flex-direction: column; min-height: 0; margin-bottom: 0; }
+#priceForceConfirmModal .modal-body > .form-group:last-child > textarea,
+#batchPriceForceConfirmModal .modal-body > .form-group:last-child > textarea { flex: 1; min-height: 80px; }
+
+/* ===== Validation Modal ===== */
+.modal-validation { width: 700px; max-width: 94vw; max-height: 85vh; display: flex; flex-direction: column; }
+.modal-validation .modal-body { overflow-y: auto; flex: 1; }
+.summary { background: #f9fafb; border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; margin-bottom: 16px; font-size: 14px; line-height: 1.6; }
+.summary .highlight-warn { color: var(--red); font-weight: 600; }
+.summary .highlight-ok { color: #16a34a; font-weight: 600; }
+.list-toggle { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; color: var(--text-secondary); cursor: pointer; margin-bottom: 10px; padding: 4px 0; user-select: none; border: none; background: none; font-family: inherit; }
+.list-toggle:hover { color: var(--text-primary); }
+.list-toggle .arrow { display: inline-block; transition: transform var(--transition); font-size: 10px; }
+.list-toggle .arrow.folded { transform: rotate(-90deg); }
+.validation-table-wrap { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.validation-table-wrap .table-scroll { max-height: 280px; overflow-y: auto; overflow-x: hidden; }
+.validation-table-wrap table { table-layout: fixed; width: 100%; min-width: 0; }
+.validation-table-wrap thead { position: sticky; top: 0; z-index: 2; }
+.validation-table-wrap thead th { background: #fafaf9; text-align: left; padding: 8px 12px; font-weight: 500; font-size: 12px; color: var(--text-muted); letter-spacing: .02em; border-bottom: 1px solid var(--border); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.validation-table-wrap thead th:first-child { width: 90px; }
+.validation-table-wrap thead th:nth-child(2) { width: 120px; }
+.validation-table-wrap tbody td { padding: 8px 12px; border-bottom: 1px solid var(--border-light); vertical-align: top; overflow: hidden; }
+.validation-table-wrap tbody td:first-child { white-space: nowrap; width: 90px; }
+.validation-table-wrap tbody td:nth-child(2) { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 120px; }
+.validation-table-wrap tbody tr:last-child td { border-bottom: none; }
+.validation-table-wrap tbody tr:hover { background: var(--bg-hover); }
+.modal-footer-validate { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+.modal-footer-validate .hint-text { font-size: 12px; color: var(--text-muted); }
+.modal-footer-validate .btn-group { display: flex; gap: 8px; }
+
+/* ===== Toast ===== */
+.toast-container { position: fixed; top: 24px; right: 24px; z-index: 200; display: flex; flex-direction: column; gap: 8px; }
+.toast { background: var(--bg-sidebar); color: #fff; padding: 12px 18px; border-radius: var(--radius); font-size: 13px; box-shadow: var(--shadow-lg); animation: toastIn .25s ease; display: flex; align-items: center; gap: 8px; }
+@keyframes toastIn { from { opacity:0; transform: translateX(20px); } to { opacity:1; transform: translateX(0); } }
+.toast.success { border-left: 3px solid #16a34a; }
+.toast.info { border-left: 3px solid var(--blue); }
+
+@media (max-width: 1400px) {
+  .sidebar { width: 200px; min-width: 200px; }
+  .content { padding: 20px; }
+  .page-footer-fixed { left: 200px; }
+}
+/* Import Filter */
+.import-filter-wrap { position: relative; display: inline-block; }
+.import-filter-dropdown { position: absolute; top: 100%; right: 0; margin-top: 4px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-lg); z-index: 50; min-width: 180px; overflow: hidden; }
+.import-filter-option { display: flex; align-items: center; gap: 8px; padding: 10px 14px; font-size: 13px; cursor: pointer; transition: background var(--transition); }
+.import-filter-option:hover { background: var(--bg-hover); }
+.import-filter-option + .import-filter-option { border-top: 1px solid var(--border-light); }
+.import-filter-modal-upload { border: 2px dashed var(--border); border-radius: var(--radius); padding: 30px; text-align: center; cursor: pointer; transition: border-color var(--transition); }
+.import-filter-modal-upload:hover { border-color: var(--blue); }
+.import-filter-modal-upload input[type="file"] { display: none; }
+.import-filter-modal-upload .upload-icon { font-size: 28px; margin-bottom: 8px; }
+.import-filter-modal-upload .upload-text { font-size: 13px; color: var(--text-secondary); }
+.import-filter-modal-upload .upload-hint { font-size: 11.5px; color: var(--text-muted); margin-top: 4px; }
+.import-filter-modal-paste textarea { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; font-family:"Microsoft YaHei",sans-serif; resize: vertical; background: var(--bg-surface); min-height: 120px; }
+.import-filter-modal-paste textarea:focus { outline: none; border-color: var(--accent); }
+.import-filter-modal-paste .paste-count { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
+.filter-tag-import { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 4px; font-size: 12px; background: var(--blue-bg); color: var(--blue); border: 1px solid var(--blue-border); white-space: nowrap; }
+.filter-tag-import .tag-remove { cursor: pointer; font-size: 15px; line-height: 1; opacity: .6; }
+.filter-tag-import .tag-remove:hover { opacity: 1; color: var(--red); }
+</style>
+</head>
+<body>
+
+<!-- ===== Sidebar ===== -->
+<aside class="sidebar" id="app-sidebar"></aside>
+<script src="../assets/common-sidebar.js"></script>
+<script src="../assets/common-copy-btn.js"></script>
+<script src="../assets/mock-backend/database.js"></script>
+<script src="../assets/mock-backend/api.js"></script>
+
+<!-- ===== Main ===== -->
+<div class="main">
+  <div class="topbar">
+    <div class="breadcrumb">选品管理 / <span>渠道商品管理</span></div>
+    <div class="topbar-right">
+      <span style="font-size:12px;color:var(--text-muted);">运营专员</span>
+      <div class="user-avatar">李</div>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- Page Header -->
+    <div class="page-header">
+      <div>
+        <h1>渠道商品管理</h1>
+        <p>管理已上架至各品牌商城的在售商品，支持双维度查看、可售状态管控与批量导入</p>
+      </div>
+      <div class="page-header-right" id="pageHeaderRight">
+        <div class="import-filter-wrap">
+          <button class="btn btn-outline btn-sm" onclick="toggleImportFilter()" style="height:36px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+            导入筛选
+          </button>
+          <div class="import-filter-dropdown" id="importFilterDropdown" style="display:none;">
+            <div class="import-filter-option" onclick="openImportFilterModal('upload')">📄 导入文件筛选</div>
+            <div class="import-filter-option" onclick="openImportFilterModal('paste')">📋 批量粘贴筛选</div>
+          </div>
+        </div>
+        <button class="btn btn-filter btn-sm" onclick="openImportModal()" style="height:36px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          选品导入
+        </button>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" id="tabProduct" onclick="switchView('product')">商品维度</button>
+      <button class="tab" id="tabChannel" onclick="switchView('channel')">商城维度</button>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row" id="globalStats">
+      <div class="stat-card">
+        <div class="stat-icon blue"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M17 2H7v5h10z"/><line x1="8" y1="12" x2="16" y2="12"/></svg></div>
+        <div><div class="stat-value">5</div><div class="stat-label">覆盖品牌商城</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon blue"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/></svg></div>
+        <div><div class="stat-value">128</div><div class="stat-label">渠道商品总数</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="8 12 11 15 16 9"/></svg></div>
+        <div><div class="stat-value">112</div><div class="stat-label">可售商品</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon red-bg"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></div>
+        <div><div class="stat-value">16</div><div class="stat-label">不可售商品</div></div>
+      </div>
+    </div>
+
+    <!-- ============ VIEW: 商品维度 ============ -->
+    <div class="view active" id="viewProduct">
+      <div class="table-panel">
+      <div class="filter-bar">
+        <span class="filter-tag-import" id="importFilterTag" style="display:none;">
+          导入筛选: <strong id="importFilterCount">0</strong>条
+          <span class="tag-remove" onclick="clearImportFilter()">×</span>
+        </span>
+        <input type="text" placeholder="商品名称 / 商城SPU / 商城SKU 搜索">
+        <select><option>全部商城</option><option>锦程员工福利商城</option><option>锦程积分商城</option><option>泡泡玛特官方商城</option><option>泡泡玛特企业购</option><option>苏银豆商城</option></select>
+        <select><option>全部供应商</option><option>鑫泰商贸</option><option>博源供应链</option><option>华茂通</option></select>
+        <select><option>全部状态</option><option>可售</option><option>不可售</option></select>
+        <select id="typeFilterProduct" onchange="renderProductTable()"><option value="all">商品类型: 全部</option><option value="physical">实物商品</option><option value="virtual">虚拟商品</option><option value="combo">组合套装</option><option value="gift">营销买赠</option></select>
+        <button class="btn-filter">查询</button>
+        <button class="btn-reset">重置</button>
+        <div class="filter-extra">
+          <button class="btn btn-outline btn-sm" id="btnImageView" onclick="toggleImageView()">无图显示</button>
+          <button class="btn btn-outline btn-sm" id="btnExpandAll" onclick="expandAllSPUs()">全部展开 ▾</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:380px;"><input type="checkbox" class="checkbox" onchange="toggleAllView(this, 'product')" style="margin-right:8px;vertical-align:middle;">商品信息</th>
+                <th style="width:110px;">主供供应商</th>
+                <th style="width:75px;">供货价</th>
+                <th style="width:75px;">划线价</th>
+                <th style="width:75px;">渠道价</th>
+                <th style="width:80px;">商城价</th>
+                <th style="width:90px;">我司毛利</th>
+                <th style="width:80px;">渠道毛利</th>
+                <th style="width:60px;">库存</th>
+                <th style="width:90px;">发货/物流</th>
+                <th style="width:85px;">可售状态</th>
+                <th style="width:130px;">操作</th>
+              </tr>
+            </thead>
+            <tbody id="productTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+      </div>
+    </div>
+
+    <!-- ============ VIEW: 商城维度 ============ -->
+    <div class="view" id="viewChannel">
+      <!-- Channel Cards (一级) -->
+      <div id="channelCardsWrap">
+        <div class="channel-cards">
+          <div class="channel-card" onclick="openChannelDetail('锦程员工福利商城',45)">
+            <div class="ch-name">锦程员工福利商城 <span class="tag tag-gray">直销</span></div>
+            <div class="ch-status"><svg width="9" height="9" viewBox="0 0 8 8" fill="currentColor"><circle cx="4" cy="4" r="4"/></svg> 对接正常</div>
+            <div class="ch-stats"><span>在售商品 <strong>45</strong></span><span>最近推品 <strong>2026-05-12 09:30</strong></span></div>
+            <div class="ch-actions">
+              <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); openChannelDetail('锦程员工福利商城',45)">管理商品</button>
+            </div>
+          </div>
+          <div class="channel-card" onclick="openChannelDetail('锦程积分商城',32)">
+            <div class="ch-name">锦程积分商城 <span class="tag tag-blue">分销</span></div>
+            <div class="ch-status"><svg width="9" height="9" viewBox="0 0 8 8" fill="currentColor"><circle cx="4" cy="4" r="4"/></svg> 对接正常</div>
+            <div class="ch-stats"><span>在售商品 <strong>32</strong></span><span>最近推品 <strong>2026-05-10 14:15</strong></span></div>
+            <div class="ch-actions">
+              <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); openChannelDetail('锦程积分商城',32)">管理商品</button>
+            </div>
+          </div>
+          <div class="channel-card" onclick="openChannelDetail('泡泡玛特官方商城',28)">
+            <div class="ch-name">泡泡玛特官方商城 <span class="tag tag-blue">分销</span></div>
+            <div class="ch-status"><svg width="9" height="9" viewBox="0 0 8 8" fill="currentColor"><circle cx="4" cy="4" r="4"/></svg> 对接正常</div>
+            <div class="ch-stats"><span>在售商品 <strong>28</strong></span><span>最近推品 <strong>2026-05-08 11:20</strong></span></div>
+            <div class="ch-actions">
+              <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); openChannelDetail('泡泡玛特官方商城',28)">管理商品</button>
+            </div>
+          </div>
+          <div class="channel-card" onclick="openChannelDetail('泡泡玛特企业购',15)">
+            <div class="ch-name">泡泡玛特企业购 <span class="tag tag-gray">直销</span></div>
+            <div class="ch-status" style="color:var(--orange);"><svg width="9" height="9" viewBox="0 0 8 8" fill="currentColor"><circle cx="4" cy="4" r="4"/></svg> 对接延迟</div>
+            <div class="ch-stats"><span>在售商品 <strong>15</strong></span><span>最近推品 <strong>2026-04-28 16:45</strong></span></div>
+            <div class="ch-actions">
+              <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); openChannelDetail('泡泡玛特企业购',15)">管理商品</button>
+            </div>
+          </div>
+          <div class="channel-card" onclick="openChannelDetail('苏银豆商城',8)">
+            <div class="ch-name">苏银豆商城 <span class="tag tag-blue">分销</span></div>
+            <div class="ch-status"><svg width="9" height="9" viewBox="0 0 8 8" fill="currentColor"><circle cx="4" cy="4" r="4"/></svg> 对接正常</div>
+            <div class="ch-stats"><span>在售商品 <strong>8</strong></span><span>最近推品 <strong>2026-05-14 10:08</strong></span></div>
+            <div class="ch-actions">
+              <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); openChannelDetail('苏银豆商城',8)">管理商品</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Channel Detail (二级) -->
+      <div id="channelDetailWrap" style="display:none;flex-direction:column;">
+        <div class="detail-back">
+          <button class="btn btn-outline btn-sm" onclick="closeChannelDetail()">← 返回渠道列表</button>
+          <span class="ch-title" id="channelDetailTitle"></span>
+          <div style="margin-left:auto;display:flex;gap:8px;">
+            <div class="import-filter-wrap">
+              <button class="btn btn-sm btn-outline" onclick="toggleImportFilterDetail(event)">导入筛选 <span class="caret">▾</span></button>
+              <div class="import-filter-dropdown" id="importFilterDropdownDetail" style="display:none;">
+                <div class="import-filter-option" onclick="openImportFilterModal('upload')">📄 导入文件筛选</div>
+                <div class="import-filter-option" onclick="openImportFilterModal('paste')">📋 批量粘贴筛选</div>
+              </div>
+            </div>
+            <button class="btn btn-sm btn-outline" onclick="openImportModal()">选品导入</button>
+            <div class="export-dropdown" id="exportDropdownCh">
+              <button class="btn btn-sm btn-outline" onclick="toggleChExportMenu(event)">全量导出 <span class="caret">▾</span></button>
+              <div class="export-menu" id="exportMenuCh">
+                <div class="export-menu-item" onclick="exportAllChannelProducts(event)">导出全部商品</div>
+                <div class="export-menu-item" onclick="exportFilteredChannelProducts(event)">导出筛选后商品</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Channel Banner -->
+        <div class="ch-banner" id="channelBanner" style="display:none;">
+          <div class="ch-banner-metrics">
+            <div class="ch-banner-metric">
+              <div class="ch-banner-metric-icon" style="background:var(--blue-bg);color:var(--blue);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2"/><path d="M17 2H7v5h10z"/><line x1="8" y1="12" x2="16" y2="12"/></svg></div>
+              <div class="ch-banner-metric-body"><div class="ch-banner-metric-value" id="bannerMetric1">—</div><div class="ch-banner-metric-label">在售商品/商品总数</div></div>
+            </div>
+            <div class="ch-banner-metric">
+              <div class="ch-banner-metric-icon" style="background:var(--orange-bg);color:var(--orange);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></div>
+              <div class="ch-banner-metric-body"><div class="ch-banner-metric-value" id="bannerMetric2">—</div><div class="ch-banner-metric-label">近30天下单量</div></div>
+            </div>
+            <div class="ch-banner-metric">
+              <div class="ch-banner-metric-icon" style="background:var(--green-bg);color:var(--green);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+              <div class="ch-banner-metric-body"><div class="ch-banner-metric-value" id="bannerMetric3">—</div><div class="ch-banner-metric-label">近30天销售额</div></div>
+            </div>
+            <div class="ch-banner-metric">
+              <div class="ch-banner-metric-icon" style="background:var(--blue-bg);color:var(--blue);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+              <div class="ch-banner-metric-body"><div class="ch-banner-metric-value" id="bannerMetric4">—</div><div class="ch-banner-metric-label">最近推品</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="table-panel">
+        <div class="filter-bar">
+          <span class="filter-tag-import" id="importFilterTagCh" style="display:none;">
+            导入筛选: <strong id="importFilterCountCh">0</strong>条
+            <span class="tag-remove" onclick="clearImportFilter()">×</span>
+          </span>
+          <input type="text" placeholder="商品名称 / 商城SPU / 商城SKU 搜索">
+          <select><option>全部供应商</option><option>鑫泰商贸</option><option>博源供应链</option><option>华茂通</option></select>
+          <select><option>全部状态</option><option>可售</option><option>不可售</option></select>
+          <select id="typeFilterChannel" onchange="renderChannelTable(currentChannel)"><option value="all">商品类型: 全部</option><option value="physical">实物商品</option><option value="virtual">虚拟商品</option><option value="combo">组合套装</option><option value="gift">营销买赠</option></select>
+          <button class="btn-filter">查询</button>
+          <button class="btn-reset">重置</button>
+          <div class="filter-extra">
+            <button class="btn btn-outline btn-sm" id="btnChImageView" onclick="toggleImageView()">无图显示</button>
+            <button class="btn btn-outline btn-sm" id="btnChExpandAll" onclick="expandAllChSPUs()">全部展开 ▾</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:380px;"><input type="checkbox" class="checkbox" onchange="toggleAllView(this, 'channel')" style="margin-right:8px;vertical-align:middle;">商品信息</th>
+                  <th style="width:110px;">主供供应商</th>
+                  <th style="width:75px;">供货价</th>
+                  <th style="width:75px;">划线价</th>
+                  <th style="width:75px;">渠道价</th>
+                  <th style="width:80px;">商城价</th>
+                  <th style="width:90px;">我司毛利</th>
+                  <th style="width:80px;" id="channelMarginHeader">渠道毛利</th>
+                  <th style="width:60px;">库存</th>
+                  <th style="width:90px;">发货/物流</th>
+                  <th style="width:85px;">可售状态</th>
+                  <th style="width:130px;">操作</th>
+                </tr>
+              </thead>
+              <tbody id="channelTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+        </div>
+      </div>
+    </div>
+  </div><!-- .content -->
+
+  <!-- ===== Table Footer (Fixed Batch Bar) ===== -->
+  <div class="page-footer-fixed" id="tableFooter">
+    <div class="page-footer-left">
+      <button class="btn btn-outline btn-sm" id="btnExport" disabled onclick="batchExport()">导出勾选</button>
+      <button class="btn btn-outline btn-sm" id="btnPrice" disabled onclick="openBatchPriceModal()">批量改价</button>
+	      <button class="btn btn-outline btn-sm" id="btnTag" disabled onclick="openBatchTag()">批量加标签</button>
+	      <button class="btn btn-outline btn-sm" id="btnUntag" disabled onclick="openBatchUntag()">批量去标签</button>
+	      <button class="btn btn-outline btn-sm" id="btnSellableOn" disabled onclick="batchSetSellable('on')">批量可售</button>
+	      <button class="btn btn-outline btn-sm" id="btnSellableOff" disabled onclick="batchSetSellable('off')">批量不可售</button>
+	      <button class="btn btn-sm" id="btnRemove" disabled onclick="openBatchRemove()" style="color:var(--red);border-color:var(--red-border);">批量移出</button>
+      <div style="font-size:12px;color:var(--text-muted);" id="selectedInfo">已选 0 个SPU · 0 个SKU</div>
+    </div>
+    <div class="page-footer-right">
+      <div style="font-size:12px;color:var(--text-muted);margin-right:16px;" id="totalCount">共 0 个SPU</div>
+      <div class="pagination" id="paginationBar"></div>
+      <div style="display:flex;align-items:center;gap:8px;margin-left:16px;">
+        <span style="font-size:12px;color:var(--text-muted);">每页</span>
+        <select id="pageSizeSelect" onchange="changePageSize()" style="height:28px;padding:0 8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:inherit;background:var(--bg-surface);color:var(--text-primary);cursor:pointer;">
+          <option value="10" selected>10条</option>
+          <option value="20">20条</option>
+          <option value="50">50条</option>
+          <option value="100">100条</option>
+        </select>
+        <span style="font-size:12px;color:var(--text-muted);">跳转至</span>
+        <input type="number" id="jumpPageInput" min="1" value="1" style="width:56px;height:28px;padding:0 8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:inherit;background:var(--bg-surface);color:var(--text-primary);text-align:center;" onkeydown="if(event.key==='Enter')jumpToPage()"/>
+        <span style="font-size:12px;color:var(--text-muted);">页</span>
+        <button onclick="jumpToPage()" style="height:28px;padding:0 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:inherit;background:var(--bg-surface);color:var(--text-primary);cursor:pointer;">跳转</button>
+      </div>
+    </div>
+  </div>
+</div><!-- .main -->
+
+<!-- ============ Import Validation Modal ============ -->
+<div class="modal-overlay" id="importModal">
+  <div class="modal modal-validation">
+    <div class="modal-header">
+      <h3>选品异常校验结果</h3>
+      <button class="modal-close" onclick="closeModal('importModal')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="summary">
+        共解析 <span class="highlight-warn">50</span> 条商品，其中
+        <span class="highlight-warn" id="abnormalCount">8</span> 条存在异常，
+        <span class="highlight-ok" id="normalCount">42</span> 条可正常进入定价。
+      </div>
+      <button class="list-toggle" onclick="toggleAbnormalList()">
+        异常商品明细
+        <span class="arrow" id="listArrow"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+        <span style="font-weight:400;color:var(--text-muted);font-size:12px;">（共 <span id="abnormalTotal">8</span> 条）</span>
+      </button>
+      <div class="validation-table-wrap" id="abnormalTableWrap">
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th style="width:90px;">异常类型</th><th style="width:120px;">商品信息</th><th>异常原因</th></tr></thead>
+            <tbody id="abnormalTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer-validate">
+      <div class="hint-text">异常商品将自动转入【待处理选品中心】等待后续决策</div>
+      <div class="btn-group">
+        <button class="btn btn-outline" onclick="closeModal('importModal')">取消</button>
+        <button class="btn btn-outline" onclick="backToUpload()">返回上传</button>
+        <button class="btn btn-primary" onclick="submitNormalOnly()">仅正常商品进入定价（42条）</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Confirm: Toggle Off ============ -->
+<div class="modal-overlay" id="confirmToggleOff">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>确认设为不可售</h3>
+      <button class="modal-close" onclick="closeModal('confirmToggleOff')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <p id="confirmToggleMsg"></p>
+      <div class="warning-box"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><div>设为不可售后，C端将隐藏该商品，后台数据保留。</div></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('confirmToggleOff')">取消</button>
+      <button class="btn btn-danger" onclick="confirmToggleOff()">确认</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Confirm: Remove Single ============ -->
+<div class="modal-overlay" id="confirmRemove">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>确认移出</h3>
+      <button class="modal-close" onclick="closeModal('confirmRemove')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <p id="confirmRemoveMsg"></p>
+      <div class="warning-box"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><div>移出操作不可逆，若需重新上架需从选品清单重新走定价推品流程。现有订单/售后继续履约，移出后不再产生新订单。</div></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('confirmRemove')">取消</button>
+      <button class="btn btn-danger" onclick="confirmRemove()">确认移出</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Confirm: Batch Remove ============ -->
+<div class="modal-overlay" id="confirmBatchRemove">
+  <div class="modal wide">
+    <div class="modal-header">
+      <h3>批量移出确认</h3>
+      <button class="modal-close" onclick="closeModal('confirmBatchRemove')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <p id="confirmBatchRemoveMsg"></p>
+      <div class="warning-box"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><div>批量移出操作不可逆，确认后将所选商品从对应渠道永久移除。不可售（供应链）商品将自动跳过。</div></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('confirmBatchRemove')">取消</button>
+      <button class="btn btn-danger" onclick="confirmBatchRemove()">确认移出</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Batch Price Change Modal ============ -->
+<div class="modal-overlay" id="batchPriceModal">
+  <div class="modal batch-price-modal">
+    <div class="modal-header">
+      <h3>批量改价</h3>
+      <button class="modal-close" onclick="closeModal('batchPriceModal')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="batch-price-summary" id="batchPriceSummary">已选择 0 条渠道商品</div>
+      <div class="batch-price-list" id="batchPriceList"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('batchPriceModal')">取消</button>
+      <button class="btn btn-primary" onclick="submitBatchPriceChange()">确认改价</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal-overlay" id="priceChangeModal">
+  <div class="modal wide">
+    <div class="modal-header">
+      <h3>商品改价</h3>
+      <button class="modal-close" onclick="closeModal('priceChangeModal')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>商品信息</label>
+        <div class="price-modal-readonly">
+          <div id="priceChangeProduct" style="font-weight:500;">—</div>
+          <div class="sub" id="priceChangeMeta">—</div>
+        </div>
+      </div>
+      <div class="price-modal-grid">
+        <div class="form-group">
+          <label>所属商城</label>
+          <div class="price-modal-readonly" id="priceChangeChannel">—</div>
+        </div>
+        <div class="form-group">
+          <label>供应商</label>
+          <div class="price-modal-readonly" id="priceChangeSupplier">—</div>
+        </div>
+        <div class="form-group">
+          <label>供货价</label>
+          <div class="price-modal-readonly price" id="priceChangeSupply">—</div>
+        </div>
+        <div class="form-group">
+          <label>电商参考价</label>
+          <div class="price-modal-readonly price" id="priceChangeEcomRef">—</div>
+        </div>
+        <div class="form-group">
+          <label>原渠道价</label>
+          <div class="price-modal-readonly price" id="priceChangeOldPrice">—</div>
+        </div>
+        <div class="form-group">
+          <label>新渠道价</label>
+          <input type="number" id="priceChangeChannelInput" placeholder="请输入渠道价" min="0" step="0.01" oninput="updatePriceChangePreview()">
+          <div class="hint" id="priceChangeChannelHint">平台与品牌商城结算使用。</div>
+        </div>
+        <div class="form-group" id="priceChangeOldMallGroup" style="display:none;">
+          <label>原商城价</label>
+          <div class="price-modal-readonly price" id="priceChangeOldMallPrice">—</div>
+        </div>
+        <div class="form-group" id="priceChangeMallGroup" style="display:none;">
+          <label>新商城价</label>
+          <input type="number" id="priceChangeMallInput" placeholder="请输入商城价" min="0" step="0.01" oninput="updatePriceChangePreview()">
+          <div class="hint">分销商城C端销售价。</div>
+        </div>
+        <div class="form-group">
+          <label>原划线价</label>
+          <div class="price-modal-readonly price" id="priceChangeOldLinePrice">—</div>
+        </div>
+        <div class="form-group">
+          <label>新划线价</label>
+          <input type="number" id="priceChangeLineInput" placeholder="请输入划线价" min="0" step="0.01" oninput="updatePriceChangePreview()">
+          <div class="hint">用于前台展示优惠前原价/参考价。</div>
+        </div>
+      </div>
+      <div class="price-preview" id="priceChangePreview" style="display:none;">
+        调价后毛利预估：<strong id="priceChangePreviewValue">—</strong>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('priceChangeModal')">取消</button>
+      <button class="btn btn-primary" onclick="submitPriceChange()">确认改价</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Force Price Confirm Modal ============ -->
+<div class="modal-overlay" id="batchPriceForceConfirmModal">
+  <div class="modal batch-price-modal">
+    <div class="modal-header">
+      <h3>批量负利润定价申请</h3>
+      <button class="modal-close" onclick="closeModal('batchPriceForceConfirmModal')">✕</button>
+    </div>
+    <div class="modal-body" id="batchNegProfitBody"></div>
+    <div class="modal-footer" style="justify-content:space-between;">
+      <button class="btn btn-outline" onclick="backToBatchPriceChange()">上一步</button>
+      <button class="btn btn-primary" onclick="submitBatchNegProfitApply()">提交申请</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Force Price Confirm Modal ============ -->
+<div class="modal-overlay" id="priceForceConfirmModal">
+  <div class="modal wide">
+    <div class="modal-header">
+      <h3>负利润定价申请</h3>
+      <button class="modal-close" onclick="closeModal('priceForceConfirmModal')">✕</button>
+    </div>
+    <div class="modal-body" id="priceForceConfirmBody"></div>
+    <div class="modal-footer" style="justify-content:space-between;">
+      <button class="btn btn-outline" onclick="backToPriceChange()">上一步</button>
+      <button class="btn btn-primary" onclick="submitNegProfitApply()">提交申请</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Import Filter Modal ============ -->
+<div class="modal-overlay" id="importFilterModal">
+  <div class="modal" style="width:500px;">
+    <div class="modal-header">
+      <h3 id="importFilterModalTitle">导入筛选</h3>
+      <button class="modal-close" onclick="closeModal('importFilterModal')">✕</button>
+    </div>
+    <div class="modal-body" id="importFilterModalBody">
+      <!-- Content set by JS -->
+    </div>
+    <div class="modal-footer" id="importFilterModalFooter">
+      <button class="btn btn-outline" onclick="closeModal('importFilterModal')">取消</button>
+      <button class="btn btn-primary" id="importFilterConfirmBtn" onclick="confirmImportFilter()">应用筛选</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Toast ============ -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="../assets/common-channel-product-management.js"></script>
+</body>
+</html>

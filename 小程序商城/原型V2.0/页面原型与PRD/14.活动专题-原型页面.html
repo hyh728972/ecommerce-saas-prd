@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>活动专题 - 苏银豆商城</title>
+<link rel="stylesheet" href="../assets/common.css">
+<style>
+  /* Activity banner */
+  .activity-banner {
+    position: relative;
+    height: 200px;
+    overflow: hidden;
+  }
+  .activity-banner img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .activity-banner-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(transparent, rgba(0,0,0,0.7));
+    padding: 40px var(--space-lg) var(--space-lg);
+    color: var(--card-bg);
+  }
+  .activity-title {
+    font-size: var(--font-xl);
+    font-weight: 700;
+    margin-bottom: var(--space-sm);
+  }
+  .activity-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    font-size: var(--font-sm);
+    opacity: 0.9;
+  }
+
+  /* Countdown banner */
+  .countdown-banner {
+    background: linear-gradient(135deg, var(--primary-start), var(--price-color));
+    padding: var(--space-md) var(--space-lg);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: var(--card-bg);
+  }
+  .countdown-left {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+  .countdown-left svg { width: 20px; height: 20px; }
+  .countdown-text { font-size: var(--font-base); }
+  .countdown-right {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+  }
+  .countdown-num {
+    background: var(--card-bg);
+    color: var(--price-color);
+    font-size: var(--font-base);
+    font-weight: 700;
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-xs);
+  }
+
+  /* Activity info */
+  .activity-info {
+    background: var(--card-bg);
+    padding: var(--space-lg);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .activity-stats {
+    display: flex;
+    gap: var(--space-xl);
+  }
+  .stat-item {
+    text-align: center;
+  }
+  .stat-num {
+    font-size: var(--font-lg);
+    font-weight: 700;
+    color: var(--primary-start);
+  }
+  .stat-label {
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+  }
+  .activity-action {
+    display: flex;
+    gap: var(--space-sm);
+  }
+  .action-btn {
+    padding: var(--space-sm) var(--space-lg);
+    border-radius: var(--radius-lg);
+    font-size: var(--font-sm);
+    cursor: pointer;
+    border: 1px solid var(--text-disabled);
+    background: var(--card-bg);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+  }
+  .action-btn:active { background: var(--bg-color); }
+  .action-btn.liked {
+    border-color: var(--primary-start);
+    color: var(--primary-start);
+  }
+  .action-btn svg { width: 14px; height: 14px; }
+
+  .section-title {
+    font-size: var(--font-md);
+    font-weight: 600;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+  .section-title svg { width: 18px; height: 18px; color: var(--primary-start); }
+
+  /* Product grid */
+  .product-section {
+    background: var(--card-bg);
+    margin-bottom: var(--space-md);
+  }
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1px;
+    background: var(--bg-color);
+  }
+  .product-item {
+    background: var(--card-bg);
+    padding: var(--space-md);
+    cursor: pointer;
+  }
+  .product-item:active { background: var(--hover-bg); }
+  .product-img {
+    aspect-ratio: 1;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    position: relative;
+    margin-bottom: var(--space-md);
+  }
+  .product-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .product-tag {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    background: linear-gradient(135deg, var(--primary-start), var(--price-color));
+    color: var(--card-bg);
+    font-size: var(--font-xs);
+    padding: 2px var(--space-sm);
+    border-radius: var(--radius-md);
+  }
+  .product-name {
+    font-size: var(--font-sm);
+    color: var(--text-color);
+    line-height: 1.4;
+    height: 36px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: var(--space-sm);
+  }
+  .product-price-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+  .product-price {
+    font-size: var(--font-md);
+    font-weight: 700;
+    color: var(--price-color);
+  }
+  .product-price small { font-size: var(--font-sm); }
+  .product-sales {
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+  }
+
+  /* Rules section */
+  .rules-section {
+    background: var(--card-bg);
+    margin: 0 var(--space-md) var(--space-md);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+  }
+  .rule-item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-md);
+    padding: var(--space-md) 0;
+    border-bottom: 1px solid var(--bg-color);
+  }
+  .rule-item:last-child { border-bottom: none; }
+  .rule-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--selected-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .rule-icon svg { width: 12px; height: 12px; color: var(--primary-start); }
+  .rule-text {
+    font-size: var(--font-sm);
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  /* Tab bar */
+  .activity-tabs {
+    display: flex;
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--border-divider);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .activity-tabs::-webkit-scrollbar { display: none; }
+  .activity-tab {
+    padding: var(--space-md) 20px;
+    font-size: var(--font-base);
+    color: var(--text-secondary);
+    cursor: pointer;
+    white-space: nowrap;
+    position: relative;
+  }
+  .activity-tab:active { background: var(--bg-input); }
+  .activity-tab.active {
+    color: var(--primary-start);
+    font-weight: 600;
+  }
+  .activity-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 2px;
+    background: var(--primary-start);
+    border-radius: var(--radius-xs);
+  }
+</style>
+</head>
+<body>
+<div class="phone-frame">
+
+  <!-- Sub-page Navigation -->
+  <div class="sub-nav">
+    <div class="status-bar dark">
+      <span class="time">09:41</span>
+      <div class="icons">
+        <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+      </div>
+    </div>
+    <div class="nav-bar">
+      <div class="back-btn" onclick="if(history.length>1){history.back()}else{location.href='10.首页-原型页面.html'}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <span class="nav-title">春季焕新节</span>
+      <div class="capsule-btn"><img src="../assets/icons/小程序按钮.svg" alt=""></div>
+    </div>
+  </div>
+
+  <!-- Scrollable Content -->
+  <div class="page-scroll" style="padding-bottom: 16px;">
+
+    <!-- Banner -->
+    <div class="activity-banner">
+      <img src="../assets/unsplash/1607082348824-0a96f2a4b9da.jpg" alt="">
+      <div class="activity-banner-overlay">
+        <div class="activity-title">春季焕新节</div>
+        <div class="activity-meta">
+          <span>活动时间：4月1日-4月15日</span>
+          <span>|</span>
+          <span>全场低至5折起</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Countdown -->
+    <div class="countdown-banner">
+      <div class="countdown-left">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span class="countdown-text">距活动结束还剩</span>
+      </div>
+      <div class="countdown-right">
+        <span class="countdown-num" id="days">06</span>天
+        <span class="countdown-num" id="hours">12</span>:
+        <span class="countdown-num" id="mins">34</span>:
+        <span class="countdown-num" id="secs">56</span>
+      </div>
+    </div>
+
+    <!-- Info -->
+    <div class="activity-info">
+      <div class="activity-stats">
+        <div class="stat-item">
+          <div class="stat-num">12.8万</div>
+          <div class="stat-label">参与人数</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">3286</div>
+          <div class="stat-label">商品数量</div>
+        </div>
+      </div>
+      <div class="activity-action">
+        <div class="action-btn" id="likeBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+          收藏
+        </div>
+        <div class="action-btn" id="shareBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          分享
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="activity-tabs" id="activityTabs">
+      <div class="activity-tab active" data-tab="all">全部商品</div>
+      <div class="activity-tab" data-tab="digital">数码家电</div>
+      <div class="activity-tab" data-tab="fashion">服饰鞋包</div>
+      <div class="activity-tab" data-tab="beauty">美妆护肤</div>
+      <div class="activity-tab" data-tab="food">食品饮料</div>
+    </div>
+
+    <!-- Products -->
+    <div class="product-section">
+      <div class="product-grid" id="productGrid"></div>
+    </div>
+
+    <!-- Rules -->
+    <div class="rules-section">
+      <div class="section-title" style="margin-bottom:0;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        活动规则
+      </div>
+      <div class="rule-item">
+        <div class="rule-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <span class="rule-text">活动期间全场商品低至5折起，部分商品可叠加优惠券使用</span>
+      </div>
+      <div class="rule-item">
+        <div class="rule-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <span class="rule-text">苏银豆可在下单时抵扣，100苏银豆=1元</span>
+      </div>
+      <div class="rule-item">
+        <div class="rule-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <span class="rule-text">活动商品不支持退换货，如有质量问题请联系客服</span>
+      </div>
+      <div class="rule-item">
+        <div class="rule-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <span class="rule-text">本活动最终解释权归苏银豆商城所有</span>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+<script src="../assets/common.js"></script>
+<script>
+(function() {
+  var products = [
+    { name: '无线蓝牙降噪耳机 迷你入耳式超长续航', price: 89, sales: 2863, tag: '5折', img: '../assets/unsplash/1505740420928-5e560c06d30e.jpg' },
+    { name: '日本进口保温杯 不锈钢真空便携水杯', price: 68, sales: 1524, tag: '6折', img: '../assets/unsplash/1602143407151-7111542de6e8.jpg' },
+    { name: '潮流太阳眼镜 防紫外线偏光墨镜', price: 79, sales: 986, tag: '7折', img: '../assets/unsplash/1572635196237-14b3f281503f.jpg' },
+    { name: '纯棉短袖T恤男女款 夏季宽松百搭潮流', price: 39, sales: 3521, tag: '5折', img: '../assets/unsplash/1521572163474-6864f9cf17ab.jpg' },
+    { name: '时尚运动鞋 透气网面跑步鞋轻便缓震', price: 159, sales: 1247, tag: '6折', img: '../assets/unsplash/1542291026-7eec264c27ff.jpg' },
+    { name: '精致蛋糕礼盒 手工制作生日庆典甜品', price: 128, sales: 856, tag: '8折', img: '../assets/unsplash/1578985545062-69928b1d9587.jpg' }
+  ];
+
+  var productGrid = document.getElementById('productGrid');
+
+  function renderProducts() {
+    var html = '';
+    products.forEach(function(item) {
+      html += '<a href="21.商品详情-原型页面.html" class="product-item">' +
+        '<div class="product-img">' +
+          '<img src="' + item.img + '" alt="">' +
+          '<span class="product-tag">' + item.tag + '</span>' +
+        '</div>' +
+        '<div class="product-name">' + item.name + '</div>' +
+        '<div class="product-price-row">' +
+          '<span class="product-price"><small>&yen;</small>' + item.price + '</span>' +
+          '<span class="product-sales">已售' + item.sales + '</span>' +
+        '</div>' +
+      '</a>';
+    });
+    productGrid.innerHTML = html;
+  }
+
+  // Tabs
+  document.querySelectorAll('.activity-tab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      document.querySelectorAll('.activity-tab').forEach(function(t) { t.classList.remove('active'); });
+      this.classList.add('active');
+      renderProducts();
+    });
+  });
+
+  // Countdown
+  var totalSeconds = 6 * 24 * 3600 + 12 * 3600 + 34 * 60 + 56;
+  function updateCountdown() {
+    totalSeconds--;
+    if (totalSeconds < 0) totalSeconds = 0;
+
+    var d = Math.floor(totalSeconds / 86400);
+    var h = Math.floor((totalSeconds % 86400) / 3600);
+    var m = Math.floor((totalSeconds % 3600) / 60);
+    var s = totalSeconds % 60;
+
+    document.getElementById('days').textContent = d < 10 ? '0' + d : d;
+    document.getElementById('hours').textContent = h < 10 ? '0' + h : h;
+    document.getElementById('mins').textContent = m < 10 ? '0' + m : m;
+    document.getElementById('secs').textContent = s < 10 ? '0' + s : s;
+  }
+  setInterval(updateCountdown, 1000);
+
+  // Like button
+  document.getElementById('likeBtn').addEventListener('click', function() {
+    this.classList.toggle('liked');
+    if (this.classList.contains('liked')) {
+      alert('已收藏活动');
+    }
+  });
+
+  // Share button
+  document.getElementById('shareBtn').addEventListener('click', function() {
+    alert('分享活动');
+  });
+
+  renderProducts();
+})();
+</script>
+<script src="../assets/theme-switcher.js"></script>
+</body>
+</html>

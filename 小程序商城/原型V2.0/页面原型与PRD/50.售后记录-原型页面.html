@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>退款/售后 - 苏银豆商城</title>
+<link rel="stylesheet" href="../assets/common.css">
+<style>
+  /* Fix: page-scroll 的 min-height:100vh 未扣除顶栏+标签栏高度，产生约134px幽灵滚动，
+     列表尾部被顶到折叠线下。锁定 phone-frame 为一屏、让 page-scroll 吃掉中间空间。 */
+  .phone-frame {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .page-scroll {
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* Tab bar */
+  .refund-tabs-bar {
+    display: flex;
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--border-divider);
+    position: sticky;
+    top: 88px;
+    z-index: 50;
+  }
+  .refund-tab {
+    flex: 1;
+    text-align: center;
+    padding: var(--space-md) 0;
+    font-size: var(--font-base);
+    color: var(--text-secondary);
+    cursor: pointer;
+    position: relative;
+  }
+  .refund-tab:active { background: var(--bg-input); }
+  .refund-tab.active {
+    color: var(--text-color);
+    font-weight: 600;
+  }
+  .refund-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 24px;
+    height: 2px;
+    background: var(--primary-start);
+    border-radius: var(--radius-xs);
+  }
+
+  /* Refund card — 对齐订单列表：通栏、无圆角 */
+  .refund-list {
+    padding: var(--space-sm) 0;
+  }
+  .refund-card {
+    background: var(--card-bg);
+    border-radius: 0;
+    margin-bottom: var(--space-md);
+    overflow: visible;
+  }
+  .refund-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-md) 12px 8px;
+    border-bottom: 1px solid var(--bg-color);
+  }
+  .refund-card-header .order-no {
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+  }
+  .refund-card-header .status {
+    font-size: var(--font-sm);
+    font-weight: 600;
+    color: var(--primary-start);
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+  .status.completed,
+  .status.cancelled,
+  .status.rejected {
+    color: var(--text-tertiary);
+  }
+
+  .refund-card-body {
+    padding: 4px 12px 8px;
+    cursor: pointer;
+  }
+  /* 商品行：对齐订单列表 */
+  .order-product-row {
+    display: flex;
+    gap: 10px;
+    padding: 10px 0;
+  }
+  .order-product-row .op-img {
+    width: 72px;
+    height: 72px;
+    border-radius: 6px;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: var(--bg-input);
+  }
+  .order-product-row .op-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .order-product-row .op-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .order-product-row .op-line {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .order-product-row .op-name {
+    flex: 1;
+    min-width: 0;
+    font-size: 13px;
+    color: #262626;
+    line-height: 1.4;
+    font-weight: 400;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .order-product-row .op-spec {
+    flex: 1;
+    min-width: 0;
+    font-size: 12px;
+    color: #999;
+    line-height: 1.35;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .order-product-row .op-type {
+    flex-shrink: 0;
+    font-size: 12px;
+    color: #999;
+    line-height: 1.35;
+    text-align: right;
+  }
+  /* 售后进度条 */
+  .op-aftersale-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    padding: 6px 8px;
+    background: var(--bg-color);
+    border-radius: 4px;
+    text-decoration: none;
+    color: inherit;
+    line-height: 1.35;
+  }
+  .op-aftersale-bar:active { opacity: 0.85; }
+  .op-aftersale-bar .op-as-text {
+    flex: 1;
+    min-width: 0;
+    font-size: 12px;
+    color: var(--primary-start);
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .op-aftersale-bar .op-as-status {
+    flex-shrink: 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .op-aftersale-bar .op-as-detail {
+    flex: 1;
+    min-width: 0;
+    font-size: 12px;
+    color: var(--text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .op-aftersale-bar .op-as-arrow {
+    flex-shrink: 0;
+    color: var(--text-light);
+    font-size: 12px;
+    line-height: 1;
+  }
+
+  .card-detail-row {
+    padding: 0 12px 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm) 16px;
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+  }
+  .card-detail-row span { white-space: nowrap; }
+  .card-detail-row .label { color: var(--text-muted); }
+  .card-customer-row {
+    padding: 8px 10px;
+    margin: 0 12px 8px;
+    background: var(--bg-color);
+    border-radius: 4px;
+    font-size: var(--font-sm);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    line-height: 1.7;
+  }
+  .card-customer-row svg {
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
+    color: var(--text-muted);
+  }
+  .card-customer-row .customer-info { flex: 1; min-width: 0; }
+  .customer-name-phone { display: flex; gap: var(--space-md); }
+  .customer-address {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .refund-card-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-sm) 12px 12px;
+    border-top: 1px solid var(--bg-color);
+    gap: var(--space-sm) 0;
+  }
+  .refund-card-footer .action-btns {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-left: auto;
+  }
+  .btn-sm {
+    padding: 6px 14px;
+    border-radius: 4px;
+    font-size: var(--font-sm);
+    cursor: pointer;
+    border: none;
+    background: var(--bg-color);
+    color: var(--text-color);
+    text-decoration: none;
+    line-height: 1.2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .btn-sm:active { opacity: 0.7; }
+
+  /* Empty state */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px var(--space-xl);
+    color: var(--text-tertiary);
+  }
+  .empty-state svg {
+    width: 64px;
+    height: 64px;
+    color: var(--text-disabled);
+    margin-bottom: var(--space-md);
+  }
+  .empty-state .empty-text { font-size: var(--font-base); }
+</style>
+</head>
+<body>
+<div class="phone-frame">
+
+  <!-- Sub-page Navigation -->
+  <div class="sub-nav">
+    <div class="status-bar dark">
+      <span class="time">09:41</span>
+      <div class="icons">
+        <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+      </div>
+    </div>
+    <div class="nav-bar">
+      <div class="back-btn" onclick="history.back()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <span class="nav-title">退款/售后</span>
+      <div class="capsule-btn"><img src="../assets/icons/小程序按钮.svg" alt=""></div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="refund-tabs-bar">
+    <div class="refund-tab active" data-tab="processing">处理中</div>
+    <div class="refund-tab" data-tab="records">申请记录</div>
+  </div>
+
+  <!-- Scrollable Content -->
+  <div class="page-scroll" style="padding-bottom: 16px;">
+    <div id="contentArea"></div>
+  </div>
+
+</div>
+<script src="../assets/common.js"></script>
+<script>
+(function() {
+  /** 售后单号规则（演示）：18 位数字，前 14 位为 yyyyMMddHHmmss，后 4 位为用户关联序号。 */
+  var processingRefunds = [
+    {
+      id: '202604080930151001',
+      orderNo: 'SY2026040888001',
+      status: 'processing',
+      statusText: '处理中',
+      type: '退货退款',
+      amount: '68.00',
+      refundPayMode: 'combo',
+      beansRefund: 120,
+      cashRefund: '48.00',
+      product: { name: '日本进口保温杯 不锈钢真空便携水杯500ml', spec: '白色 500ml', img: '../assets/unsplash/1602143407151-7111542de6e8.jpg' },
+      steps: ['submit', 'review', 'return', 'refund'],
+      currentStep: 1
+    },
+    {
+      id: '202604111045221002',
+      orderNo: 'SY2026041055002',
+      status: 'processing',
+      statusText: '处理中',
+      type: '仅退款',
+      amount: '39.90',
+      refundPayMode: 'beans-only',
+      beansRefund: 399,
+      cashRefund: '0.00',
+      product: { name: '纯棉短袖T恤男女款 夏季宽松百搭潮流', spec: '白色 L码', img: '../assets/unsplash/1521572163474-6864f9cf17ab.jpg' },
+      steps: ['submit', 'review', 'refund'],
+      currentStep: 0
+    },
+    {
+      id: '202604131511031003',
+      orderNo: 'SY2026041209226',
+      status: 'processing',
+      statusText: '处理中',
+      type: '换货',
+      amount: '0.00',
+      refundPayMode: 'none',
+      product: { name: '无线蓝牙降噪耳机 迷你入耳式超长续航', spec: '黑色 标准版', img: '../assets/unsplash/1505740420928-5e560c06d30e.jpg' },
+      steps: ['submit', 'review', 'return', 'refund'],
+      currentStep: 2
+    },
+    {
+      id: '202604151620441004',
+      orderNo: 'SY2026041456782',
+      status: 'processing',
+      statusText: '处理中',
+      type: '退货退款',
+      amount: '199.00',
+      refundPayMode: 'cash-only',
+      cashRefund: '199.00',
+      product: { name: '智能运动手环 心率血氧监测防水', spec: '黑色 标准版', img: '../assets/unsplash/1575311373937-040b8e1fd5b6.jpg' },
+      steps: ['submit', 'review', 'return', 'refund'],
+      currentStep: 0
+    },
+    {
+      id: '202604171823551005',
+      orderNo: 'SY2026041603019',
+      status: 'processing',
+      statusText: '处理中',
+      type: '换货',
+      amount: '0.00',
+      refundPayMode: 'beans-only',
+      beansRefund: 88,
+      cashRefund: '0.00',
+      product: { name: '智能台灯 护眼调光阅读学习灯', spec: '白色 触控款', img: '../assets/unsplash/1507473885765-e6ed057ab6fe.jpg' },
+      steps: ['submit', 'review', 'return', 'refund'],
+      currentStep: 1
+    }
+  ];
+
+  var recordRefunds = [
+    {
+      id: '202603281014061006',
+      orderNo: 'SY2026032555005',
+      status: 'completed',
+      statusText: '审核通过',
+      type: '仅退款',
+      amount: '79.00',
+      refundPayMode: 'beans-only',
+      beansRefund: 790,
+      cashRefund: '0.00',
+      product: { name: '潮流太阳眼镜 防紫外线偏光墨镜', spec: '黑色', img: '../assets/unsplash/1572635196237-14b3f281503f.jpg' },
+      steps: ['submit', 'review', 'refund'],
+      currentStep: 3
+    },
+    {
+      id: '202603151430071007',
+      orderNo: 'SY2026031011006',
+      status: 'rejected',
+      statusText: '已拒绝',
+      type: '退货退款',
+      amount: '128.00',
+      refundPayMode: 'cash-only',
+      cashRefund: '128.00',
+      product: { name: '精致蛋糕礼盒 手工制作生日庆典甜品', spec: '草莓味 8寸', img: '../assets/unsplash/1578985545062-69928b1d9587.jpg' },
+      steps: ['submit', 'review'],
+      currentStep: 1
+    },
+    {
+      id: '202603121605081008',
+      orderNo: 'SY2026031012008',
+      status: 'completed',
+      statusText: '审核通过',
+      type: '换货',
+      amount: '0.00',
+      refundPayMode: 'none',
+      product: { name: '纯棉短袖T恤男女款 夏季宽松百搭潮流', spec: '白色 L码', img: '../assets/unsplash/1521572163474-6864f9cf17ab.jpg' },
+      steps: ['submit', 'review', 'return', 'refund'],
+      currentStep: 3
+    },
+    {
+      id: '202603101812091009',
+      orderNo: 'SY2026030903007',
+      status: 'rejected',
+      statusText: '已拒绝',
+      type: '换货',
+      amount: '0.00',
+      refundPayMode: 'none',
+      product: { name: '无线蓝牙降噪耳机 迷你入耳式超长续航', spec: '黑色 标准版', img: '../assets/unsplash/1505740420928-5e560c06d30e.jpg' },
+      steps: ['submit', 'review'],
+      currentStep: 1
+    },
+    {
+      id: '202603082045101010',
+      orderNo: 'SY2026030666120',
+      status: 'completed',
+      statusText: '审核通过',
+      type: '退货退款',
+      amount: '159.00',
+      refundPayMode: 'cash-only',
+      cashRefund: '159.00',
+      product: { name: '时尚运动鞋 透气网面跑步鞋轻便缓震', spec: '黑色 42码', img: '../assets/unsplash/1542291026-7eec264c27ff.jpg' },
+      steps: ['submit', 'review', 'return', 'refund'],
+      currentStep: 3
+    },
+    {
+      id: '202603061520111011',
+      orderNo: 'SY2026030402101',
+      status: 'rejected',
+      statusText: '已拒绝',
+      type: '仅退款',
+      amount: '39.90',
+      refundPayMode: 'beans-only',
+      beansRefund: 399,
+      cashRefund: '0.00',
+      product: { name: '便携保温杯 不锈钢真空车载水杯500ml', spec: '白色 500ml', img: '../assets/unsplash/1570831739435-6601aa3fa4fb.jpg' },
+      steps: ['submit', 'review'],
+      currentStep: 1
+    },
+    {
+      id: '202603011030121012',
+      orderNo: 'SY2026022867003',
+      status: 'cancelled',
+      statusText: '已取消',
+      type: '用户主动取消',
+      amount: '0.00',
+      refundPayMode: 'none',
+      product: { name: '便携蓝牙音箱 立体声户外迷你小音响', spec: '曜石黑 标准版', img: '../assets/unsplash/1512446733611-9099a758e5f0.jpg' },
+      steps: ['submit'],
+      currentStep: 0
+    },
+    {
+      id: '202602251415131013',
+      orderNo: 'SY2026022400881',
+      status: 'completed',
+      statusText: '审核通过',
+      type: '仅退款',
+      amount: '89.00',
+      refundPayMode: 'combo',
+      beansRefund: 4000,
+      cashRefund: '49.00',
+      product: { name: '便携蓝牙音箱 立体声户外迷你小音响', spec: '曜石黑 标准版', img: '../assets/unsplash/1512446733611-9099a758e5f0.jpg' },
+      steps: ['submit', 'review', 'refund'],
+      currentStep: 3
+    },
+    {
+      id: '202602211833141014',
+      orderNo: 'SY2026021905122',
+      status: 'rejected',
+      statusText: '已拒绝',
+      type: '退货退款',
+      amount: '199.00',
+      refundPayMode: 'combo',
+      beansRefund: 8000,
+      cashRefund: '119.00',
+      product: { name: '智能手表 多功能运动健康监测手环', spec: '黑色 标准版', img: '../assets/unsplash/1523275335684-37898b6baf30.jpg' },
+      steps: ['submit', 'review'],
+      currentStep: 1
+    }
+  ];
+
+  var currentTab = 'processing';
+  var contentArea = document.getElementById('contentArea');
+
+  /**
+   * 退款金额短文案（仅退款成功时写入商品行右侧与售后摘要条）。
+   * @param {{ amount?: string, refundPayMode?: string, beansRefund?: number, cashRefund?: string }} item
+   * @returns {string}
+   */
+  function getRefundAmountPlain(item) {
+    var mode = item.refundPayMode || 'cash-only';
+    if (mode === 'none') return '';
+    if (mode === 'beans-only') {
+      var beans = item.beansRefund != null ? item.beansRefund : 0;
+      return beans + '苏银豆';
+    }
+    if (mode === 'combo') {
+      var b2 = item.beansRefund != null ? item.beansRefund : 0;
+      var cash2 = item.cashRefund != null ? item.cashRefund : (item.amount || '0.00');
+      return '&yen;' + cash2 + '+' + b2 + '豆';
+    }
+    var cashOnly = item.cashRefund != null ? item.cashRefund : (item.amount || '0.00');
+    return '&yen;' + cashOnly;
+  }
+
+  /** 是否退款成功（完成态且非换货）。 */
+  function isRefundSuccess(item) {
+    return item.status === 'completed' && item.type !== '换货';
+  }
+
+  /** 是否换货成功（完成态换货）。 */
+  function isExchangeSuccess(item) {
+    return item.status === 'completed' && item.type === '换货';
+  }
+
+  /**
+   * 商品行右侧：退款成功显示「退款：…」，否则显示售后类型。
+   * @param {object} item
+   * @returns {string}
+   */
+  function getProductSideLabel(item) {
+    if (isRefundSuccess(item)) {
+      var amount = getRefundAmountPlain(item);
+      if (amount) return '退款：' + amount;
+    }
+    return item.type || '';
+  }
+
+  function getRefundDetailUrl(item) {
+    if (item.type === '仅退款' && item.status === 'processing') {
+      return '52.售后详情-原型页面.html?case=refund_only_reviewing';
+    }
+    if (item.type === '换货' && item.status === 'processing') {
+      return '52.售后详情-原型页面.html?case=exchange_approved';
+    }
+    if (item.type === '退货退款' && item.status === 'processing') {
+      return '52.售后详情-原型页面.html?case=refund_return_approved';
+    }
+    if (item.type === '退货退款' && item.status === 'rejected') {
+      return '52.售后详情-原型页面.html?case=refund_return_rejected';
+    }
+    return '52.售后详情-原型页面.html?case=refund_return_approved';
+  }
+
+  /**
+   * 普通售后进度文案（类型 · 当前节点）。
+   * @param {{ type?: string, status?: string, statusText?: string, steps?: string[], currentStep?: number }} item
+   * @returns {string}
+   */
+  function getAfterSaleProgressLabel(item) {
+    var type = item.type || '售后';
+    if (item.status === 'completed') return type + ' · ' + (item.statusText || '已完成');
+    if (item.status === 'rejected') return type + ' · 商家已拒绝';
+    if (item.status === 'cancelled') return type + ' · 已取消';
+    var steps = item.steps || [];
+    var cur = steps[item.currentStep != null ? item.currentStep : 0];
+    var node = '处理中';
+    if (cur === 'submit') node = '已提交，待审核';
+    else if (cur === 'review') node = '商家审核中';
+    else if (cur === 'return') node = '待填写退货物流';
+    else if (cur === 'refund') node = '退款处理中';
+    else if (item.statusText) node = item.statusText;
+    return type + ' · ' + node;
+  }
+
+  /**
+   * 渲染单张售后卡片 HTML。
+   * @param {object} item 售后单
+   * @param {'processing'|'records'} context
+   * @returns {string}
+   */
+  function buildRefundCardHtml(item, context) {
+    var detailUrl = getRefundDetailUrl(item);
+    var p = item.product || {};
+    var c = item.customer || {};
+    var progress = getAfterSaleProgressLabel(item);
+    var reviewStepIndex = (item.steps || []).indexOf('review');
+    var returnStepIndex = (item.steps || []).indexOf('return');
+    // 待审核、审核通过待寄回两阶段可撤销；待商家收货及之后不可撤
+    var canRevoke = context === 'processing' && reviewStepIndex > -1 &&
+      (item.currentStep <= reviewStepIndex || item.currentStep === returnStepIndex);
+    var headerStatus = item.status === 'processing'
+      ? (progress.split(' · ')[1] || item.statusText)
+      : (item.statusText || '');
+
+    var aftersaleBarHtml;
+    if (isRefundSuccess(item)) {
+      var amount = getRefundAmountPlain(item);
+      var detail = amount ? ('退款成功 ' + amount) : '退款成功';
+      aftersaleBarHtml =
+        '<a href="' + detailUrl + '" class="op-aftersale-bar" onclick="event.stopPropagation()">' +
+          '<span class="op-as-status">退款成功</span>' +
+          '<span class="op-as-detail">' + detail + '</span>' +
+          '<span class="op-as-arrow">&gt;</span>' +
+        '</a>';
+    } else if (isExchangeSuccess(item)) {
+      aftersaleBarHtml =
+        '<a href="' + detailUrl + '" class="op-aftersale-bar" onclick="event.stopPropagation()">' +
+          '<span class="op-as-status">换货成功</span>' +
+          '<span class="op-as-arrow">&gt;</span>' +
+        '</a>';
+    } else {
+      aftersaleBarHtml =
+        '<a href="' + detailUrl + '" class="op-aftersale-bar" onclick="event.stopPropagation()">' +
+          '<span class="op-as-text">' + progress + '</span>' +
+          '<span class="op-as-arrow">&gt;</span>' +
+        '</a>';
+    }
+
+    var actionsHtml = '';
+    if (canRevoke) {
+      actionsHtml += '<button type="button" class="btn-sm" onclick="event.stopPropagation();alert(\'撤销申请成功\')">撤销申请</button>';
+    }
+
+    return '<div class="refund-card">' +
+      '<div class="refund-card-header">' +
+        '<span class="order-no">' + item.id + '</span>' +
+        '<span class="status ' + item.status + '">' + headerStatus + '</span>' +
+      '</div>' +
+      '<div class="refund-card-body" onclick="location.href=\'' + detailUrl + '\'">' +
+        '<div class="order-product-row">' +
+          '<div class="op-img"><img src="' + p.img + '" alt=""></div>' +
+          '<div class="op-main">' +
+            '<div class="op-line">' +
+              '<div class="op-name">' + p.name + '</div>' +
+              '<div class="op-type">' + getProductSideLabel(item) + '</div>' +
+            '</div>' +
+            '<div class="op-line">' +
+              '<div class="op-spec">' + (p.spec || '') + '</div>' +
+            '</div>' +
+            aftersaleBarHtml +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+      ((p.category || p.brand || p.sku) ? (
+        '<div class="card-detail-row">' +
+          (p.category ? '<span><span class="label">分类：</span>' + p.category + '</span>' : '') +
+          (p.brand ? '<span><span class="label">品牌：</span>' + p.brand + '</span>' : '') +
+          (p.sku ? '<span><span class="label">SKU：</span>' + p.sku + '</span>' : '') +
+        '</div>'
+      ) : '') +
+      (c.name ? (
+        '<div class="card-customer-row">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>' +
+          '<div class="customer-info">' +
+            '<div class="customer-name-phone"><span>' + c.name + '</span><span>' + (c.phone || '') + '</span></div>' +
+            '<div class="customer-address">' + (c.address || '') + '</div>' +
+          '</div>' +
+        '</div>'
+      ) : '') +
+      (actionsHtml
+        ? ('<div class="refund-card-footer"><div class="action-btns">' + actionsHtml + '</div></div>')
+        : '') +
+    '</div>';
+  }
+
+  function renderRecords() {
+    if (recordRefunds.length === 0) {
+      contentArea.innerHTML = '<div class="empty-state">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 10h20"/></svg>' +
+        '<div class="empty-text">暂无售后记录</div>' +
+      '</div>';
+      return;
+    }
+
+    var html = '<div class="refund-list">';
+    recordRefunds.forEach(function(item) {
+      html += buildRefundCardHtml(item, 'records');
+    });
+    html += '</div>';
+    contentArea.innerHTML = html;
+  }
+
+  function renderProcessing() {
+    var processingList = processingRefunds.filter(function(item) { return item.status === 'processing'; });
+    if (processingList.length === 0) {
+      contentArea.innerHTML = '<div class="empty-state">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>' +
+        '<div class="empty-text">暂无处理中售后</div>' +
+      '</div>';
+      return;
+    }
+
+    var html = '<div class="refund-list">';
+    processingList.forEach(function(item) {
+      html += buildRefundCardHtml(item, 'processing');
+    });
+    html += '</div>';
+    contentArea.innerHTML = html;
+  }
+
+  /**
+   * 按当前 Tab 渲染「处理中」或「申请记录」列表。
+   */
+  function render() {
+    if (currentTab === 'records') {
+      renderRecords();
+    } else {
+      renderProcessing();
+    }
+  }
+
+  // Tab switching
+  document.querySelectorAll('.refund-tab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      document.querySelectorAll('.refund-tab').forEach(function(t) { t.classList.remove('active'); });
+      this.classList.add('active');
+      currentTab = this.dataset.tab;
+      render();
+    });
+  });
+
+  render();
+})();
+</script>
+<script src="../assets/theme-switcher.js"></script>
+</body>
+</html>
