@@ -121,6 +121,8 @@ input{outline:none;border:none;font-family:inherit}
 .od-btn.primary:hover{background:var(--jd-red-dark)}
 .od-btn.warn{border-color:#ff9800;color:#ff9800}
 .od-btn.warn:hover{background:#fff8e6}
+.od-cs-link{font-size:13px;color:#666;transition:color .15s}
+.od-cs-link:hover{color:var(--jd-red)}
 </style>
 </head>
 <body>
@@ -374,26 +376,27 @@ function renderActions(o) {
   var s = o.status;
   var id = o.id;
   var sum = OrderMock.summary(o);
+  var csBtn = '<a class="od-cs-link" href="#" data-cs-open data-cs-topic="order" data-cs-order="' + id + '">联系客服</a>';
   if (s === 'pay') {
-    return '<button type="button" class="od-btn" onclick="doCancel()">取消订单</button>' +
+    return csBtn + '<button type="button" class="od-btn" onclick="doCancel()">取消订单</button>' +
       '<button type="button" class="od-btn primary" onclick="location.href=\'' + PAY + '?mode=pay&order=' + id + '\'">去支付</button>';
   }
   if (s === 'ship') {
-    return '<button type="button" class="od-btn" onclick="goApplyRefund(\'' + id + '\')">申请售后</button>';
+    return csBtn + '<button type="button" class="od-btn" onclick="goApplyRefund(\'' + id + '\')">申请售后</button>';
   }
   if (s === 'recv') {
-    var btns = '';
+    var btns = csBtn;
     if (sum.shippedCount) btns += '<button type="button" class="od-btn" onclick="scrollToLogistics()">查看物流</button>';
     btns += '<button type="button" class="od-btn" onclick="goApplyRefund(\'' + id + '\')">申请售后</button>';
     if (sum.canConfirmReceive) btns += '<button type="button" class="od-btn warn" onclick="confirmReceive()">确认收货</button>';
     return btns;
   }
   if (s === 'done') {
-    return '<button type="button" class="od-btn" onclick="goApplyRefund(\'' + id + '\')">申请售后</button>' +
+    return csBtn + '<button type="button" class="od-btn" onclick="goApplyRefund(\'' + id + '\')">申请售后</button>' +
       '<button type="button" class="od-btn warn" onclick="openOrderReview()">评价</button>' +
       '<button type="button" class="od-btn primary" onclick="location.href=\'' + DETAIL_GOODS + '\'">再次购买</button>';
   }
-  return '<button type="button" class="od-btn primary" onclick="location.href=\'' + DETAIL_GOODS + '\'">再次购买</button>';
+  return csBtn + '<button type="button" class="od-btn primary" onclick="location.href=\'' + DETAIL_GOODS + '\'">再次购买</button>';
 }
 
 function tickCountdown() {

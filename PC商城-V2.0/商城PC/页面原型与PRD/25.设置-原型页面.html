@@ -230,7 +230,7 @@ function bindToggles() {
 }
 
 function tbd() { ProtoToast.info('协议页待上线，敬请期待'); }
-function openCS() { if (window.ProtoCS) ProtoCS.open({ topic: 'account' }); }
+function openCS() { if (window.ProtoCS) ProtoCS.openStandalone({ topic: 'account' }); }
 
 function openLogout() { document.getElementById('logoutModal').classList.add('active'); }
 function closeLogout() { document.getElementById('logoutModal').classList.remove('active'); }

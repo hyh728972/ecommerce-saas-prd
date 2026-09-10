@@ -151,6 +151,9 @@ input,textarea{outline:none;font-family:inherit}
 .pay-modal-btn.secondary{background:#fff;border:1px solid #ddd;color:#666}
 .pay-modal-btn.secondary:hover{border-color:var(--jd-red);color:var(--jd-red)}
 .ck-cancel-btn{width:100%;height:40px;background:#fff;border:1px solid #ddd;color:#666;font-size:14px;border-radius:var(--radius-sm);margin-top:10px;cursor:pointer}
+.ck-cs-link{display:flex;align-items:center;justify-content:center;margin-top:10px;font-size:12px;color:#999}
+.ck-cs-link i{font-style:normal;color:#666;margin-left:2px;transition:color .15s}
+.ck-cs-link:hover i{color:var(--jd-red)}
 .ck-cancel-btn:hover{border-color:var(--jd-red);color:var(--jd-red)}
 
 .pay-qr-wrap{display:flex;flex-direction:column;align-items:center;text-align:center}
@@ -547,6 +550,7 @@ function renderPayOnly(){
       </div>`:''}
       <button type="button" class="ck-submit" id="payOnlyBtn">${payMode==='points'?'确认兑换':'确认支付'}</button>
       <button type="button" class="ck-cancel-btn" id="cancelPayBtn">取消支付</button>
+      <a class="ck-cs-link" href="#" data-cs-open data-cs-topic="order">支付遇到问题？<i>联系客服</i></a>
     </div>`;
   document.getElementById('payOnlyBtn').onclick=()=>{
     const fee={payMode,beansUsed:payBeans,cashDue:payCash};

@@ -65,6 +65,8 @@ input,select,textarea{outline:none;font-family:inherit}
 .ap-sticky{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #eee;box-shadow:0 -2px 12px rgba(0,0,0,.06);z-index:100}
 .ap-sticky-inner{max-width:var(--detail-w);margin:0 auto;padding:12px 0;display:flex;align-items:center;justify-content:flex-end;gap:12px}
 .ap-btn{min-width:96px;height:40px;padding:0 20px;font-size:14px;border-radius:var(--radius-sm);border:1px solid #ddd;background:#fff;color:#666}
+.ap-cs-link{font-size:13px;color:#666;transition:color .15s}
+.ap-cs-link:hover{color:var(--jd-red)}
 .ap-btn:hover{border-color:var(--jd-red);color:var(--jd-red)}
 .ap-btn.primary{background:var(--jd-red);border-color:var(--jd-red);color:#fff;font-weight:600}
 .ap-btn.primary:hover{background:var(--jd-red-dark)}
@@ -287,6 +289,7 @@ function renderForm() {
     pickBlock + goodsBlock + formBlock;
 
   document.getElementById('apActions').innerHTML =
+    '<a class="ap-cs-link" href="#" data-cs-open data-cs-topic="refund" data-cs-order="' + order.id + '">联系客服</a>' +
     '<button type="button" class="ap-btn" onclick="location.href=\'' + REFUND_LIST + '\'">取消</button>' +
     (row ? '<button type="button" class="ap-btn primary" onclick="document.getElementById(\'applyForm\').requestSubmit()">提交申请</button>' :
       '<button type="button" class="ap-btn primary" disabled style="opacity:.45;cursor:not-allowed">提交申请</button>');

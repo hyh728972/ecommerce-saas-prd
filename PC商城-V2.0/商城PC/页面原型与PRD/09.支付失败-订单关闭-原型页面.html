@@ -33,6 +33,9 @@ button{cursor:pointer;border:none;outline:none;font-family:inherit}
 .ps-btn-outline:hover{border-color:var(--jd-red);color:var(--jd-red)}
 .ps-btn-primary{background:var(--jd-red);color:#fff}
 .ps-btn-primary:hover{background:var(--jd-red-dark)}
+.ps-cs-link{display:inline-flex;align-items:center;justify-content:center;margin-top:14px;font-size:12px;color:#999}
+.ps-cs-link i{font-style:normal;color:#666;margin-left:2px;transition:color .15s}
+.ps-cs-link:hover i{color:var(--jd-red)}
 </style>
 </head>
 <body>
@@ -51,6 +54,7 @@ button{cursor:pointer;border:none;outline:none;font-family:inherit}
       <button type="button" class="ps-btn ps-btn-primary" id="pfRetry">重新支付</button>
       <button type="button" class="ps-btn ps-btn-outline" onclick="location.href='01.首页-原型页面.html'">返回首页</button>
     </div>
+    <a class="ps-cs-link" href="#" data-cs-open data-cs-topic="order">支付遇到问题？<i>联系客服</i></a>
   </div>
 </div>
 <div id="site-footer-root"></div>

@@ -240,7 +240,7 @@
       var trigger = e.target.closest('[data-cs-open]');
       if (trigger) {
         e.preventDefault();
-        open({
+        openStandalone({
           topic: trigger.getAttribute('data-cs-topic') || '',
           order: trigger.getAttribute('data-cs-order') || '',
           product: trigger.getAttribute('data-cs-product') || ''
@@ -253,7 +253,7 @@
         var href = legacy.getAttribute('href') || '';
         var q = href.indexOf('?') >= 0 ? href.slice(href.indexOf('?') + 1) : '';
         var params = new URLSearchParams(q);
-        open({
+        openStandalone({
           topic: params.get('topic') || '',
           order: params.get('order') || '',
           product: params.get('product') ? decodeURIComponent(params.get('product')) : ''
@@ -262,6 +262,17 @@
     });
   }
 
-  w.ProtoCS = { open: open, close: close, init: mount };
+  /* 页面内入口 → 新窗口打开独立客服页（淘宝式）；ProtoCS.open 弹窗保留给悬浮栏轻咨询 */
+  function openStandalone(opts) {
+    var base = (w.ProtoPages && w.ProtoPages.csStandalone) || '26A.在线客服(新版)-原型页面.html';
+    var q = [];
+    if (opts && opts.topic) q.push('topic=' + encodeURIComponent(opts.topic));
+    if (opts && opts.order) q.push('order=' + encodeURIComponent(opts.order));
+    if (opts && opts.product) q.push('product=' + encodeURIComponent(opts.product));
+    var url = base + (q.length ? '?' + q.join('&') : '');
+    w.open(url, '_blank', 'width=1040,height=720');
+  }
+
+  w.ProtoCS = { open: open, close: close, init: mount, openStandalone: openStandalone };
   bindTriggers();
 })(window, document);

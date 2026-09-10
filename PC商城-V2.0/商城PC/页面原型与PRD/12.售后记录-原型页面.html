@@ -26,6 +26,9 @@ input{outline:none;border:none;font-family:inherit}
 .rf-head h1{font-size:18px;font-weight:600;color:#333}
 .rf-head-btn{height:32px;padding:0 16px;background:var(--jd-red);color:#fff;font-size:13px;border-radius:var(--radius-sm);font-weight:500}
 .rf-head-btn:hover{background:var(--jd-red-dark)}
+.rf-head-links{display:flex;align-items:center;gap:14px}
+.rf-cs-link{font-size:13px;color:#666;transition:color .15s}
+.rf-cs-link:hover{color:var(--jd-red)}
 
 .rf-tabs{display:flex;border-bottom:1px solid #f0f0f0;padding:0 8px;background:#fff}
 .rf-tab{padding:16px 24px;font-size:15px;color:#666;cursor:pointer;position:relative;white-space:nowrap}
@@ -107,7 +110,10 @@ input{outline:none;border:none;font-family:inherit}
     <div class="ac-main-panel rf-panel">
       <div class="rf-head">
         <h1>售后记录</h1>
-        <button type="button" class="rf-head-btn" onclick="location.href='13.申请售后-原型页面.html'">申请售后</button>
+        <div class="rf-head-links">
+          <a class="rf-cs-link" href="#" data-cs-open data-cs-topic="refund">联系客服</a>
+          <button type="button" class="rf-head-btn" onclick="location.href='13.申请售后-原型页面.html'">申请售后</button>
+        </div>
       </div>
       <div class="rf-tabs" id="rfTabs"></div>
       <div class="rf-table-hd">

@@ -56,6 +56,7 @@ input{outline:none;border:none;font-family:inherit}
 .order-card-hd .time{margin-left:16px;color:#999}
 .order-card-hd .detail-link{color:#666;font-size:13px}
 .order-card-hd .detail-link:hover{color:var(--jd-red)}
+.order-hd-links{display:flex;align-items:center;gap:14px}
 .order-status{font-size:13px;font-weight:500;color:#666;background:none;padding:0}
 
 .order-card-bd{padding:16px;display:grid;grid-template-columns:minmax(0,1fr) 90px 60px 120px 90px 180px;gap:8px;align-items:start;text-align:center}
@@ -291,7 +292,7 @@ function renderList(){
     return `<div class="order-card">
       <div class="order-card-hd">
         <div><span class="no">${o.time}</span><span class="time">订单号：${o.id}</span></div>
-        <a class="detail-link" href="${ORDER_DETAIL}?order=${o.id}">订单详情 ›</a>
+        <div class="order-hd-links"><a class="detail-link" href="#" data-cs-open data-cs-topic="order" data-cs-order="${o.id}">联系客服</a><a class="detail-link" href="${ORDER_DETAIL}?order=${o.id}">订单详情 ›</a></div>
       </div>
       <div class="order-card-bd">
         <div class="order-goods" onclick="location.href='${ORDER_DETAIL}?order=${o.id}'">

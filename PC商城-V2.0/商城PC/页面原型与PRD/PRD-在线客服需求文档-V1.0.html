@@ -1,0 +1,209 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><title>PRD-在线客服需求文档-V1.0</title><script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script><style>body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;color:#333;line-height:1.75;max-width:960px;margin:0 auto;padding:32px 40px;-webkit-font-smoothing:antialiased}h1{font-size:24px;color:#c81623;border-bottom:3px solid #f63218;padding-bottom:10px}h2{font-size:19px;margin-top:36px;border-left:4px solid #f63218;padding-left:10px}h3{font-size:17px;margin-top:28px;color:#c81623}h4{font-size:15px;margin-top:24px}h5{font-size:14px;margin-top:20px;background:#fff4f2;padding:6px 10px;border-radius:4px}h6{font-size:13px;margin-top:14px;color:#666}table{border-collapse:collapse;width:100%;margin:10px 0 18px;font-size:13px}th{background:#fdf0ee;color:#c81623;font-weight:600}th,td{border:1px solid #eee;padding:7px 10px;text-align:left;vertical-align:top}tr:nth-child(even) td{background:#fafafa}code{background:#f6f8fa;padding:1px 5px;border-radius:3px;font-size:12px;color:#c81623}pre.code{background:#f6f8fa;padding:12px;border-radius:6px;overflow-x:auto;font-size:12px}pre.mermaid{background:#fff;text-align:center;margin:14px 0}hr.sep{border:none;border-top:1px solid #eee;margin:28px 0}.step{padding-left:6px}@media print{body{padding:0}pre.mermaid svg{max-width:100%}}</style></head><body><h1>苏银豆商城产品需求文档（在线客服）</h1>
+<h1>1. 需求背景</h1>
+<hr class="sep">
+<h1>2. 需求分析</h1>
+<hr class="sep">
+<h1>3. 系统流程图</h1>
+<hr class="sep">
+<h1>4. 详细需求</h1>
+<h2>4.1. 苏银豆商城系统</h2>
+<h3>4.1.1. 在线客服模块</h3>
+<h4>4.1.1.1. 在线客服独立页（26A）</h4>
+<h5>1. 功能概述</h5>
+<ul><li><strong>功能描述</strong>：PC 端在线客服独立窗口页（新浏览器窗口打开），采用三栏布局：左栏消息列表（会话入口）、中栏聊天主体（消息区 + 工具栏 + 输入区）、右栏服务信息（品牌、服务信息、快捷自助、为你推荐）。默认由智能客服接待，支持关键词自动应答、卡片消息（订单/售后/物流/商品/猜你想问）、附件发送（图片/文件/表情）、转人工服务、历史咨询记录逐段加载。</li></ul>
+<ul><li><strong>业务描述</strong>：为商城全流程（商品咨询、交易流程、订单售后、服务支持）提供统一的在线咨询入口，实现智能客服自助解答常见问题、人工客服兜底复杂问题的分层服务模式，降低人工坐席压力，提升咨询转化与问题解决效率。</li></ul>
+<ul><li><strong>使用角色</strong>：商城注册用户（买家）。</li></ul>
+<ul><li><strong>触发条件</strong>：用户在商城任一页面点击客服入口，系统以新浏览器窗口打开本页面，并按入口来源携带 URL 参数（topic 主题 / order 订单号 / product 商品名）自动带入上下文。</li></ul>
+<p><strong>客服入口清单</strong>（各入口均通过 <code>ProtoCS.openStandalone()</code> 以新窗口打开本页）：</p>
+<table><thead><tr><th>入口页面</th><th>入口位置</th><th>携带参数</th></tr></thead><tbody><tr><td>05.商品详情页</td><td>商铺卡片「联系客服」按钮</td><td>topic=order、product=商品名</td></tr><tr><td>06.购物车</td><td>页头客服入口</td><td>—</td></tr><tr><td>07.结算付款</td><td>客服入口</td><td>—</td></tr><tr><td>08.支付成功</td><td>客服入口</td><td>—</td></tr><tr><td>09.支付失败-订单关闭</td><td>客服入口</td><td>—</td></tr><tr><td>10.订单页</td><td>页头客服入口</td><td>order=订单号</td></tr><tr><td>11.订单详情</td><td>客服入口</td><td>order=订单号</td></tr><tr><td>12.售后记录</td><td>页头/列表客服入口</td><td>topic=refund</td></tr><tr><td>13.申请售后</td><td>客服入口</td><td>topic=refund</td></tr><tr><td>14.售后详情</td><td>操作区「联系客服」按钮</td><td>topic=refund、order=订单号</td></tr><tr><td>24.帮助中心</td><td>客服入口</td><td>topic</td></tr><tr><td>25.设置</td><td>客服入口</td><td>topic=account</td></tr><tr><td>全部页面</td><td>右下角悬浮栏「客服」图标</td><td>—</td></tr><tr><td>26.在线客服（旧版）</td><td>保留页，由旧版页内自行跳转</td><td>按旧版逻辑</td></tr></tbody></table>
+<h5>2. 界面设计</h5>
+<h6>2.1 页面原型</h6>
+<ul><li>原型路径：<code>页面原型与PRD/26A.在线客服(新版)-原型页面.html</code>（浏览器直接打开，窗口尺寸 1240×720）</li></ul>
+<h6>2.2 输出项说明</h6>
+<table><thead><tr><th>字段名称</th><th>字段标识</th><th>数据类型</th><th>数据来源</th><th>格式说明</th></tr></thead><tbody><tr><td>客服头像</td><td>head_avatar</td><td>String</td><td>页面静态</td><td>智能客服红底"客"；人工客服橙底"王"</td></tr><tr><td>客服名称</td><td>head_name</td><td>String</td><td>页面状态机</td><td>智能客服阶段："智能客服 在线客服"；人工阶段："王小明 人工客服 · 售后组"</td></tr><tr><td>在线状态</td><td>head_status</td><td>String</td><td>页面静态</td><td>绿点 + "在线"</td></tr><tr><td>消息区</td><td>chat_body</td><td>DOM 列表</td><td>会话上下文</td><td>消息气泡（用户浅灰右侧 / 客服白底左侧）+ 卡片消息</td></tr><tr><td>历史记录入口</td><td>history_link</td><td>Link</td><td>页面静态</td><td>"︿ 点击查看历史咨询记录"</td></tr><tr><td>工具栏</td><td>tool_bar</td><td>Button 组</td><td>页面静态</td><td>图片 / 文件 / 订单 / 表情 四个图标按钮</td></tr><tr><td>输入框</td><td>chat_input</td><td>Textarea</td><td>用户输入</td><td>高 96px 起、最大 180px，Enter 发送、Shift+Enter 换行</td></tr><tr><td>发送按钮</td><td>send_btn</td><td>Button</td><td>页面静态</td><td>渐变红胶囊按钮 + 纸飞机图标</td></tr><tr><td>会话列表（左栏）</td><td>conv_list</td><td>DOM 列表</td><td>会话上下文</td><td>仅"在线客服"一条线，预览跟随最后一条消息（截断 18 字）</td></tr><tr><td>服务信息（右栏）</td><td>cs_info</td><td>DOM 区块</td><td>页面静态</td><td>服务时间 / 热线 400-888-6688 / 平均响应 &lt;30 秒</td></tr><tr><td>快捷自助按钮</td><td>ci_tool</td><td>Button 组</td><td>页面静态</td><td>猜你想问 / 查订单 / 苏银豆 三个按钮块（图标+标题+副标题）</td></tr><tr><td>为你推荐（右栏）</td><td>ci_goods</td><td>DOM 列表</td><td>订单数据</td><td>仅 product 参数进入时显示，最多 2 个商品 + 咨询按钮</td></tr><tr><td>订单卡片</td><td>order_card</td><td>Card</td><td>订单数据</td><td>订单号 / 实付 / 商品缩略图（最多 2 件）/ 状态徽标 / 操作按钮</td></tr><tr><td>售后卡片</td><td>refund_card</td><td>Card</td><td>售后数据</td><td>售后号 / 类型 / 原因 / 退款金额 / 商品缩略图 / 查看进度</td></tr><tr><td>物流卡片</td><td>logistics_card</td><td>Card</td><td>订单数据</td><td>支持多包裹：包裹号 / 承运商 / 运单号 / 最新轨迹</td></tr><tr><td>商品卡片</td><td>product_card</td><td>Card</td><td>订单数据/URL 参数</td><td>商品图 / 名称 / 规格 / 价格 / 查看商品按钮</td></tr><tr><td>猜你想问卡片</td><td>faq_card</td><td>Card</td><td>FAQ 库</td><td>4 条/页 + "↻ 换一换"翻页（共 8 条轮换）</td></tr><tr><td>订单选择器弹窗</td><td>picker_mask</td><td>Modal</td><td>订单数据</td><td>列表项：商品图 / 名称 / 订单号·状态·金额</td></tr><tr><td>表情面板</td><td>emoji_panel</td><td>Panel</td><td>页面静态</td><td>8×4 网格共 32 个表情，浮于工具栏上方</td></tr><tr><td>系统提示</td><td>sys_tip</td><td>Text</td><td>系统事件</td><td>居中灰底胶囊（转接中/会话分隔等）</td></tr></tbody></table>
+<h5>3. 业务逻辑</h5>
+<h6>3.1 流程图</h6>
+<p><strong>进入会话流程</strong></p>
+<pre class="mermaid">flowchart TD
+    A[开始] --> B[用户点击页面客服入口]
+    B --> C[新窗口打开客服页]
+    C --> D{是否携带参数}
+    D -->|product 商品名| E[发送商品卡片]
+    D -->|order 订单号| F[发送订单卡片]
+    D -->|topic=refund| G[发送售后引导话术]
+    D -->|无参数| H[仅发送欢迎语]
+    E --> I[发送欢迎语]
+    F --> I
+    G --> I
+    H --> J[400ms 后发送猜你想问卡片]
+    I --> J
+    J --> K[结束]</pre>
+<p><strong>消息发送与智能应答流程</strong></p>
+<pre class="mermaid">flowchart TD
+    A[开始] --> B[用户输入消息并发送]
+    B --> C{是否包含"转人工/人工客服"}
+    C -->|是| D[执行转人工流程]
+    C -->|否| E{关键词匹配}
+    E -->|订单/物流/发货类| F{是否已带入订单号}
+    F -->|是| G[返回对应订单卡片]
+    F -->|否| H[弹出订单选择器]
+    H --> I[用户选中订单]
+    I --> G
+    E -->|售后/退货/退款类| J[返回售后卡片]
+    E -->|苏银豆/积分类| K[返回苏银豆说明]
+    E -->|优惠券/卡券类| L[返回卡券说明]
+    E -->|地址/收货类| M[返回地址规则]
+    E -->|你好/在吗类| N[返回欢迎语]
+    E -->|谢谢/感谢类| O[返回结束语]
+    E -->|无匹配| P[返回兜底话术]
+    G --> Q[结束]
+    J --> Q
+    K --> Q
+    L --> Q
+    M --> Q
+    N --> Q
+    O --> Q
+    P --> Q</pre>
+<p><strong>转人工流程</strong></p>
+<pre class="mermaid">flowchart TD
+    A[开始] --> B[用户发送含"转人工"的消息]
+    B --> C[显示系统提示"正在为您转接人工客服…"]
+    C --> D[等待 800ms]
+    D --> E[头部切换为"王小明 人工客服 · 售后组"橙头像]
+    E --> F[发送欢迎语"您好，我是人工客服王小明…"]
+    F --> G[后续消息署名"人工客服 王小明"橙色头像]
+    G --> H[结束]</pre>
+<p><strong>历史记录加载流程</strong></p>
+<pre class="mermaid">flowchart TD
+    A[开始] --> B[点击"查看历史咨询记录"]
+    B --> C{是否还有更早记录}
+    C -->|否| D[显示"没有更早的咨询记录了"]
+    D --> E[结束]
+    C -->|是| F[在消息区顶部插入一段历史会话]
+    F --> G[渲染日期时间轴分隔线]
+    G --> H[历史消息淡入动画 350ms]
+    H --> I[滚动锚定：视口保持原位置]
+    I --> J[入口文字变为"查看更早的咨询记录"]
+    J --> E</pre>
+<p><strong>附件发送流程（图片）</strong></p>
+<pre class="mermaid">flowchart TD
+    A[开始] --> B[点击工具栏图片按钮]
+    B --> C[打开系统文件选择框]
+    C --> D[用户选择文件]
+    D --> E{文件类型校验}
+    E -->|非图片| F[提示"请选择图片文件"]
+    F --> C
+    E -->|通过| G[FileReader 读取为预览图]
+    G --> H[以图片消息发送至会话]
+    H --> I[客服回复"图片已收到，请问这张图片反映的是什么问题呢？"]
+    I --> J[结束]</pre>
+<h6>3.2 业务规则</h6>
+<table><thead><tr><th>规则编号</th><th>规则名称</th><th>适用场景</th><th>规则描述</th><th>错误提示</th></tr></thead><tbody><tr><td>RULE-CS-001</td><td>入口统一新窗口</td><td>所有客服入口</td><td>全部入口以新浏览器窗口（1240×720）打开独立客服页，不在页内弹窗</td><td>—</td></tr><tr><td>RULE-CS-002</td><td>上下文带入</td><td>带参进入</td><td>URL 携带 product 时自动发送商品卡片；携带 order 时自动发送订单卡片；topic=refund 时发送售后引导话术</td><td>—</td></tr><tr><td>RULE-CS-003</td><td>欢迎语固定</td><td>会话开始</td><td>首条消息固定为"您好，我是在线客服，可以为您查询订单、解答常见问题。请问有什么可以帮您？"</td><td>—</td></tr><tr><td>RULE-CS-004</td><td>猜你想问自动发送</td><td>会话开始</td><td>欢迎语后 400ms 自动发送一张猜你想问卡片（4 条问题）</td><td>—</td></tr><tr><td>RULE-CS-005</td><td>订单查询需选择订单</td><td>订单类提问</td><td>未带入订单号时，先弹出订单选择器由用户选择具体订单，选中后返回该订单卡片</td><td>—</td></tr><tr><td>RULE-CS-006</td><td>转人工触发词</td><td>消息发送</td><td>智能客服阶段消息包含"转人工"或"人工客服"即触发转接，800ms 后切换为人工客服王小明</td><td>—</td></tr><tr><td>RULE-CS-007</td><td>历史记录逐段加载</td><td>历史查看</td><td>每次点击加载一段历史会话（按日期），加载后视口锚定原位置；共 3 段演示数据，翻完显示终态文案</td><td>—</td></tr><tr><td>RULE-CS-008</td><td>图片类型校验</td><td>图片上传</td><td>仅接受 image/* 类型文件，非图片文件提示并允许重新选择</td><td>请选择图片文件</td></tr><tr><td>RULE-CS-009</td><td>推荐位条件显示</td><td>右栏展示</td><td>"为你推荐"区块仅在携带 product 参数（商品页进入）时显示，其余入口隐藏</td><td>—</td></tr><tr><td>RULE-CS-010</td><td>智能滚动</td><td>消息渲染</td><td>新消息到达时若用户滚动位置贴近底部（&lt;80px）则自动跟随，否则不打断阅读；用户自己发送消息强制滚底</td><td>—</td></tr><tr><td>RULE-CS-011</td><td>会话单线联系制</td><td>左栏展示</td><td>左栏仅展示"在线客服"一条会话线，预览文字实时跟随当前会话最后一条消息（截断 18 字）</td><td>—</td></tr><tr><td>RULE-CS-012</td><td>商品图回退</td><td>卡片渲染</td><td>商品图片 key 无对应资源时，按 key 哈希从 5 张兜底图中稳定取一张，保证卡片始终有图</td><td>—</td></tr><tr><td>RULE-CS-013</td><td>Enter 发送</td><td>输入框</td><td>Enter 发送消息，Shift+Enter 换行；输入框高度 96px 起、内容增多最高撑至 180px</td><td>—</td></tr><tr><td>RULE-CS-014</td><td>猜你想问轮换</td><td>FAQ 卡片</td><td>FAQ 库共 8 条，每卡片展示 4 条，点"换一换"翻至下一页并循环</td><td>—</td></tr><tr><td>RULE-CS-015</td><td>FAQ 点选即提问</td><td>FAQ 卡片</td><td>点击卡片中任意问题，该问题作为用户消息发出，客服返回对应答案</td><td>—</td></tr></tbody></table>
+<h6>3.3 状态机设计</h6>
+<p><strong>客服服务状态机</strong></p>
+<p><strong>状态定义</strong></p>
+<table><thead><tr><th>状态值</th><th>状态名称</th><th>状态说明</th><th>可见角色</th></tr></thead><tbody><tr><td>bot</td><td>智能客服接待</td><td>默认状态，智能客服自动应答，红头像"客"，署名"智能客服"</td><td>用户</td></tr><tr><td>transferring</td><td>转接中</td><td>触发转人工后的过渡态（800ms），显示系统提示</td><td>用户</td></tr><tr><td>human</td><td>人工客服接待</td><td>头部与署名切换为"王小明 人工客服 · 售后组"橙头像"王"</td><td>用户</td></tr></tbody></table>
+<p><strong>状态流转规则</strong></p>
+<table><thead><tr><th>当前状态</th><th>触发操作</th><th>目标状态</th><th>操作角色</th><th>前置条件</th></tr></thead><tbody><tr><td>bot</td><td>发送含"转人工/人工客服"的消息</td><td>transferring</td><td>用户</td><td>消息命中转人工正则</td></tr><tr><td>transferring</td><td>800ms 定时器到期</td><td>human</td><td>系统</td><td>无</td></tr><tr><td>human</td><td>关闭窗口后重新进入</td><td>bot</td><td>用户</td><td>重新打开页面</td></tr></tbody></table>
+<p><strong>状态对应UI差异</strong></p>
+<table><thead><tr><th>状态</th><th>头部名称</th><th>客服头像</th><th>消息署名</th><th>头像底色</th></tr></thead><tbody><tr><td>bot</td><td>智能客服 在线客服</td><td>客</td><td>智能客服</td><td>商城红 #f63218</td></tr><tr><td>transferring</td><td>智能客服（未变）</td><td>客</td><td>—（显示转接提示）</td><td>商城红</td></tr><tr><td>human</td><td>王小明 人工客服·售后组</td><td>王</td><td>人工客服 王小明</td><td>橙 #ff8a00</td></tr></tbody></table>
+<h5>4. 交互设计</h5>
+<h6>4.1 输入项说明</h6>
+<table><thead><tr><th>字段名称</th><th>字段标识</th><th>字段类型</th><th>必填</th><th>数据类型</th><th>长度限制</th><th>校验规则</th><th>取值范围</th><th>来源</th><th>提示文案</th><th>备注</th></tr></thead><tbody><tr><td>咨询内容</td><td>chat_input</td><td>多行文本</td><td>发送时非空</td><td>String</td><td>不限制</td><td>空 内容不可发送</td><td>自由文本</td><td>用户输入</td><td>请输入您想咨询的问题，Enter 发送，Shift+Enter 换行</td><td>Enter 发送 / Shift+Enter 换行</td></tr><tr><td>图片文件</td><td>file_input</td><td>文件选择</td><td>是</td><td>File</td><td>—</td><td>仅 image/*</td><td>image/*</td><td>用户本地</td><td>请选择图片文件</td><td>accept=image/*</td></tr><tr><td>普通文件</td><td>file_doc_input</td><td>文件选择</td><td>是</td><td>File</td><td>—</td><td>不限类型</td><td>任意</td><td>用户本地</td><td>—</td><td>选择后展示文件名+大小卡片</td></tr><tr><td>URL-主题</td><td>topic</td><td>URL 参数</td><td>否</td><td>String</td><td>—</td><td>—</td><td>order/refund/points/shipping/account</td><td>入口页携带</td><td>—</td><td>控制开场引导话术</td></tr><tr><td>URL-订单号</td><td>order</td><td>URL 参数</td><td>否</td><td>String</td><td>—</td><td>需存在于订单数据</td><td>订单号</td><td>入口页携带</td><td>—</td><td>自动发送订单卡片</td></tr><tr><td>URL-商品名</td><td>product</td><td>URL 参数</td><td>否</td><td>String</td><td>—</td><td>需 encode</td><td>商品名</td><td>入口页携带</td><td>—</td><td>自动发送商品卡片+显示推荐位</td></tr></tbody></table>
+<h6>4.2 交互说明</h6>
+<p class="step">1. <strong>进入会话</strong>：用户在任一入口页点击客服入口 → 新窗口打开 → 收到欢迎语 → 400ms 后收到猜你想问卡片；若从商品页进入，追加商品卡片并显示右栏推荐位。</p>
+<p class="step">2. <strong>快捷自助</strong>：点击右栏「查订单」/「苏银豆」按钮，等同发送对应文本消息；点击「猜你想问」随时再发一张 FAQ 卡片到会话底部。</p>
+<p class="step">3. <strong>猜你想问卡片</strong>：点某条问题 → 该问题以用户消息发出 → 客服返回答案；点「↻ 换一换」翻页不发送消息。</p>
+<p class="step">4. <strong>订单类提问</strong>：输入"查订单"等 → 客服反问并弹出订单选择器 → 选中后该订单卡片以用户消息发出，客服追问具体问题；从订单页进入（带 order）则直接返回订单卡片。</p>
+<p class="step">5. <strong>发送图片</strong>：工具栏点图片按钮 → 选文件 → 校验类型 → 图片消息入会话（最大 220px 缩略，可点击新窗查看原图）→ 客服回应。</p>
+<p class="step">6. <strong>发送文件</strong>：工具栏点文件按钮 → 选文件 → 文件卡片（图标+文件名+KB/MB 大小）入会话 → 客服回应。</p>
+<p class="step">7. <strong>发送表情</strong>：工具栏点表情按钮 → 工具栏上方浮出 8×4 表情面板 → 点表情插入输入框光标处 → 面板外点击关闭。</p>
+<p class="step">8. <strong>转人工</strong>：发送"转人工" → 系统提示转接中 → 800ms 后头部与消息署名切换为人工客服王小明（橙头像），后续消息以人工身份展示。</p>
+<p class="step">9. <strong>查看历史</strong>：点顶部「查看历史咨询记录」→ 立即在上方插入一段带日期时间轴的历史会话（淡显只读）→ 视口保持原位 → 可继续点加载更早，翻完显示终态。</p>
+<p class="step">10. <strong>消息滚动</strong>：用户上翻阅读历史时新消息不强制拽底；用户发送消息后强制滚动到底部。</p>
+<h6>4.3 错误提示文案</h6>
+<p><strong>表单校验提示</strong></p>
+<table><thead><tr><th>校验字段</th><th>校验场景</th><th>提示文案</th></tr></thead><tbody><tr><td>chat_input</td><td>发送空内容</td><td>不发送（无提示，静默拦截）</td></tr><tr><td>file_input</td><td>选择的不是图片文件</td><td>请选择图片文件</td></tr></tbody></table>
+<p><strong>业务异常提示</strong></p>
+<table><thead><tr><th>异常场景</th><th>错误码</th><th>提示文案</th></tr></thead><tbody><tr><td>订单选择器无数据</td><td>CS-001</td><td>暂无相关记录</td></tr><tr><td>商品信息缺失（product 无匹配）</td><td>CS-002</td><td>使用默认规格兜底卡片展示</td></tr><tr><td>推荐位无商品数据</td><td>CS-003</td><td>暂无推荐</td></tr></tbody></table>
+<h5>5. 数据设计</h5>
+<h6>5.1 数据流转说明</h6>
+<p><strong>数据来源</strong></p>
+<table><thead><tr><th>字段/数据</th><th>来源</th><th>获取方式</th><th>说明</th></tr></thead><tbody><tr><td>订单数据（列表/详情）</td><td>订单模块 mock（order-mock.js）</td><td>OrderMock.all() / OrderMock.get(id)</td><td>订单卡片、订单选择器、物流卡片数据源</td></tr><tr><td>售后数据</td><td>售后模块 mock（refund-mock.js）</td><td>RefundMock.all()</td><td>售后卡片数据源</td></tr><tr><td>商品图片</td><td>商品图库（product-images.js）</td><td>IMG[key]，缺失时哈希回退</td><td>全部卡片缩略图</td></tr><tr><td>页面路由</td><td>路由表（proto-pages.js）</td><td>ProtoPages 映射</td><td>卡片按钮跳转目标页</td></tr><tr><td>会话上下文</td><td>URL 参数</td><td>topic / order / product</td><td>入口页带入</td></tr></tbody></table>
+<p><strong>数据去向</strong></p>
+<table><thead><tr><th>数据</th><th>目标系统/模块</th><th>同步时机</th><th>说明</th></tr></thead><tbody><tr><td>商品卡片「查看商品」</td><td>05.商品详情页</td><td>用户点击</td><td>新窗口打开并带 from=cs 标记</td></tr><tr><td>订单卡片「查看详情/查看物流」</td><td>11.订单详情</td><td>用户点击</td><td>新窗口打开并带 order 参数</td></tr><tr><td>售后卡片「查看进度」</td><td>14.售后详情</td><td>用户点击</td><td>新窗口打开并带 refund 参数</td></tr><tr><td>猜你想问→订单类问题</td><td>订单选择器</td><td>用户点选</td><td>触发订单卡片入会话</td></tr><tr><td>推荐位「咨询」</td><td>会话消息区</td><td>用户点击</td><td>商品卡片以用户消息发出</td></tr></tbody></table>
+<h6>5.2 数据权限设计</h6>
+<p><strong>角色数据范围</strong></p>
+<table><thead><tr><th>角色</th><th>数据范围</th><th>说明</th></tr></thead><tbody><tr><td>注册用户（买家）</td><td>本账号的订单、售后、积分数据</td><td>客服查询仅返回当前账号数据</td></tr></tbody></table>
+<p><strong>功能权限点</strong></p>
+<table><thead><tr><th>权限标识</th><th>权限名称</th></tr></thead><tbody><tr><td>cs:consult</td><td>发起咨询（文本/图片/文件/表情）</td></tr><tr><td>cs:order-card</td><td>发送订单卡片</td></tr><tr><td>cs:transfer</td><td>转人工服务</td></tr></tbody></table>
+<h5>6. 扩展功能</h5>
+<h6>6.1 批量操作规则</h6>
+<p>不适用（本页面为会话型交互，无批量操作场景）。</p>
+<h6>6.2 操作日志要求</h6>
+<table><thead><tr><th>操作类型</th><th>记录内容</th><th>保留时长</th></tr></thead><tbody><tr><td>会话消息</td><td>发送方、时间、消息内容（文本/卡片/附件）</td><td>1 年</td></tr><tr><td>转人工事件</td><td>触发时间、触发词、接入坐席</td><td>1 年</td></tr><tr><td>历史记录查看</td><td>查看时间、加载的历史段</td><td>6 个月</td></tr></tbody></table>
+<h4>4.1.1.2. 在线客服入口跳转说明（跨页面）</h4>
+<h5>1. 功能概述</h5>
+<ul><li><strong>功能描述</strong>：分布于 12 个业务页面 + 全站悬浮栏的客服入口集合，统一通过 <code>ProtoCS.openStandalone(opts)</code> API 以新浏览器窗口打开在线客服独立页（26A），并按页面业务语境携带上下文参数。</li></ul>
+<ul><li><strong>业务描述</strong>：保证用户在商城任意交易/售后环节可一键触达客服，且客服端自动获得业务上下文（商品、订单、售后主题），减少用户重复描述。</li></ul>
+<ul><li><strong>使用角色</strong>：商城注册用户（买家）。</li></ul>
+<ul><li><strong>触发条件</strong>：用户在业务页面点击对应客服入口（按钮 / 链接 / 悬浮栏图标）。</li></ul>
+<h5>2. 界面设计</h5>
+<h6>2.1 页面原型</h6>
+<ul><li>各入口页原型见「功能概述-客服入口清单」；悬浮栏原型为全站右下角 <code>float-dock</code> 组件。</li></ul>
+<h6>2.2 输出项说明</h6>
+<table><thead><tr><th>字段名称</th><th>字段标识</th><th>数据类型</th><th>数据来源</th><th>格式说明</th></tr></thead><tbody><tr><td>新窗尺寸</td><td>window_size</td><td>String</td><td>openStandalone 固定值</td><td>width=1240,height=720</td></tr><tr><td>主题参数</td><td>topic</td><td>String</td><td>入口页静态配置</td><td>order / refund / points / shipping / account</td></tr><tr><td>订单号参数</td><td>order</td><td>String</td><td>页面上下文订单号</td><td>订单号原文</td></tr><tr><td>商品名参数</td><td>product</td><td>String</td><td>页面上下文商品名</td><td>encodeURIComponent 编码</td></tr></tbody></table>
+<h5>3. 业务逻辑</h5>
+<h6>3.1 流程图</h6>
+<p><strong>入口跳转数据流转</strong></p>
+<pre class="mermaid">flowchart LR
+    A[业务页面客服入口] --> B[cs-widget.js 全局点击拦截]
+    B --> C[ProtoCS.openStandalone]
+    C --> D[拼装 URL 参数 topic/order/product]
+    D --> E[window.open 新窗口 1240x720]
+    E --> F[26A 客服页读取参数]
+    F --> G[按参数自动发送上下文卡片]</pre>
+<h6>3.2 业务规则</h6>
+<table><thead><tr><th>规则编号</th><th>规则名称</th><th>适用场景</th><th>规则描述</th><th>错误提示</th></tr></thead><tbody><tr><td>RULE-ENTRY-001</td><td>声明式触发</td><td>页面内入口</td><td>使用 data-cs-open / data-cs-topic / data-cs-order / data-cs-product 属性声明入口，由全局事件委托统一拦截</td><td>—</td></tr><tr><td>RULE-ENTRY-002</td><td>编程式触发</td><td>按钮场景</td><td>按钮 onclick 调用 ProtoCS.openStandalone({...}) 传参（如商品详情页）</td><td>—</td></tr><tr><td>RULE-ENTRY-003</td><td>旧链接拦截</td><td>存量页面</td><td>href 指向旧版 26.在线客服 的链接统一拦截并改走新窗 26A</td><td>—</td></tr><tr><td>RULE-ENTRY-004</td><td>悬浮栏统一</td><td>全站悬浮栏</td><td>悬浮栏客服图标走同一 openStandalone，与页面内入口行为一致</td><td>—</td></tr><tr><td>RULE-ENTRY-005</td><td>旧版保留</td><td>26 旧版页</td><td>26.在线客服（旧版原型）整页保留不改动，其内部逻辑不受影响</td><td>—</td></tr></tbody></table>
+<h6>3.3 状态机设计</h6>
+<p>不适用（入口为单步跳转，无状态流转）。</p>
+<h5>4. 交互设计</h5>
+<h6>4.1 输入项说明</h6>
+<p>不适用（入口无用户输入字段）。</p>
+<h6>4.2 交互说明</h6>
+<p class="step">1. 用户点击入口（按钮/链接/悬浮栏图标）→ 当前页不跳转、不弹窗。</p>
+<p class="step">2. 浏览器新开 1240×720 窗口加载 26A 客服页，URL 携带业务参数。</p>
+<p class="step">3. 原 页面保持用户所在位置不受影响。</p>
+<h6>4.3 错误提示文案</h6>
+<p><strong>表单校验提示</strong></p>
+<table><thead><tr><th>校验字段</th><th>校验场景</th><th>提示文案</th></tr></thead></tbody></table>
+<p><strong>业务异常提示</strong></p>
+<table><thead><tr><th>异常场景</th><th>错误码</th><th>提示文案</th></tr></thead><tbody><tr><td>浏览器拦截弹窗</td><td>ENTRY-001</td><td>请允许本站弹出式窗口</td></tr></tbody></table>
+<h5>5. 数据设计</h5>
+<h6>5.1 数据流转说明</h6>
+<p><strong>数据去向</strong></p>
+<table><thead><tr><th>数据</th><th>目标系统/模块</th><th>同步时机</th><th>说明</th></tr></thead><tbody><tr><td>topic/order/product 参数</td><td>26A 在线客服独立页</td><td>新窗打开时 URL 传递</td><td>客服页据此自动发送上下文卡片</td></tr></tbody></table>
+<h6>5.2 数据权限设计</h6>
+<p>同 4.1.1.1 第 5.2 节。</p>
+<h5>6. 扩展功能</h5>
+<h6>6.1 批量操作规则</h6>
+<p>不适用。</p>
+<h6>6.2 操作日志要求</h6>
+<table><thead><tr><th>操作类型</th><th>记录内容</th><th>保留时长</th></tr></thead><tbody><tr><td>入口点击</td><td>来源页面、入口位置、携带参数</td><td>6 个月</td></tr></tbody></table>
+<hr class="sep">
+<h1>5. 非功能需求</h1>
+<h2>5.1. 性能需求</h2>
+<table><thead><tr><th>指标名称</th><th>指标要求</th></tr></thead><tbody><tr><td>页面加载时间</td><td>首屏加载 ≤ 3 秒</td></tr><tr><td>消息发送响应</td><td>用户消息上屏 ≤ 100ms，客服应答 500–850ms（模拟真人节奏）</td></tr><tr><td>历史记录加载</td><td>点击后即时不出loading（同步渲染 + 350ms 淡入）</td></tr><tr><td>转人工切换</td><td>提示后 800ms 内完成身份切换</td></tr></tbody></table>
+<h2>5.2. 兼容性需求</h2>
+<table><thead><tr><th>类型</th><th>要求</th></tr></thead><tbody><tr><td>浏览器</td><td>Chrome 80+、Firefox 75+、Safari 13+、Edge 80+</td></tr><tr><td>分辨率</td><td>最低支持 1240×720（新窗默认尺寸），推荐 1920×1080</td></tr><tr><td>弹窗</td><td>需允许弹出式窗口（新窗打开客服页）</td></tr></tbody></table>
+<h2>5.3. 安全需求</h2>
+<table><thead><tr><th>安全项</th><th>要求</th></tr></thead><tbody><tr><td>文件上传</td><td>校验文件类型（图片仅 image/*），前端预览使用本地 FileReader 不落盘</td></tr><tr><td>数据范围</td><td>会话仅展示当前账号的订单/售后数据</td></tr><tr><td>XSS 防护</td><td>用户输入内容经 HTML 转义后渲染</td></tr></tbody></table>
+<hr class="sep">
+<h1>6. 附录</h1>
+<h2>6.1. 术语表</h2>
+<table><thead><tr><th>术语</th><th>说明</th></tr></thead><tbody><tr><td>26A</td><td>在线客服新版独立页原型（本 PRD 核心页面）</td></tr><tr><td>openStandalone</td><td>以新浏览器窗口打开客服页的全局 API（ProtoCS.openStandalone）</td></tr><tr><td>联系制</td><td>会话组织方式：单一"在线客服"会话线承载全部历史，按日期分隔展示</td></tr><tr><td>猜你想问</td><td>FAQ 卡片，4 条/页，支持换一换轮换</td></tr><tr><td>苏银豆</td><td>商城积分，1 豆 = ¥0.01，可抵扣/兑换、不可提现</td></tr><tr><td>智能客服</td><td>默认接待的机器人客服（红头像"客"）</td></tr><tr><td>人工客服</td><td>转人工后接入的坐席（演示角色：王小明，售后组）</td></tr></tbody></table>
+<h2>6.2. 相关文档</h2>
+<table><thead><tr><th>文档名称</th><th>文档路径</th></tr></thead><tbody><tr><td>在线客服独立页原型</td><td>页面原型与PRD/26A.在线客服(新版)-原型页面.html</td></tr><tr><td>在线客服旧版原型（保留）</td><td>页面原型与PRD/26.在线客服-原型页面.html</td></tr><tr><td>入口拦截脚本</td><td>assets/cs-widget.js</td></tr><tr><td>悬浮栏组件</td><td>assets/float-dock.js</td></tr><tr><td>订单 mock 数据</td><td>assets/order-mock.js</td></tr><tr><td>售后 mock 数据</td><td>assets/refund-mock.js</td></tr><tr><td>页面路由表</td><td>assets/proto-pages.js</td></tr></tbody></table>
+<hr class="sep">
+<h1>7. 版本记录</h1>
+<table><thead><tr><th>版本号</th><th>修改日期</th><th>修改人</th><th>修改内容</th></tr></thead><tbody><tr><td>V1.0</td><td>2026-08-25</td><td>产品经理</td><td>初稿创建（基于 26A 新版客服原型与全站入口改造）</td></tr></tbody></table><script>if(window.mermaid)mermaid.initialize({startOnLoad:true,theme:"neutral",flowchart:{useMaxWidth:true}});</script></body></html>

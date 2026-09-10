@@ -25,6 +25,7 @@
     message: '23.消息中心-原型页面.html',
     help: '24.帮助中心-原型页面.html',
     service: '26.在线客服-原型页面.html',
+    csStandalone: '26A.在线客服(新版)-原型页面.html',
     login: '27.登录-原型页面.html',
     unavailable: '28.商品不可用-原型页面.html',
     settings: '25.设置-原型页面.html'

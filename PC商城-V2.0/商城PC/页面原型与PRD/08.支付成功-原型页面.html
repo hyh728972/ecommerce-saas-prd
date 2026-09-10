@@ -39,6 +39,9 @@ button{cursor:pointer;border:none;outline:none;font-family:inherit}
 .ps-btn-outline:hover{background:#fff8e6}
 .ps-btn-primary{background:var(--jd-red);color:#fff}
 .ps-btn-primary:hover{background:var(--jd-red-dark)}
+.ps-cs-link{display:inline-flex;align-items:center;justify-content:center;margin-top:14px;font-size:12px;color:#999}
+.ps-cs-link i{font-style:normal;color:#666;margin-left:2px;transition:color .15s}
+.ps-cs-link:hover i{color:var(--jd-red)}
 
 .ps-recommend{max-width:720px;margin:32px auto 0}
 .ps-recommend-hd{font-size:18px;font-weight:600;margin-bottom:14px;color:#333}
@@ -71,6 +74,7 @@ button{cursor:pointer;border:none;outline:none;font-family:inherit}
       <button type="button" class="ps-btn ps-btn-outline" id="psViewOrder">查看订单</button>
       <button type="button" class="ps-btn ps-btn-primary" onclick="location.href='01.首页-原型页面.html'">返回首页</button>
     </div>
+    <a class="ps-cs-link" href="#" data-cs-open data-cs-topic="order">对订单有疑问？<i>联系客服</i></a>
   </div>
   <div class="ps-recommend">
     <div class="ps-recommend-hd">猜你喜欢</div>

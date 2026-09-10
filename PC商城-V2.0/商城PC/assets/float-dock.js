@@ -65,7 +65,8 @@
 
   function openService() {
     ensureCsWidget(function () {
-      if (w.ProtoCS) w.ProtoCS.open();
+      /* 悬浮栏客服也走新版独立页（新窗口），与页面内入口一致 */
+      if (w.ProtoCS) w.ProtoCS.openStandalone();
     });
   }
 
@@ -247,4 +248,17 @@
     setFloorNav: renderFloorNav,
     bindFloorNav: bindFloorNav
   };
+
+  // 原型导航（评审工具）：随悬浮栏一起注入，引入 float-dock.js 的页面自动生效
+  (function injectProtoNav() {
+    if (w.__protoNavInjected) return;
+    w.__protoNavInjected = true;
+    var css = document.createElement('link');
+    css.rel = 'stylesheet';
+    css.href = '../assets/proto-nav.css';
+    document.head.appendChild(css);
+    var js = document.createElement('script');
+    js.src = '../assets/proto-nav.js';
+    document.body.appendChild(js);
+  })();
 })(window);

@@ -248,7 +248,7 @@ function renderActions(r) {
     var btnLabel = r.type === 'exchange' ? '填写寄回物流' : '填写物流';
     html += '<button type="button" class="rd-btn primary" onclick="ReturnLogistics.open(\'' + r.id + '\', onLogisticsSubmitted)">' + btnLabel + '</button>';
   }
-  html += '<button type="button" class="rd-btn" onclick="ProtoCS.open({topic:\'refund\',order:\'' + r.orderId + '\'})">联系客服</button>';
+  html += '<button type="button" class="rd-btn" onclick="ProtoCS.openStandalone({topic:\'refund\',order:\'' + r.orderId + '\'})">联系客服</button>';
   return html;
 }
 
