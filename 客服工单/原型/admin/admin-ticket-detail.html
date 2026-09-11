@@ -290,11 +290,6 @@
                 <div class="info-row" id="dRespRow"><span class="info-label">责任承担方</span><span class="info-content" id="dResp">—</span></div>
                 <div class="info-row"><span class="info-label">优先级</span><span class="info-content urgency" id="dPriority">—</span></div>
                 <div class="info-row"><span class="info-label">完成期限</span><span class="info-content" id="dDeadline">—</span></div>
-                <div class="info-row"><span class="info-label">联系人</span><span class="info-content" id="dContact">—</span></div>
-                <!-- V0.5 三.2.6:基础联系方式(默认取订单收货信息,可改;2026-07-24 三轮:标题/客户/座机电话已移除) -->
-                <div class="info-row"><span class="info-label">移动电话</span><span class="info-content" id="dPhone">—</span></div>
-                <div class="info-row"><span class="info-label">来电电话</span><span class="info-content" id="dIncoming">—</span></div>
-                <div class="info-row"><span class="info-label">联系地址</span><span class="info-content" id="dAddr">—</span></div>
                 <!-- 2026-07-28 十三轮:项目名称 → 企业名称+品牌商城 -->
                 <div class="info-row"><span class="info-label">企业名称</span><span class="info-content" id="dEnterprise">—</span></div>
                 <div class="info-row"><span class="info-label">商城名称</span><span class="info-content" id="dMall">—</span></div>
@@ -304,6 +299,16 @@
                 <div class="info-row"><span class="info-label">二次投诉</span><span class="info-content" id="dSecondary">否</span></div>
                 <div class="info-row"><span class="info-label">受理客服</span><span class="info-content" id="dAgent">—</span></div>
                 <div class="info-row"><span class="info-label">受理时间</span><span class="info-content" id="dCreated">2026-07-16 10:30</span></div>
+              </div>
+              <!-- 2026-09-01 开发评审(34:37):收货信息从基本信息网格拆出,独立分组(与新联系人信息同款;C1 客服手动维护) -->
+              <div id="dShipGroup" style="margin-top:14px; padding-top:12px; border-top:1px dashed var(--cs-border-light);">
+                <div class="section-title" style="margin-bottom:8px;">收货信息 <span style="font-size:var(--cs-font-size-xs);color:var(--cs-text-tertiary);font-weight:normal;margin-left:6px;">客服手动维护,不随订单联动</span></div>
+                <div class="info-grid">
+                  <div class="info-row"><span class="info-label">联系人</span><span class="info-content" id="dContact">—</span></div>
+                  <div class="info-row"><span class="info-label">移动电话</span><span class="info-content" id="dPhone">—</span></div>
+                  <div class="info-row"><span class="info-label">来电电话</span><span class="info-content" id="dIncoming">—</span></div>
+                  <div class="info-row"><span class="info-label">联系地址</span><span class="info-content" id="dAddr">—</span></div>
+                </div>
               </div>
               <!-- V0.5 三.2.6:新联系人信息(收货人以外的实际联系人,有则展示) -->
               <div id="dNewContactGroup" style="display:none; margin-top:14px; padding-top:12px; border-top:1px dashed var(--cs-border-light);">
@@ -322,7 +327,8 @@
               <div class="section-title">关联订单 <span class="ord-count" id="ordCountTag"></span><button class="btn-default" id="ordAddBtn" style="margin-left:auto;" onclick="openOrderPicker()">添加订单</button></div>
               <div class="table-wrap">
                 <table class="data-table ord-table">
-                  <thead><tr><th>主订单号</th><th>子订单号</th><th>供应链SKU</th><th>SKU名称</th><th>数量</th><th>供应商名称</th><th>金额</th><th>状态</th><th style="width:60px;">操作</th></tr></thead>
+                  <!-- 2026-09-01 开发评审 O4:统一命名「供应链SKU编码 / 供应链商品名称」 -->
+                  <thead><tr><th>主订单号</th><th>子订单号</th><th>供应链SKU编码</th><th>供应链商品名称</th><th>数量</th><th>供应商名称</th><th>金额</th><th>状态</th><th style="width:60px;">操作</th></tr></thead>
                   <tbody id="orderCardList"></tbody>
                 </table>
               </div>
@@ -330,18 +336,15 @@
 
             <!-- 工单描述 -->
             <div class="card" style="padding:14px 18px; margin-bottom:12px;">
-              <div class="section-title">工单描述 <button class="btn-default" id="descEditBtn" style="margin-left:auto;" onclick="editDesc()">编辑</button><button class="btn-default" onclick="toggleHistory()">历史版本(2)</button></div>
+              <!-- 2026-09-01 开发评审 O5:历史版本功能不做,移除入口 -->
+              <div class="section-title">工单描述 <button class="btn-default" id="descEditBtn" style="margin-left:auto;" onclick="editDesc()">编辑</button></div>
               <div class="desc-text" id="descText">客户申请退货退款,等客户提供物流单号后录入。从会话转入,附带完整聊天记录。</div>
               <div class="desc-editor" id="descEditor" style="display:none;margin-top:8px;">
-                <textarea id="descInput" class="desc-input" rows="3"></textarea>
+                <textarea id="descInput" class="desc-input" rows="3" maxlength="200"></textarea><!-- 2026-09-01 开发评审 O2:限 200 字符 -->
                 <div style="margin-top:6px;display:flex;gap:8px;">
-                  <button class="btn-primary" onclick="saveDesc()">保存为新版本</button>
+                  <button class="btn-primary" onclick="saveDesc()">保存</button>
                   <button class="btn-default" onclick="cancelDesc()">取消</button>
                 </div>
-              </div>
-              <div id="descHistory" style="display:none;margin-top:10px;border-top:1px dashed var(--cs-border-light);padding-top:10px;">
-                <div class="desc-ver"><span class="ver-tag">v1</span><span class="ver-meta">07-16 10:30 · 张小明(创建)</span><div class="ver-text">客户申请退货退款。</div></div>
-                <div class="desc-ver"><span class="ver-tag">v2</span><span class="ver-meta">07-16 11:00 · 张小明</span><div class="ver-text">已寄回,等客户物流单号。</div></div>
               </div>
             </div>
 
@@ -353,30 +356,22 @@
               </div>
             </div>
 
-            <!-- 操作日志(2026-07-28:由右栏移至主栏左下方/附件之后,随主栏滚动;右栏仅留工单跟进延伸满高) -->
-            <div class="card" style="padding:14px 18px; margin-bottom:12px;">
-              <div class="section-title">操作日志</div>
-              <div class="event-flow" id="eventFlow">
-                <!-- 时间降序:最新在上;不显示角色,系统操作账号名=系统 -->
-                <div class="ev-item"><span class="ev-time">07-16 10:30</span><span class="ev-text">受理客服首次跟进,自动受理 → 处理中</span><span class="ev-who">张小明</span></div>
-                <div class="ev-item"><span class="ev-time">07-16 10:30</span><span class="ev-text">工单创建(从会话转入)</span><span class="ev-who">张小明</span></div>
-              </div>
-            </div>
+            <!-- 2026-09-01 开发评审 O5:操作日志 UI 1 期不开发(区块移除),待统一操作日志系统;底层事件流水保留(见 addEvent) -->
 
           </div>
 
           <div class="detail-side">
 
             <!-- 工单跟进(原内部备注;右栏动线,延伸满高;样式与操作日志一致=时间+内容+操作账号;「添加备注」在卡片右上角,点击后输入框出现在底部) -->
+            <!-- 2026-09-01 开发评审(39:14):纯内部工单,去掉「仅客服可见」客户可见性标注 -->
             <div class="card" style="padding:14px 18px;">
               <div class="section-title">工单跟进 <button class="btn-default note-add-trigger" id="noteAddTrigger" style="margin-left:auto;" onclick="openNoteEditor()">添加备注</button></div>
               <div class="event-flow side-scroll" id="noteFlow">
-                <div class="ev-item"><span class="ev-time">07-16 10:35</span><span class="ev-text">已联系确认,等客户寄出后录单号。(仅客服可见)</span><span class="ev-who">张小明</span></div>
+                <div class="ev-item"><span class="ev-time">07-16 10:35</span><span class="ev-text">已联系确认,等客户寄出后录单号。</span><span class="ev-who">张小明</span></div>
               </div>
               <div class="reply-box" id="noteEditor" style="display:none; margin-top:12px;">
-                <textarea id="replyInput" placeholder="添加跟进内容(仅客服可见)…"></textarea>
+                <textarea id="replyInput" placeholder="添加跟进内容…"></textarea>
                 <div class="reply-foot">
-                  <span class="hint">仅客服可见</span>
                   <span style="display:flex; align-items:center; gap:10px;">
                     <a style="font-size:var(--cs-font-size-xs); color:var(--cs-text-tertiary); cursor:pointer;" onclick="closeNoteEditor()">取消</a>
                     <button class="btn-primary" onclick="sendReply()">添加备注</button>
@@ -540,7 +535,7 @@
       /* 未处理:跟进入口在工单跟进卡(首次跟进自动受理→处理中),底部仅返回 */
       bar.innerHTML = back;
     } else if (STATUS === '处理中') {
-      bar.innerHTML = back + '<button class="btn-default" onclick="remindTicket()">催办</button><button class="btn-default" onclick="gotoWorkbench()">回复用户</button><button class="btn-default" onclick="startAfterSale()">发起售后</button><button class="btn-default" onclick="startCompensation()">发起补偿</button><button class="btn-primary" onclick="finishTicket()">完工</button>';
+      bar.innerHTML = back + '<button class="btn-default" onclick="startAfterSale()">发起售后</button><button class="btn-default" onclick="startCompensation()">发起补偿</button><button class="btn-primary" onclick="finishTicket()">完工</button>';
     } else {
       bar.innerHTML = back;
     }
@@ -635,10 +630,10 @@
     renderDetailCountdown();
   }
 
-  /* 2026-07-28 十七轮:发起售后 / 发起补偿 → 跳 OMS 对应页(占位),携带工单号 */
-  function startAfterSale() { toast('跳转发起售后(携带工单 ' + DATA.id + ')'); setTimeout(function () { location.href = 'admin-after-sale.html?ticket_id=' + encodeURIComponent(DATA.id); }, 400); }
+  /* 2026-09-01 开发评审 C2:发起售后——售后监控未预留关联字段,新页签打开并弹「新增售后申请」,不带任何字段;
+     发起补偿(积分页)预留了字段,保持携带工单号 */
+  function startAfterSale() { toast('新页签打开售后监控,弹「新增售后申请」(不带字段,客服自填)'); setTimeout(function () { window.open('admin-after-sale.html?new=1', '_blank'); }, 400); }
   function startCompensation() { toast('跳转发起补偿(携带工单 ' + DATA.id + ')'); setTimeout(function () { location.href = 'admin-compensation.html?ticket_id=' + encodeURIComponent(DATA.id); }, 400); }
-  function remindTicket() { toast('已催办,已通知处理人'); addEvent('催办'); }
   function uploadAttach() {
     var list = document.getElementById('attachList');
     var now = new Date();
@@ -666,7 +661,7 @@
     var it = document.createElement('div'); it.className = 'ev-item';
     var now = new Date();
     var ts = ('0' + (now.getMonth() + 1)).slice(-2) + '-' + ('0' + now.getDate()).slice(-2) + ' ' + ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2);
-    it.innerHTML = '<span class="ev-time">' + ts + '</span><span class="ev-text">' + v.replace(/</g, '&lt;') + '(仅客服可见)</span><span class="ev-who">张小明</span>';
+    it.innerHTML = '<span class="ev-time">' + ts + '</span><span class="ev-text">' + v.replace(/</g, '&lt;') + '</span><span class="ev-who">张小明</span>';
     flow.insertBefore(it, flow.firstChild); /* 时间降序:最新在上 */
     flow.scrollTop = 0;
     document.getElementById('replyInput').value = '';
@@ -675,13 +670,12 @@
     else { toast('跟进已添加'); }
     addEvent('添加工单跟进');
   }
-  function gotoWorkbench() { toast('跳转到会话工作台回复用户'); setTimeout(function () { location.href = 'admin-workbench.html'; }, 400); }
-  /* UC-TD:查看来源会话 → 跳工作台并定位会话 */
   function gotoSession() { toast('跳回客服工作台,定位会话 ' + DATA.session); setTimeout(function () { location.href = 'admin-workbench.html?session=' + encodeURIComponent(DATA.session); }, 400); }
   /* 操作日志:每条 = 时间 + 内容 + 操作账号(不显示角色;系统操作账号名=系统);时间降序,最新插到顶部 */
   function addEvent(text, who, role) {
     who = (role === '系统') ? '系统' : (who || '张小明');
     var flow = document.getElementById('eventFlow');
+    if (!flow) return; /* 2026-09-01 评审 O5:操作日志 UI 不开发,仅留底层流水口 */
     var it = document.createElement('div'); it.className = 'ev-item';
     var now = new Date();
     var ts = ('0' + (now.getMonth() + 1)).slice(-2) + '-' + ('0' + now.getDate()).slice(-2) + ' ' + ('0' + now.getHours()).slice(-2) + ':' + ('0' + now.getMinutes()).slice(-2);
@@ -690,8 +684,8 @@
   }
   function editDesc() { document.getElementById('descInput').value = document.getElementById('descText').textContent; document.getElementById('descEditor').style.display = ''; document.getElementById('descText').style.display = 'none'; }
   function cancelDesc() { document.getElementById('descEditor').style.display = 'none'; document.getElementById('descText').style.display = ''; }
-  function saveDesc() { var v = document.getElementById('descInput').value.trim(); if (!v) { toast('请输入工单描述'); return; } document.getElementById('descText').textContent = v; cancelDesc(); toast('描述已更新为新版本(旧版本已保留)'); addEvent('更新工单描述(保留历史版本)'); }
-  function toggleHistory() { var h = document.getElementById('descHistory'); h.style.display = h.style.display === 'none' ? '' : 'none'; }
+  /* 2026-09-01 开发评审 O5:描述直接保存覆盖,不做历史版本 */
+  function saveDesc() { var v = document.getElementById('descInput').value.trim(); if (!v) { toast('请输入工单描述'); return; } document.getElementById('descText').textContent = v; cancelDesc(); toast('描述已更新'); addEvent('更新工单描述'); }
   function finishTicket() { setState('已完工'); toast('工单已完工(终态,如需继续请新建工单)'); addEvent('完工 → 已完工'); }
 </script>
 </body>

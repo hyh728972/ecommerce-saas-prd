@@ -68,12 +68,14 @@
   </div>
   <div class="md-filter">
     <div class="mf-item"><label>主订单号</label><input id="fOid" placeholder="主 / 子订单号" autocomplete="off" /></div>
-    <div class="mf-item"><label>供应链SKU</label><input id="fSku" placeholder="SKU / 物流编码" autocomplete="off" /></div>
-    <div class="mf-item"><label>SKU名称</label><input id="fGoods" placeholder="SKU名称关键词" autocomplete="off" /></div>
+    <!-- 2026-09-01 开发评审 O4:统一命名「供应链SKU编码 / 供应链商品名称」 -->
+    <div class="mf-item"><label>供应链SKU编码</label><input id="fSku" placeholder="供应链SKU编码" autocomplete="off" /></div>
+    <div class="mf-item"><label>供应链商品名称</label><input id="fGoods" placeholder="供应链商品名称关键词" autocomplete="off" /></div>
     <div class="mf-item"><label>供应商名称</label><input id="fSupplier" placeholder="供应商名称" autocomplete="off" /></div>
     <div class="mf-item"><label>收货手机号</label><input id="fPhone" placeholder="收货手机号" autocomplete="off" /></div>
     <div class="mf-item"><label>订单状态</label><select id="fState">
-      <option value="">全部</option><option>待发货</option><option>运输中</option><option>已签收</option><option>已完成</option><option>已取消</option>
+      <!-- 2026-09-01 开发评审(17:11):订单状态枚举以订单列表页为准 -->
+      <option value="">全部</option><option>待付款</option><option>待发货</option><option>已发货</option><option>已完成</option><option>已取消</option><option>已关闭</option>
     </select></div>
     <div class="mf-acts">
       <button class="btn-primary" id="searchBtn" type="button">查询</button>
@@ -84,7 +86,7 @@
     <table class="data-table pick-table">
       <thead><tr>
         <th><input type="checkbox" id="checkAll" title="全选当前页" /></th>
-        <th>主订单号</th><th>子订单号</th><th>供应链SKU</th><th>SKU名称</th>
+        <th>主订单号</th><th>子订单号</th><th>供应链SKU编码</th><th>供应链商品名称</th>
         <th>数量</th><th>供应商名称</th><th>金额</th><th>状态</th>
       </tr></thead>
       <tbody id="orderList"></tbody>
@@ -105,18 +107,18 @@
 
   /* mock 订单池(正式:后端按客户 / 关键词查询;1 期仅记录关联,不操作 OMS);展示列与详情/建单页关联订单卡片一致(BR-136) */
   var POOL = [
-    { id:'#DD20260710003', sub_id:'#DD20260710003-1', sku:'HZDF3100216', goods:'无线蓝牙耳机(黑色)', qty:1, supplier:'深圳声科电子', amount:'¥299', state:'已签收', time:'2026-07-10', phone:'13856782891' },
+    { id:'#DD20260710003', sub_id:'#DD20260710003-1', sku:'HZDF3100216', goods:'无线蓝牙耳机(黑色)', qty:1, supplier:'深圳声科电子', amount:'¥299', state:'已完成', time:'2026-07-10', phone:'13856782891' },
     { id:'#DD20260708001', sub_id:'#DD20260708001-1', sku:'HZDF2088771', goods:'不锈钢保温杯 500ml', qty:1, supplier:'永康精工杯业', amount:'¥89',  state:'已完成', time:'2026-07-08', phone:'13856782891' },
     { id:'#DD20260712001', sub_id:'#DD20260712001-1', sku:'HZDF3155220', goods:'男士跑步鞋 42码',   qty:1, supplier:'晋江运动鞋服', amount:'¥459', state:'待发货', time:'2026-07-12', phone:'13967855678' },
-    { id:'#DD20260711001', sub_id:'#DD20260711001-1', sku:'HZDF2099334', goods:'羽绒被 1.8m',        qty:1, supplier:'南通家纺厂',   amount:'¥699', state:'已签收', time:'2026-07-11', phone:'13567898821' },
-    { id:'#DD20260709001', sub_id:'#DD20260709001-1', sku:'HZDF2120668', goods:'玻璃水杯',           qty:2, supplier:'德力玻璃',     amount:'¥39',  state:'运输中', time:'2026-07-09', phone:'13790121024' },
+    { id:'#DD20260711001', sub_id:'#DD20260711001-1', sku:'HZDF2099334', goods:'羽绒被 1.8m',        qty:1, supplier:'南通家纺厂',   amount:'¥699', state:'已完成', time:'2026-07-11', phone:'13567898821' },
+    { id:'#DD20260709001', sub_id:'#DD20260709001-1', sku:'HZDF2120668', goods:'玻璃水杯',           qty:2, supplier:'德力玻璃',     amount:'¥39',  state:'已发货', time:'2026-07-09', phone:'13790121024' },
     { id:'#DD20260710002', sub_id:'#DD20260710002-1', sku:'HZ-A68140001-DF', goods:'测试产品',       qty:1, supplier:'宏兆自营',     amount:'¥0.01',state:'已取消', time:'2026-07-10', phone:'13677884477' },
-    { id:'#DD20260708002', sub_id:'#DD20260708002-1', sku:'HZDF2077552', goods:'蓝牙音箱',           qty:1, supplier:'深圳声科电子', amount:'¥199', state:'已签收', time:'2026-07-08', phone:'13567898821' },
+    { id:'#DD20260708002', sub_id:'#DD20260708002-1', sku:'HZDF2077552', goods:'蓝牙音箱',           qty:1, supplier:'深圳声科电子', amount:'¥199', state:'已完成', time:'2026-07-08', phone:'13567898821' },
     /* 2026-07-27 十一轮:补 5 单演示分页(共 12 单,5 条/页 3 页) */
     { id:'#DD20260713001', sub_id:'#DD20260713001-1', sku:'HZDF3166880', goods:'智能手环 8',         qty:1, supplier:'深圳声科电子', amount:'¥169', state:'待发货', time:'2026-07-13', phone:'13856782891' },
     { id:'#DD20260706001', sub_id:'#DD20260706001-1', sku:'HZDF2066112', goods:'机械键盘 87键',      qty:1, supplier:'东莞键鼠外设', amount:'¥259', state:'已完成', time:'2026-07-06', phone:'13967855678' },
-    { id:'#DD20260705001', sub_id:'#DD20260705001-1', sku:'HZDF2055339', goods:'儿童书包 蓝色',      qty:1, supplier:'泉州箱包厂',   amount:'¥129', state:'已签收', time:'2026-07-05', phone:'13567898821' },
-    { id:'#DD20260704001', sub_id:'#DD20260704001-1', sku:'HZDF2044007', goods:'陶瓷餐具 12件套',    qty:1, supplier:'景德镇陶瓷',   amount:'¥199', state:'运输中', time:'2026-07-04', phone:'13790121024' },
+    { id:'#DD20260705001', sub_id:'#DD20260705001-1', sku:'HZDF2055339', goods:'儿童书包 蓝色',      qty:1, supplier:'泉州箱包厂',   amount:'¥129', state:'已完成', time:'2026-07-05', phone:'13567898821' },
+    { id:'#DD20260704001', sub_id:'#DD20260704001-1', sku:'HZDF2044007', goods:'陶瓷餐具 12件套',    qty:1, supplier:'景德镇陶瓷',   amount:'¥199', state:'已发货', time:'2026-07-04', phone:'13790121024' },
     { id:'#DD20260703001', sub_id:'#DD20260703001-1', sku:'HZDF2033115', goods:'电动牙刷 替换头×4',  qty:2, supplier:'宁波个护电器', amount:'¥79',  state:'已完成', time:'2026-07-03', phone:'13677884477' }
   ];
 
@@ -130,7 +132,7 @@
   var F_IDS = ['fOid', 'fSku', 'fGoods', 'fSupplier', 'fPhone', 'fState'];
   function fv(id) { return (document.getElementById(id).value || '').trim(); }
 
-  /* 多字段组合筛选(AND):主/子订单号·供应链SKU·SKU名称·供应商·手机号 模糊,状态精确 */
+  /* 多字段组合筛选(AND):主/子订单号·供应链SKU编码·供应链商品名称·供应商·手机号 模糊,状态精确(O4 命名) */
   function filterPool() {
     var id = fv('fOid').toLowerCase(), sku = fv('fSku').toLowerCase(), goods = fv('fGoods').toLowerCase(),
         sup = fv('fSupplier').toLowerCase(), phone = fv('fPhone'), st = fv('fState');

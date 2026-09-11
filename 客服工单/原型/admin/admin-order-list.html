@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>订单列表 — 商城运营后台</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="js/cs-modal.js"></script>
+  <style>
+    /* ===== admin-order-list.html 页面特有样式(复刻 商城运营后台-订单列表) ===== */
+    body { margin:0; background:var(--cs-bg-page); font-family:var(--cs-font-family); }
+    .mo-app { display:flex; flex-direction:column; height:100vh; overflow:hidden; }
+
+    /* 顶栏 */
+    .mo-topbar { height:48px; background:#fff; border-bottom:1px solid var(--cs-border-light);
+      display:flex; align-items:center; justify-content:space-between; padding:0 16px; flex-shrink:0; }
+    .mo-topbar .logo { font-size:15px; font-weight:600; color:var(--cs-primary); display:flex; align-items:center; gap:6px; }
+    .mo-topbar .logo::before { content:""; width:3px; height:14px; border-radius:2px; background:var(--cs-primary); }
+    .mo-topbar .tb-icons { display:flex; align-items:center; gap:18px; color:var(--cs-text-secondary); }
+    .mo-topbar .tb-icons svg { width:16px; height:16px; cursor:pointer; }
+    .mo-topbar .tb-manual { display:flex; align-items:center; gap:4px; font-size:var(--cs-font-size-base); color:var(--cs-primary); cursor:pointer; }
+
+    .mo-body { flex:1; display:flex; min-height:0; }
+
+    /* 侧边栏(商城运营后台自有菜单,非客服模块 nav.js) */
+    .mo-sidebar { width:200px; background:#fff; border-right:1px solid var(--cs-border-light);
+      flex-shrink:0; overflow-y:auto; padding:8px 0; }
+    .mo-menu-item { display:flex; align-items:center; gap:8px; padding:10px 20px;
+      font-size:var(--cs-font-size-md); color:var(--cs-text-secondary); cursor:pointer; }
+    .mo-menu-item:hover { color:var(--cs-primary); background:var(--cs-bg-hover); }
+    .mo-menu-item .mi-icon { width:15px; height:15px; flex-shrink:0; }
+    .mo-menu-item .mi-label { flex:1; }
+    .mo-menu-item .mi-chev { width:12px; height:12px; opacity:.4; transition:transform .2s; }
+    .mo-menu-item .mi-chev.up { transform:rotate(180deg); }
+    .mo-sub-item { display:block; padding:9px 20px 9px 43px; font-size:var(--cs-font-size-base);
+      color:var(--cs-text-secondary); cursor:pointer; }
+    .mo-sub-item:hover { color:var(--cs-primary); background:var(--cs-bg-hover); }
+    .mo-sub-item.active { color:var(--cs-primary); background:var(--cs-primary-bg); font-weight:500; }
+    .mo-group.collapsed .mo-sub { display:none; }
+    .mo-group.collapsed .mi-chev { transform:rotate(-90deg); }
+
+    .mo-main { flex:1; display:flex; flex-direction:column; min-width:0; }
+
+    /* 页签栏 */
+    .mo-tabs { height:40px; background:#fff; border-bottom:1px solid var(--cs-border-light);
+      display:flex; align-items:flex-end; padding:0 12px; gap:4px; flex-shrink:0; }
+    .mo-tab { display:flex; align-items:center; gap:6px; padding:0 14px; height:32px;
+      font-size:var(--cs-font-size-base); color:var(--cs-text-secondary);
+      border:1px solid transparent; border-bottom:none; border-radius:6px 6px 0 0; cursor:pointer; }
+    .mo-tab.active { color:var(--cs-primary); background:var(--cs-bg-page);
+      border-color:var(--cs-border-light); font-weight:500; }
+    .mo-tab .tab-x { font-size:12px; color:var(--cs-text-tertiary); }
+    .mo-tab .tab-x:hover { color:var(--cs-danger); }
+
+    /* 内容区 */
+    .mo-content { flex:1; overflow-y:auto; padding:12px 16px 20px; }
+
+    /* 统计卡片 */
+    .stat-cards { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:12px; }
+    .stat-card { background:#fff; border-radius:var(--cs-radius-md); padding:16px 18px;
+      display:flex; align-items:center; gap:14px; box-shadow:var(--cs-shadow-card); }
+    .stat-card .sc-icon { width:40px; height:40px; border-radius:50%; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center; }
+    .stat-card .sc-icon svg { width:20px; height:20px; }
+    .stat-card .sc-num { font-size:20px; font-weight:600; color:var(--cs-text); line-height:1.2; }
+    .stat-card .sc-label { font-size:var(--cs-font-size-sm); color:var(--cs-text-tertiary); margin-top:2px; }
+    .sc-blue   { background:var(--cs-primary-bg); color:var(--cs-primary); }
+    .sc-green  { background:var(--cs-success-bg); color:var(--cs-success); }
+    .sc-orange { background:var(--cs-orange-bg);  color:var(--cs-orange); }
+    .sc-red    { background:var(--cs-danger-bg);  color:var(--cs-danger); }
+
+    /* 筛选区 */
+    .filter-card { background:#fff; border-radius:var(--cs-radius-md); padding:16px 18px;
+      margin-bottom:12px; box-shadow:var(--cs-shadow-card); }
+    .filter-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+    .ff { display:flex; align-items:center; border:1px solid var(--cs-border);
+      border-radius:var(--cs-radius-sm); padding:0 10px; height:32px; background:#fff; }
+    .ff:hover { border-color:var(--cs-primary-hover); }
+    .ff .ff-label { flex-shrink:0; font-size:var(--cs-font-size-base); color:var(--cs-text); margin-right:6px; }
+    .ff input, .ff select { flex:1; min-width:0; border:none; outline:none; height:100%;
+      font-size:var(--cs-font-size-base); color:var(--cs-text); background:transparent; font-family:inherit; }
+    .ff input::placeholder { color:var(--cs-text-placeholder); }
+    .ff select { appearance:none; color:var(--cs-text-tertiary); cursor:pointer; }
+    .ff .ff-chev { width:12px; height:12px; color:var(--cs-text-tertiary); flex-shrink:0; }
+    .ff .ff-cal { width:14px; height:14px; color:var(--cs-text-tertiary); flex-shrink:0; }
+    .ff .ff-sep { margin:0 6px; color:var(--cs-text-tertiary); flex-shrink:0; }
+    /* 收起/展开+重置+查询:占一个组件位置(grid 最后一列右对齐;2026-07-28 同工单列表) */
+    .filter-actions { display:flex; align-items:center; justify-content:flex-end; gap:10px; grid-column:-2; height:32px; }
+    .link-collapse { display:flex; align-items:center; gap:4px; font-size:var(--cs-font-size-base);
+      color:var(--cs-primary); cursor:pointer; background:none; border:none; }
+    .link-collapse svg { width:12px; height:12px; transition:transform .2s; }
+    .filter-card.collapsed .filter-grid .ff-row-extra { display:none; }
+    .filter-card.collapsed .link-collapse svg { transform:rotate(180deg); }
+
+    /* 表格卡片 */
+    .table-card { background:#fff; border-radius:var(--cs-radius-md); box-shadow:var(--cs-shadow-card); }
+    .table-toolbar { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; }
+    .table-toolbar .gear { width:16px; height:16px; color:var(--cs-text-secondary); cursor:pointer; }
+    .table-wrap { overflow-x:auto; }
+    .order-table { border-collapse:collapse; width:100%; min-width:1780px; }
+    .order-table th, .order-table td { padding:10px 12px; font-size:var(--cs-font-size-base);
+      color:var(--cs-text-secondary); text-align:left; white-space:nowrap;
+      border-bottom:1px solid var(--cs-border-light); }
+    .order-table th { background:var(--cs-bg-header); color:var(--cs-text);
+      font-weight:var(--cs-font-weight-medium); }
+    .order-table tbody tr:hover { background:var(--cs-bg-hover); }
+    .order-table tbody tr.checked { background:var(--cs-primary-bg); }
+    .order-table tbody tr.checked:hover { background:#d6e9ff; }
+    .order-table .col-op { position:sticky; right:0; background:#fff; box-shadow:-4px 0 6px -4px rgba(0,0,0,.08); }
+    .order-table tbody tr.checked .col-op { background:var(--cs-primary-bg); }
+    .order-table tbody tr:hover .col-op { background:var(--cs-bg-hover); }
+    .order-table tbody tr.checked:hover .col-op { background:#d6e9ff; }
+    .order-table th.col-op { background:var(--cs-bg-header); }
+
+    /* 2026-07-28:子订单号为主键可点击(原挂主订单号;主子列顺序不变) */
+    .order-id-link { color:var(--cs-primary); cursor:pointer; }
+    .order-id-link:hover { text-decoration:underline; }
+
+    /* 商品信息 */
+    .goods-cell { display:flex; align-items:center; gap:8px; max-width:200px; }
+    .goods-thumb { width:32px; height:32px; border-radius:6px; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center; font-size:17px;
+      background:var(--cs-bg-header); border:1px solid var(--cs-border-light); }
+    .goods-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--cs-text); }
+
+    /* 客户信息两行 */
+    .cust-cell .c1 { color:var(--cs-text); }
+    .cust-cell .c2 { font-size:var(--cs-font-size-sm); color:var(--cs-text-tertiary); margin-top:2px; }
+
+    .price-unit  { color:var(--cs-orange); font-weight:600; }
+    .price-total { color:var(--cs-danger);  font-weight:600; }
+
+    /* 状态标签 */
+    .st-tag { display:inline-block; padding:1px 8px; border-radius:4px;
+      font-size:var(--cs-font-size-sm); line-height:20px; }
+    .st-pay     { background:var(--cs-orange-bg);  color:var(--cs-orange);  border:1px solid #ffd591; }
+    .st-ship    { background:var(--cs-primary-bg); color:var(--cs-primary); border:1px solid #91caff; }
+    .st-cancel  { background:var(--cs-danger-bg);  color:var(--cs-danger);  border:1px solid #ffa39e; }
+    .st-push-ok { background:var(--cs-success-bg); color:var(--cs-success); border:1px solid #b7eb8f; }
+    .st-as-none { background:#fafafa; color:var(--cs-text-secondary); border:1px solid var(--cs-border); }
+    .st-as-has  { background:var(--cs-orange-bg); color:var(--cs-orange);  border:1px solid #ffd591; }
+
+    .remark-cell { max-width:130px; overflow:hidden; text-overflow:ellipsis; }
+
+    .op-link { color:var(--cs-primary); cursor:pointer; margin-right:12px; }
+    .op-link:hover { text-decoration:underline; }
+    .op-more { color:var(--cs-primary); cursor:pointer; display:inline-flex; align-items:center; gap:2px; }
+    .op-more svg { width:10px; height:10px; }
+
+    /* 工具栏按钮组 + 批量按钮禁用态 */
+    .table-toolbar .tb-actions { display:flex; gap:10px; align-items:center; }
+    #btnBatchTicket:disabled { opacity:.5; cursor:not-allowed; pointer-events:none; }
+
+    /* 分页 */
+    .table-pager { display:flex; align-items:center; justify-content:flex-end; gap:10px;
+      padding:12px 16px; font-size:var(--cs-font-size-base); color:var(--cs-text-secondary); }
+    .pg-btn { min-width:28px; height:28px; padding:0 6px; border:1px solid var(--cs-border);
+      border-radius:var(--cs-radius-sm); background:#fff; color:var(--cs-text-secondary);
+      font-size:var(--cs-font-size-base); cursor:pointer; }
+    .pg-btn.active { background:var(--cs-primary); border-color:var(--cs-primary); color:#fff; }
+    .pg-btn:disabled { color:var(--cs-text-placeholder); cursor:not-allowed; background:var(--cs-bg-header); }
+    .pg-size { display:flex; align-items:center; gap:4px; border:1px solid var(--cs-border);
+      border-radius:var(--cs-radius-sm); padding:0 10px; height:28px; cursor:pointer; }
+    .pg-size svg { width:10px; height:10px; color:var(--cs-text-tertiary); }
+  </style>
+</head>
+<body>
+
+<div class="mo-app">
+
+  <!-- ===== 顶栏 ===== -->
+  <header class="mo-topbar">
+    <div class="logo">商城运营后台</div>
+    <div class="tb-icons">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" title="刷新"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" title="通知"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" title="下载"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      <span class="tb-manual">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px;height:14px;"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        操作手册
+      </span>
+    </div>
+  </header>
+
+  <div class="mo-body">
+
+    <!-- ===== 侧边栏 ===== -->
+    <aside class="mo-sidebar">
+      <div class="mo-menu-item">
+        <svg class="mi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span class="mi-label">首页</span>
+      </div>
+      <div class="mo-group collapsed">
+        <div class="mo-menu-item" onclick="this.parentElement.classList.toggle('collapsed')">
+          <svg class="mi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          <span class="mi-label">选品管理</span>
+          <svg class="mi-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+      </div>
+      <div class="mo-group collapsed">
+        <div class="mo-menu-item" onclick="this.parentElement.classList.toggle('collapsed')">
+          <svg class="mi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M12 1v4m0 14v4M4.22 4.22l2.83 2.83m9.9 9.9 2.83 2.83M1 12h4m14 0h4M4.22 19.78l2.83-2.83m9.9-9.9 2.83-2.83"/></svg>
+          <span class="mi-label">运营配置</span>
+          <svg class="mi-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+      </div>
+      <div class="mo-group collapsed">
+        <div class="mo-menu-item" onclick="this.parentElement.classList.toggle('collapsed')">
+          <svg class="mi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+          <span class="mi-label">商城装修</span>
+          <svg class="mi-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+      </div>
+      <div class="mo-group collapsed">
+        <div class="mo-menu-item" onclick="this.parentElement.classList.toggle('collapsed')">
+          <svg class="mi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
+          <span class="mi-label">活动卡券</span>
+          <svg class="mi-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+      </div>
+      <div class="mo-group collapsed">
+        <div class="mo-menu-item" onclick="this.parentElement.classList.toggle('collapsed')">
+          <svg class="mi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          <span class="mi-label">积分管理</span>
+          <svg class="mi-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+      </div>
+      <div class="mo-group">
+        <div class="mo-menu-item" style="color:var(--cs-text);" onclick="this.parentElement.classList.toggle('collapsed')">
+          <svg class="mi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          <span class="mi-label">订单与售后</span>
+          <svg class="mi-chev up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="mo-sub">
+          <a class="mo-sub-item active">订单列表<span class="menu-ver">V1.5</span></a>
+          <!-- 2026-07-27:客服工单迁入订单与售后模块(骨架同本页),互跳 -->
+          <a class="mo-sub-item" href="admin-ticket.html">客服工单<span class="menu-ver">V1.5</span></a>
+          <a class="mo-sub-item">售后监控</a>
+          <!-- 2026-07-27 十轮:「售后配置」菜单撤除 -->
+        </div>
+      </div>
+      <!-- 2026-07-28:渠道管理组默认收起(每页仅展开当前页所在组,与客服工单/工单配置页一致) -->
+      <div class="mo-group collapsed">
+        <div class="mo-menu-item" onclick="this.parentElement.classList.toggle('collapsed')">
+          <svg class="mi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span class="mi-label">渠道管理</span>
+          <svg class="mi-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="mo-sub">
+          <a class="mo-sub-item">商城列表</a>
+        </div>
+      </div>
+      <!-- 2026-07-28:本版菜单所在组(订单与售后/系统设置)默认展开,其他组收起 -->
+      <div class="mo-group">
+        <div class="mo-menu-item" onclick="this.parentElement.classList.toggle('collapsed')">
+          <svg class="mi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0-1.82.33A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82.33l.06.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0 .33 1.82V9c.26.604.852.997 1.51 1H21a2 2 0 0 1 0 4h-.09c-.658.003-1.25.396-1.51 1z"/></svg>
+          <span class="mi-label">系统设置</span>
+          <svg class="mi-chev up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="mo-sub">
+          <!-- 2026-07-28:工单配置已迁移商城运营后台骨架,同系统页内跳转;菜单常显(页面内容仅主管可配) -->
+          <a class="mo-sub-item" href="admin-ticket-settings.html" id="ticketCfgMenu">工单配置<span class="menu-ver">V1.5</span></a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ===== 主区域 ===== -->
+    <div class="mo-main">
+
+      <!-- 页签 -->
+      <div class="mo-tabs">
+        <div class="mo-tab">首页 <span class="tab-x">×</span></div>
+        <div class="mo-tab active">订单列表 <span class="tab-x">×</span></div>
+      </div>
+
+      <!-- 内容 -->
+      <main class="mo-content">
+
+        <!-- 统计卡片 -->
+        <div class="stat-cards">
+          <div class="stat-card">
+            <div class="sc-icon sc-blue">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
+            </div>
+            <div><div class="sc-num">8</div><div class="sc-label">订单总数</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="sc-icon sc-green">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2.2 0 2.9 6 1.6 6 4.4 0 1.3-1.3 2.2-3 2.2-1.4 0-2.5-.6-3-1.6"/><line x1="12" y1="6" x2="12" y2="8"/><line x1="12" y1="16" x2="12" y2="18"/></svg>
+            </div>
+            <div><div class="sc-num">¥189.01</div><div class="sc-label">订单总金额（不含退款金额）</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="sc-icon sc-orange">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+            </div>
+            <div><div class="sc-num">5</div><div class="sc-label">近七天订单数</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="sc-icon sc-red">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><polyline points="9 15 11 17 15 13"/></svg>
+            </div>
+            <div><div class="sc-num">¥17.01</div><div class="sc-label">近七天订单金额（不含退款金额）</div></div>
+          </div>
+        </div>
+
+        <!-- 筛选区 -->
+        <div class="filter-card" id="filterCard">
+          <div class="filter-grid">
+            <div class="ff"><span class="ff-label">主订单号：</span><input id="fMainOid" placeholder="请输入主订单号" /></div>
+            <div class="ff"><span class="ff-label">子订单号：</span><input id="fSubOid" placeholder="请输入子订单号" /></div>
+            <div class="ff"><span class="ff-label">SKU物流编码：</span><input placeholder="请输入SKU物流编码" /></div>
+            <!-- 2026-07-28:常显 4 项改 3 项(SKU名称转入收起项),第 4 格=操作组,同工单列表 -->
+            <div class="ff ff-row-extra"><span class="ff-label">SKU名称：</span><input placeholder="请输入SKU名称" /></div>
+            <div class="ff ff-row-extra"><span class="ff-label">客户信息：</span><input placeholder="请输入客户姓名或手机号" /></div>
+            <div class="ff ff-row-extra"><span class="ff-label">订单状态：</span>
+              <select><option>请选择订单状态</option><option>待付款</option><option>待发货</option><option>已发货</option><option>已完成</option><option>已取消</option><option>已关闭</option></select>
+              <svg class="ff-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div class="ff ff-row-extra"><span class="ff-label">售后状态：</span>
+              <select><option>请选择售后状态</option><option>无售后</option><option>有售后</option></select>
+              <svg class="ff-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div class="ff ff-row-extra"><span class="ff-label">所属商城：</span>
+              <select><option>请选择所属商城</option><option>兆点福利</option></select>
+              <svg class="ff-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div class="ff ff-row-extra"><span class="ff-label">供应商：</span>
+              <select><option>请选择供应商</option></select>
+              <svg class="ff-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div class="ff ff-row-extra" style="grid-column:span 2;"><span class="ff-label">下单时间：</span>
+              <input placeholder="开始时间" /><span class="ff-sep">→</span><input placeholder="结束时间" />
+              <svg class="ff-cal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </div>
+            <!-- 操作组:占一个组件位置(收起时第 1 行第 4 格,展开时末行末列) -->
+            <div class="filter-actions">
+              <button class="link-collapse" id="btnCollapse">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>
+                <span id="collapseText">收起</span>
+              </button>
+              <button class="btn-default">重 置</button>
+              <button class="btn-primary">查 询</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 表格 -->
+        <div class="table-card">
+          <div class="table-toolbar">
+            <div class="tb-actions">
+              <button class="btn-default">导出订单</button>
+              <button class="btn-primary" id="btnBatchTicket" disabled title="勾选多个订单后批量创建工单">批量创建工单</button>
+            </div>
+            <svg class="gear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" title="列设置"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0-1.82.33A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82.33l.06.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0 .33 1.82V9c.26.604.852.997 1.51 1H21a2 2 0 0 1 0 4h-.09c-.658.003-1.25.396-1.51 1z"/></svg>
+          </div>
+          <div class="table-wrap">
+            <table class="order-table">
+              <thead>
+                <tr>
+                  <th style="width:36px;"><input type="checkbox" id="checkAll" /></th>
+                  <th>主订单号</th>
+                  <th>子订单号</th>
+                  <th>商品信息</th>
+                  <th>SKU物流编码</th>
+                  <th>所属商城</th>
+                  <th>供应商</th>
+                  <th>下单时间</th>
+                  <th>客户信息</th>
+                  <th>销售单价</th>
+                  <th>商品数量</th>
+                  <th>订单总金额</th>
+                  <th>支付积分</th>
+                  <th>订单状态</th>
+                  <th>OMS推送状态</th>
+                  <th>售后状态</th>
+                  <th>订单备注</th>
+                  <th class="col-op">操作</th>
+                </tr>
+              </thead>
+              <tbody id="orderTbody">
+                <tr class="checked">
+                  <td><input type="checkbox" class="row-check" checked /></td>
+                  <td>260717081900001</td>
+                  <td><span class="order-id-link">260717081900001</span></td>
+                  <td><div class="goods-cell"><span class="goods-thumb">🧴</span><span class="goods-name">劳工牌 强效去油洗手液 500ml×2</span></div></td>
+                  <td>HZDF2130894</td>
+                  <td>兆点福利</td>
+                  <td>-</td>
+                  <td>2026-07-17 08:19:08</td>
+                  <td><div class="cust-cell"><div class="c1">18612206600</div><div class="c2">186****6600</div></div></td>
+                  <td><span class="price-unit">¥38.00</span></td>
+                  <td>1</td>
+                  <td><span class="price-total">¥38.00</span></td>
+                  <td>0</td>
+                  <td><span class="st-tag st-pay">待付款</span></td>
+                  <td>-</td>
+                  <td><span class="st-tag st-as-none">无售后</span></td>
+                  <td class="remark-cell">-</td>
+                  <td class="col-op"><span class="op-link">详情</span><span class="op-more">更多<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></span></td>
+                </tr>
+                <tr>
+                  <td><input type="checkbox" class="row-check" /></td>
+                  <td>260717080500001</td>
+                  <td><span class="order-id-link">260717080500001</span></td>
+                  <td><div class="goods-cell"><span class="goods-thumb">🥜</span><span class="goods-name">鲜记 多彩花生258克 罐装</span></div></td>
+                  <td>HZDF2009410</td>
+                  <td>兆点福利</td>
+                  <td>-</td>
+                  <td>2026-07-17 08:05:27</td>
+                  <td><div class="cust-cell"><div class="c1">13510167593</div><div class="c2">135****7593</div></div></td>
+                  <td><span class="price-unit">¥17.00</span></td>
+                  <td>1</td>
+                  <td><span class="price-total">¥17.00</span></td>
+                  <td>1,700</td>
+                  <td><span class="st-tag st-ship">待发货</span></td>
+                  <td><span class="st-tag st-push-ok">推送成功</span></td>
+                  <td><span class="st-tag st-as-none">无售后</span></td>
+                  <td class="remark-cell" title="测试订单，真实交易请勿发货">测试订单，真实交…</td>
+                  <td class="col-op"><span class="op-link">详情</span><span class="op-more">更多<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></span></td>
+                </tr>
+                <tr>
+                  <td><input type="checkbox" class="row-check" /></td>
+                  <td>260716184700001</td>
+                  <td><span class="order-id-link">260716184700001</span></td>
+                  <td><div class="goods-cell"><span class="goods-thumb">🌐</span><span class="goods-name">测试产品</span></div></td>
+                  <td>HZ-A68140001-DF</td>
+                  <td>兆点福利</td>
+                  <td>-</td>
+                  <td>2026-07-16 18:47:59</td>
+                  <td><div class="cust-cell"><div class="c1">15605951330</div><div class="c2">156****1330</div></div></td>
+                  <td><span class="price-unit">¥0.01</span></td>
+                  <td>1</td>
+                  <td><span class="price-total">¥0.01</span></td>
+                  <td>0</td>
+                  <td><span class="st-tag st-ship">待发货</span></td>
+                  <td><span class="st-tag st-push-ok">推送成功</span></td>
+                  <td><span class="st-tag st-as-has">有售后</span></td>
+                  <td class="remark-cell">-</td>
+                  <td class="col-op"><span class="op-link">详情</span><span class="op-more">更多<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></span></td>
+                </tr>
+                <tr>
+                  <td><input type="checkbox" class="row-check" /></td>
+                  <td>260716180200001</td>
+                  <td><span class="order-id-link">260716180200001</span></td>
+                  <td><div class="goods-cell"><span class="goods-thumb">🌐</span><span class="goods-name">测试产品</span></div></td>
+                  <td>HZ-A68140001-DF</td>
+                  <td>兆点福利</td>
+                  <td>-</td>
+                  <td>2026-07-16 18:02:39</td>
+                  <td><div class="cust-cell"><div class="c1">15605951330</div><div class="c2">156****1330</div></div></td>
+                  <td><span class="price-unit">¥0.01</span></td>
+                  <td>1</td>
+                  <td><span class="price-total">¥0.01</span></td>
+                  <td>0</td>
+                  <td><span class="st-tag st-cancel">已取消</span></td>
+                  <td>-</td>
+                  <td><span class="st-tag st-as-none">无售后</span></td>
+                  <td class="remark-cell">-</td>
+                  <td class="col-op"><span class="op-link">详情</span><span class="op-more">更多<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></span></td>
+                </tr>
+                <tr>
+                  <td><input type="checkbox" class="row-check" /></td>
+                  <td>260716140900001</td>
+                  <td><span class="order-id-link">260716140900001</span></td>
+                  <td><div class="goods-cell"><span class="goods-thumb">🌐</span><span class="goods-name">测试产品</span></div></td>
+                  <td>HZ-A68140001-DF</td>
+                  <td>兆点福利</td>
+                  <td>-</td>
+                  <td>2026-07-16 14:09:39</td>
+                  <td><div class="cust-cell"><div class="c1">15605951330</div><div class="c2">156****1330</div></div></td>
+                  <td><span class="price-unit">¥0.01</span></td>
+                  <td>1</td>
+                  <td><span class="price-total">¥0.01</span></td>
+                  <td>0</td>
+                  <td><span class="st-tag st-pay">待付款</span></td>
+                  <td>-</td>
+                  <td><span class="st-tag st-as-none">无售后</span></td>
+                  <td class="remark-cell">-</td>
+                  <td class="col-op"><span class="op-link">详情</span><span class="op-more">更多<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></span></td>
+                </tr>
+                <tr>
+                  <td><input type="checkbox" class="row-check" /></td>
+                  <td>260713162500001</td>
+                  <td><span class="order-id-link">260713162500001</span></td>
+                  <td><div class="goods-cell"><span class="goods-thumb">🧴</span><span class="goods-name">劳工牌 强效去油洗手液 500ml×2</span></div></td>
+                  <td>HZDF2130894</td>
+                  <td>兆点福利</td>
+                  <td>-</td>
+                  <td>2026-07-13 16:25:19</td>
+                  <td><div class="cust-cell"><div class="c1">用户151****7193</div><div class="c2">151****7193</div></div></td>
+                  <td><span class="price-unit">¥38.00</span></td>
+                  <td>1</td>
+                  <td><span class="price-total">¥38.00</span></td>
+                  <td>0</td>
+                  <td><span class="st-tag st-pay">待付款</span></td>
+                  <td>-</td>
+                  <td><span class="st-tag st-as-none">无售后</span></td>
+                  <td class="remark-cell">-</td>
+                  <td class="col-op"><span class="op-link">详情</span><span class="op-more">更多<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></span></td>
+                </tr>
+                <tr>
+                  <td><input type="checkbox" class="row-check" /></td>
+                  <td>260711180400001</td>
+                  <td><span class="order-id-link">260711180400001</span></td>
+                  <td><div class="goods-cell"><span class="goods-thumb">🌾</span><span class="goods-name">鑫稻田 五常尊品香米 5kg</span></div></td>
+                  <td>HZDF2135268</td>
+                  <td>兆点福利</td>
+                  <td>-</td>
+                  <td>2026-07-11 18:04:07</td>
+                  <td><div class="cust-cell"><div class="c1">13798272712</div><div class="c2">137****2712</div></div></td>
+                  <td><span class="price-unit">¥86.00</span></td>
+                  <td>1</td>
+                  <td><span class="price-total">¥86.00</span></td>
+                  <td>8,600</td>
+                  <td><span class="st-tag st-cancel">已关闭</span></td>
+                  <td><span class="st-tag st-push-ok">推送成功</span></td>
+                  <td><span class="st-tag st-as-has">有售后</span></td>
+                  <td class="remark-cell">-</td>
+                  <td class="col-op"><span class="op-link">详情</span><span class="op-more">更多<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></span></td>
+                </tr>
+                <tr>
+                  <td><input type="checkbox" class="row-check" /></td>
+                  <td>260710183000001</td>
+                  <td><span class="order-id-link">260710183000001</span></td>
+                  <td><div class="goods-cell"><span class="goods-thumb">🌾</span><span class="goods-name">鑫稻田 五常尊品香米 5kg</span></div></td>
+                  <td>HZDF2135268</td>
+                  <td>兆点福利</td>
+                  <td>-</td>
+                  <td>2026-07-10 18:30:41</td>
+                  <td><div class="cust-cell"><div class="c1">用户136****2550</div><div class="c2">136****2550</div></div></td>
+                  <td><span class="price-unit">¥86.00</span></td>
+                  <td>1</td>
+                  <td><span class="price-total">¥86.00</span></td>
+                  <td>8,600</td>
+                  <td><span class="st-tag st-ship">待发货</span></td>
+                  <td><span class="st-tag st-push-ok">推送成功</span></td>
+                  <td><span class="st-tag st-as-none">无售后</span></td>
+                  <td class="remark-cell">-</td>
+                  <td class="col-op"><span class="op-link">详情</span><span class="op-more">更多<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="table-pager">
+            <span>第1-8条/总共8条</span>
+            <button class="pg-btn" disabled>&lt;</button>
+            <button class="pg-btn active">1</button>
+            <button class="pg-btn" disabled>&gt;</button>
+            <span class="pg-size">10 条/页
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </span>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* 筛选区 收起/展开 */
+  var filterCard = document.getElementById('filterCard');
+  document.getElementById('btnCollapse').addEventListener('click', function () {
+    filterCard.classList.toggle('collapsed');
+    document.getElementById('collapseText').textContent =
+      filterCard.classList.contains('collapsed') ? '展开' : '收起';
+  });
+
+  /* 行勾选:全选 + 行高亮 */
+  var checkAll = document.getElementById('checkAll');
+  var rowChecks = document.querySelectorAll('.row-check');
+  function syncRow(tr) { tr.classList.toggle('checked', tr.querySelector('.row-check').checked); }
+
+  /* V0.5:批量创建工单按钮 —— 随勾选联动激活并显示已选数量 */
+  var btnBatch = document.getElementById('btnBatchTicket');
+  function syncBatchBtn() {
+    var n = document.querySelectorAll('.row-check:checked').length;
+    btnBatch.disabled = n === 0;
+    btnBatch.textContent = n > 0 ? ('批量创建工单(' + n + ')') : '批量创建工单';
+  }
+  syncBatchBtn();
+
+  checkAll.addEventListener('change', function () {
+    rowChecks.forEach(function (c) { c.checked = checkAll.checked; syncRow(c.closest('tr')); });
+    syncBatchBtn();
+  });
+  rowChecks.forEach(function (c) {
+    c.addEventListener('change', function () {
+      syncRow(c.closest('tr'));
+      checkAll.checked = document.querySelectorAll('.row-check:checked').length === rowChecks.length;
+      syncBatchBtn();
+    });
+  });
+  btnBatch.addEventListener('click', function () {
+    var picked = [];
+    rowChecks.forEach(function (c) {
+      if (c.checked) { var tr = c.closest('tr'); var oid = (tr.children[1] || {}).textContent || ''; if (oid.trim()) picked.push(oid.trim()); }
+    });
+    if (!picked.length) { if (window.csModal && csModal.toast) csModal.toast('请先勾选订单'); return; }
+    /* 不限制客户:所选订单合并为一张工单(工单-订单 1 对多),进建单页补充分类后提交 */
+    location.href = 'admin-ticket-create.html?mode=batch&oids=' + encodeURIComponent(picked.join(','));
+  });
+
+  /* 2026-07-28:订单列表去掉单行「创建工单」入口,仅保留顶部「批量创建工单」(勾选 ≥1 单 → mode=batch) */
+
+  /* 从工单侧跳入(2026-07-27 跳入;2026-07-28 改按子订单号):?oid=子订单号 → 预填筛选框 + 只显示该订单;
+   * mock 单号未全量打通(工单侧 #DD… / 本页 15 位),查不到时合成一行演示结果 */
+  (function () {
+    var oid = new URLSearchParams(location.search).get('oid');
+    if (!oid) return;
+    document.getElementById('fSubOid').value = oid;
+    var tbody = document.getElementById('orderTbody');
+    var rows = Array.prototype.slice.call(tbody.querySelectorAll('tr'));
+    var hit = rows.filter(function (r) { return r.children[2] && r.children[2].textContent.trim() === oid; });
+    if (hit.length) {
+      rows.forEach(function (r) { r.style.display = hit.indexOf(r) >= 0 ? '' : 'none'; });
+    } else {
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td><input type="checkbox" class="row-check" /></td>'
+        + '<td>' + oid + '</td>'
+        + '<td><span class="order-id-link">' + oid + '</span></td>'
+        + '<td><div class="goods-cell"><span class="goods-thumb">📦</span><span class="goods-name">工单关联订单(演示数据,OMS 待对接)</span></div></td>'
+        + '<td>-</td><td>兆点福利</td><td>-</td><td>-</td>'
+        + '<td><div class="cust-cell"><div class="c1">-</div><div class="c2">-</div></div></td>'
+        + '<td><span class="price-unit">-</span></td><td>-</td><td><span class="price-total">-</span></td><td>-</td>'
+        + '<td><span class="st-tag st-ship">已签收</span></td><td>-</td>'
+        + '<td><span class="st-tag st-as-none">无售后</span></td><td class="remark-cell">-</td>'
+        + '<td class="col-op"><span class="op-link">详情</span></td>';
+      rows.forEach(function (r) { r.style.display = 'none'; });
+      tbody.appendChild(tr);
+    }
+    var pager = document.querySelector('.table-pager span');
+    if (pager) pager.textContent = '第1条/总共1条';
+  })();
+</script>
+</body>
+</html>

@@ -1630,6 +1630,7 @@
     }
     #ticketDrawer .tk-sel:focus { border-color:var(--cs-primary); }
     #ticketDrawer .tk-req { color:var(--cs-danger); margin-left:2px; }
+    #ticketDrawer .tk-opt { color:var(--cs-text-placeholder); font-weight:400; margin-left:2px; }
     #ticketDrawer .tk-row2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
     #ticketDrawer .tk-row2 .tk-field > label { width:64px; }
     #ticketDrawer .tk-ord-list { display:flex; flex-direction:column; gap:6px; }
@@ -2574,7 +2575,10 @@
         <div class="tk-field"><label>协助部门<span class="tk-req">*</span></label><select class="tk-sel" id="tkDept"></select></div>
       </div>
       <div class="tk-row2">
+        <div class="tk-field"><label>来源<span class="tk-opt">(选填)</span></label><select class="tk-sel" id="tkSource"><option value="客服创建">客服创建</option><option value="电话">电话</option><option value="邮件">邮件</option><option value="线下/其他">线下/其他</option></select></div>
         <div class="tk-field"><label>受理客服<span class="tk-req">*</span></label><select class="tk-sel" id="tkAccept"></select></div>
+      </div>
+      <div class="tk-row2">
         <div class="tk-field"><label>二次投诉</label><select class="tk-sel" id="tkSec2"><option>否</option><option>是</option></select></div>
       </div>
       <div class="tk-sec">关联订单<span class="tk-cnt" id="tkOrdCnt"></span><button type="button" class="tk-add" id="tkAddOrd">+ 添加订单</button></div>
@@ -4447,6 +4451,7 @@
     var deptSel    = document.getElementById('tkDept');
     var acceptSel  = document.getElementById('tkAccept');
     var sec2Sel    = document.getElementById('tkSec2');
+    var srcSel     = document.getElementById('tkSource');
     var ordListEl  = document.getElementById('tkOrdList');
     var ordCntEl   = document.getElementById('tkOrdCnt');
     var descEl     = document.getElementById('tkDesc');
@@ -4549,6 +4554,7 @@
       respSel.value = ''; priSel.value = ''; dlSel.value = '';
       fbSel.value = '在线客服会话'; /* 工作台建单来自在线会话，默认反馈方式=在线客服会话，可改 */
       deptSel.value = ''; sec2Sel.value = '否';
+      srcSel.value = '客服创建'; /* 来源(选填),与建单独立页同口径;抽屉顶部另有来源会话上下文 */
       acceptSel.value = '张小明'; /* 默认当前客服，可改 */
       descEl.value = '';
       respWrap.style.display = 'none';
@@ -4615,7 +4621,7 @@
         id: tkId, biz: biz, priority: priSel.value || '一般',
         responsible: isComplain(biz) ? respSel.value : '',
         feedback: fbSel.value, dept: deptSel.value, acceptor: acceptSel.value,
-        secondary: sec2Sel.value, deadline: dlSel.value,
+        source: srcSel.value, secondary: sec2Sel.value, deadline: dlSel.value,
         orders: curOrders.slice(), desc: descEl.value.trim(),
         session: sessionIdFor(info.name), cust: info.name, phone: info.phone,
         ent: info.ent, mall: info.mall, status: '未处理', createdAt: nowStr()

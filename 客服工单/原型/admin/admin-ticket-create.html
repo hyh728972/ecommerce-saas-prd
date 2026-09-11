@@ -309,6 +309,7 @@
               <select class="fm-select" id="fSecondary"><option value="否">否</option><option value="是">是</option></select>
             </div>
             <!-- 2026-07-28 十七轮:受理客服(跟进人)建单时指定,默认当前客服;取代原「指派」动作 -->
+            <!-- 2026-09-01 开发评审 C3:下拉取商城运营后台权限系统中拥有「客服」角色的用户列表(角色名以权限系统现值为准) -->
             <div class="fm-field">
               <label class="fm-label">受理客服<span class="req">*</span></label>
               <select class="fm-select" id="fAcceptor"></select>
@@ -332,7 +333,8 @@
           <div class="table-wrap">
           <table class="data-table ord-table">
             <thead>
-              <tr><th>主订单号</th><th>子订单号</th><th>供应链SKU</th><th>SKU名称</th><th>数量</th><th>供应商名称</th><th>金额</th><th>状态</th><th style="width:70px;">操作</th></tr>
+              <!-- 2026-09-01 开发评审 O4:统一命名「供应链SKU编码 / 供应链商品名称」 -->
+              <tr><th>主订单号</th><th>子订单号</th><th>供应链SKU编码</th><th>供应链商品名称</th><th>数量</th><th>供应商名称</th><th>金额</th><th>状态</th><th style="width:70px;">操作</th></tr>
             </thead>
             <tbody id="orderCardList"></tbody>
           </table>
@@ -341,16 +343,21 @@
 
         <!-- 联系方式 -->
         <div class="card fm-card" style="padding:16px 18px; margin-bottom:12px;">
-          <div class="fm-sec">联系方式<span class="sec-tip">默认取订单收货,可改</span></div>
+          <!-- 2026-09-01 开发评审(34:37):联系方式拆「收货信息 / 新联系人信息」两块;收货信息客服手动填写(C1) -->
+          <div class="fm-sec">收货信息<span class="sec-tip">客服手动填写,不自动带出、不随订单联动</span></div>
           <div class="fm-row">
             <div class="fm-field"><label class="fm-label">联系人</label><input class="fm-input" id="fContactName" placeholder="联系人姓名" /></div>
             <div class="fm-field"><label class="fm-label">移动电话</label><input class="fm-input" id="fContactPhone" placeholder="移动电话" /></div>
             <div class="fm-field"><label class="fm-label">来电电话</label><input class="fm-input" id="fIncomingCall" placeholder="来电电话" /></div>
             <div class="fm-field"><label class="fm-label">联系地址</label><input class="fm-input" id="fContactAddr" placeholder="联系地址" /></div>
           </div>
-          <button class="btn-default" type="button" id="newContactToggle" style="margin-top:2px;" title="收货人以外的实际联系人">添加新联系人</button>
+        </div>
+
+        <!-- 新联系人信息(独立卡;仅一条,C1) -->
+        <div class="card fm-card" style="padding:16px 18px; margin-bottom:12px;">
+          <div class="fm-sec">新联系人信息<button class="btn-default" type="button" id="newContactToggle" style="margin-left:auto;" title="收货人以外的实际联系人,仅一条">添加新联系人</button></div>
           <div class="collapsible" id="newContactBox">
-            <div class="fm-row" style="margin-top:8px;">
+            <div class="fm-row">
               <div class="fm-field"><label class="fm-label">新联系人</label><input class="fm-input" id="fNewName" placeholder="新联系人" /></div>
               <div class="fm-field"><label class="fm-label">新移动电话</label><input class="fm-input" id="fNewPhone" placeholder="新移动电话" /></div>
               <div class="fm-field"><label class="fm-label">新座机</label><input class="fm-input" id="fNewTel" placeholder="新座机电话" /></div>
@@ -364,7 +371,8 @@
         <!-- 工单描述 -->
         <div class="card fm-card" style="padding:16px 18px; margin-bottom:12px;">
           <div class="fm-sec">工单描述</div>
-          <textarea class="fm-textarea" id="fDesc" placeholder="详细描述问题"></textarea>
+          <!-- 2026-09-01 开发评审 O2:工单描述限 200 字符 -->
+          <textarea class="fm-textarea" id="fDesc" maxlength="200" placeholder="详细描述问题(限 200 字符)"></textarea>
         </div>
 
         <div class="fm-actions">
@@ -448,9 +456,7 @@
       + '<div class="ctx-row">企业:<b>' + esc(enterprise) + '</b> · 商城:<b>' + esc(mall) + '</b> · 订单状态:' + esc(ostate) + '</div>';
     state.orders = oid ? [{ id: oid, sub_id: subId, sku: sku, goods: goods, qty: qty, supplier: supplier, amount: amount, state: ostate }] : [];
     renderCreateOrders();
-    document.getElementById('fContactName').value = receiver;
-    document.getElementById('fContactPhone').value = phone;
-    document.getElementById('fContactAddr').value = raddr;
+    /* 2026-09-01 开发评审 C1:联系方式不再从订单自动带出,由客服手动填写(上下文卡仍展示收货人/地址供参考) */
     document.getElementById('fEnterprise').value = enterprise;
     document.getElementById('fMall').value = mall;
     state.order_ids = oid ? [oid] : [];
@@ -484,6 +490,7 @@
     ctxBox.innerHTML = '<div class="ctx-title">已从会话带入(创建工单)</div>'
       + '<div class="ctx-row">客户:<b>' + esc(nm) + '</b> · 手机:<b>' + esc(ph) + '</b></div>'
       + '<div class="ctx-row">来源会话:<b>' + esc(sid) + '</b> · 企业:<b>' + esc(en) + '</b> · 商城:<b>' + esc(ma) + '</b></div>'
+      + '<div class="ctx-row">来源:<b>会话创建</b>(系统记录) · 表单「来源」为补充渠道,默认客服创建</div>'
       + '<div class="ctx-row">客户原话:<span style="font-weight:normal;color:var(--cs-text-secondary);">「' + esc(ds) + '」</span></div>';
     /* 会话入口不带订单:关联订单由客服在建单页自行添加(避免带入不匹配的 mock 订单) */
     state.orders = []; renderCreateOrders();
@@ -497,6 +504,9 @@
     document.getElementById('fFeedback').value = '在线客服会话';
     document.getElementById('fDept').value = '客服部';
     document.getElementById('fPriority').value = '一般';
+    /* 2026-09-01:session 模式显示「来源」补充渠道字段(默认客服创建,与工作台抽屉同口径;系统来源=会话已记录) */
+    document.getElementById('sourceRow').style.display = '';
+    document.getElementById('fSource').value = '客服创建';
     state.order_ids = []; state.session_id = sid;
   }
 

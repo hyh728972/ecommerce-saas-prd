@@ -70,7 +70,8 @@
         <div class="fm-field"><label class="fm-label">受理客服<span class="req">*</span></label><select class="fm-select" id="fAcceptor"></select></div>
       </div>
 
-      <div class="fm-sec">联系方式<span class="sec-tip">改动不影响订单收货信息</span></div>
+      <!-- 2026-09-01 开发评审(34:37):联系方式拆「收货信息 / 新联系人信息」两块;收货信息客服手动维护(C1) -->
+      <div class="fm-sec">收货信息<span class="sec-tip">客服手动填写,不随订单联动</span></div>
       <div class="fm-row">
         <div class="fm-field"><label class="fm-label">联系人</label><input class="fm-input" id="fContactName" placeholder="联系人姓名" /></div>
         <div class="fm-field"><label class="fm-label">移动电话</label><input class="fm-input" id="fContactPhone" placeholder="移动电话" /></div>
@@ -79,7 +80,8 @@
         <div class="fm-field"><label class="fm-label">来电电话</label><input class="fm-input" id="fIncomingCall" placeholder="来电电话" /></div>
         <div class="fm-field"><label class="fm-label">联系地址</label><input class="fm-input" id="fContactAddr" placeholder="联系地址" /></div>
       </div>
-      <button class="btn-default" type="button" id="newContactToggle" style="margin-top:2px;" title="收货人以外的实际联系人">添加新联系人</button>
+      <div class="fm-sec" style="margin-top:14px;">新联系人信息</div>
+      <button class="btn-default" type="button" id="newContactToggle" style="margin-top:2px;" title="收货人以外的实际联系人,仅一条">添加新联系人</button>
       <div class="collapsible" id="newContactBox">
         <div class="fm-row" style="margin-top:8px;">
           <div class="fm-field"><label class="fm-label">新联系人</label><input class="fm-input" id="fNewName" placeholder="新联系人" /></div>

@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>工单配置 — 商城运营后台</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="css/settings.css" />
+  <script src="js/cs-modal.js"></script>
+  <style>
+    /* ===== admin-ticket-settings.html(2026-07-28:骨架迁移商城运营后台,与订单列表/客服工单一致) ===== */
+    body { margin:0; background:var(--cs-bg-page); font-family:var(--cs-font-family); }
+    .mo-app { display:flex; flex-direction:column; height:100vh; overflow:hidden; }
+
+    /* 顶栏 */
+    .mo-topbar { height:48px; background:#fff; border-bottom:1px solid var(--cs-border-light);
+      display:flex; align-items:center; justify-content:space-between; padding:0 16px; flex-shrink:0; }
+    .mo-topbar .logo { font-size:15px; font-weight:600; color:var(--cs-primary); display:flex; align-items:center; gap:6px; }
+    .mo-topbar .logo::before { content:""; width:3px; height:14px; border-radius:2px; background:var(--cs-primary); }
+    .mo-topbar .tb-icons { display:flex; align-items:center; gap:18px; color:var(--cs-text-secondary); }
+    .mo-topbar .tb-icons svg { width:16px; height:16px; cursor:pointer; }
+    .mo-topbar .tb-manual { display:flex; align-items:center; gap:4px; font-size:var(--cs-font-size-base); color:var(--cs-primary); cursor:pointer; }
+
+    .mo-body { flex:1; display:flex; min-height:0; }
+
+    /* 侧边栏(商城运营后台自有菜单,非客服模块 nav.js) */
+    .mo-sidebar { width:200px; background:#fff; border-right:1px solid var(--cs-border-light);
+      flex-shrink:0; overflow-y:auto; padding:8px 0; }
+    .mo-menu-item { display:flex; align-items:center; gap:8px; padding:10px 20px;
+      font-size:var(--cs-font-size-md); color:var(--cs-text-secondary); cursor:pointer; }
+    .mo-menu-item:hover { color:var(--cs-primary); background:var(--cs-bg-hover); }
+    .mo-menu-item .mi-icon { width:15px; height:15px; flex-shrink:0; }
+    .mo-menu-item .mi-label { flex:1; }
+    .mo-menu-item .mi-chev { width:12px; height:12px; opacity:.4; transition:transform .2s; }
+    .mo-menu-item .mi-chev.up { transform:rotate(180deg); }
+    .mo-sub-item { display:block; padding:9px 20px 9px 43px; font-size:var(--cs-font-size-base);
+      color:var(--cs-text-secondary); cursor:pointer; text-decoration:none; }
+    .mo-sub-item:hover { color:var(--cs-primary); background:var(--cs-bg-hover); }
+    .mo-sub-item.active { color:var(--cs-primary); background:var(--cs-primary-bg); font-weight:500; }
+    .mo-group.collapsed .mo-sub { display:none; }
+    .mo-group.collapsed .mi-chev { transform:rotate(-90deg); }
+
+    .mo-main { flex:1; display:flex; flex-direction:column; min-width:0; }
+
+    /* 页签栏 */
+    .mo-tabs { height:40px; background:#fff; border-bottom:1px solid var(--cs-border-light);
+      display:flex; align-items:flex-end; padding:0 12px; gap:4px; flex-shrink:0; }
+    .mo-tab { display:flex; align-items:center; gap:6px; padding:0 14px; height:32px;
+      font-size:var(--cs-font-size-base); color:var(--cs-text-secondary);
+      border:1px solid transparent; border-bottom:none; border-radius:6px 6px 0 0; cursor:pointer; }
+    .mo-tab.active { color:var(--cs-primary); background:var(--cs-bg-page);
+      border-color:var(--cs-border-light); font-weight:500; }
+    .mo-tab .tab-x { font-size:12px; color:var(--cs-text-tertiary); }
+    .mo-tab .tab-x:hover { color:var(--cs-danger); }
+
+    /* 内容区 */
+    .mo-content { flex:1; overflow-y:auto; padding:12px 16px 20px; }
+
+    /* 吸底保存栏:适配 .mo-content padding(原 settings.css 按 24px 内边距出血) */
+    .settings-footer { margin:0 -16px -20px; }
+
+    /* 无权限占位(角色=客服时) */
+    #noPerm { padding:60px 24px; text-align:center; color:var(--cs-text-tertiary); font-size:var(--cs-font-size-md); }
+
+    /* 行式配置(责任承担方 / 优先级 / 完成期限值) */
+    .cfg-list { display:flex; flex-direction:column; gap:8px; }
+    .cfg-row { display:flex; align-items:center; gap:10px; padding:8px 12px; background:var(--cs-bg-header); border-radius:var(--cs-radius-sm); }
+    .cfg-row .cfg-name { flex:0 0 130px; border:1px solid var(--cs-border); border-radius:4px; padding:5px 8px; font-size:var(--cs-font-size-sm); background:#fff; outline:none; }
+    .cfg-row .cfg-name:focus { border-color:var(--cs-primary); }
+    /* 2026-09-01 开发评审:完成期限值固定单位后缀 */
+    .cfg-row .cfg-unit { flex:0 0 auto; margin-right:10px; align-self:center; font-size:var(--cs-font-size-sm); color:var(--cs-text-secondary); }
+    .cfg-row .cfg-desc { flex:0 1 220px; border:1px solid var(--cs-border); border-radius:4px; padding:5px 8px; font-size:var(--cs-font-size-sm); color:var(--cs-text-secondary); background:#fff; outline:none; }
+    .cfg-row .cfg-desc:focus { border-color:var(--cs-primary); }
+    .cfg-row .cfg-count { flex-shrink:0; width:96px; text-align:right; font-size:var(--cs-font-size-xs); color:var(--cs-text-tertiary); }
+    .cfg-row .cfg-count .num { color:var(--cs-text); font-weight:var(--cs-font-weight-semibold); font-size:var(--cs-font-size-sm); margin-right:4px; }
+    .cfg-row .cfg-del { flex-shrink:0; width:28px; height:28px; border:none; background:transparent; color:var(--cs-text-tertiary); cursor:pointer; font-size:16px; line-height:1; border-radius:4px; }
+    .cfg-row .cfg-del:hover { color:var(--cs-danger); background:#fff1f0; }
+    .cfg-add { display:inline-flex; align-items:center; gap:4px; margin-top:10px; padding:6px 14px; border:1px dashed var(--cs-border); background:transparent; color:var(--cs-text-secondary); border-radius:var(--cs-radius-sm); cursor:pointer; font-size:var(--cs-font-size-sm); }
+    .cfg-add:hover { color:var(--cs-primary); border-color:var(--cs-primary); }
+
+    /* 2026-07-28:工单业务类型 层级列表(原 chip 平铺改行式;一级/二级/三级均带「类型代码」可自定义) */
+    .cat-tree { display:flex; flex-direction:column; }
+    .cat-node { display:flex; align-items:center; gap:10px; padding:5px 8px; border-radius:var(--cs-radius-sm); }
+    .cat-node:hover { background:var(--cs-bg-hover); }
+    .cat-node .cat-name-ro { flex:0 0 176px; font-size:var(--cs-font-size-base); font-weight:var(--cs-font-weight-semibold); color:var(--cs-text); }
+    .cat-node .cat-name { flex:0 0 176px; border:1px solid var(--cs-border); border-radius:4px; padding:4px 8px; font-size:var(--cs-font-size-sm); background:#fff; outline:none; }
+    .cat-node .cat-name:focus { border-color:var(--cs-primary); }
+    /* 一级名称可改(2026-07-28):保持一级加粗醒目 */
+    .cat-node.lv1 .cat-name { font-size:var(--cs-font-size-base); font-weight:var(--cs-font-weight-semibold); }
+    .cat-node .cat-code { flex:0 0 116px; border:1px solid var(--cs-border); border-radius:4px; padding:4px 8px; font-size:var(--cs-font-size-xs); color:var(--cs-text-secondary); background:#fff; outline:none; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; }
+    .cat-node .cat-code:focus { border-color:var(--cs-primary); }
+    .cat-node .cat-count { flex:0 0 92px; font-size:var(--cs-font-size-xs); color:var(--cs-text-tertiary); }
+    .cat-node .cat-count .num { color:var(--cs-text); font-weight:var(--cs-font-weight-semibold); font-size:var(--cs-font-size-sm); margin-right:3px; }
+    .cat-node .op { flex-shrink:0; font-size:var(--cs-font-size-xs); cursor:pointer; }
+    .cat-node .op-del { color:var(--cs-text-tertiary); }
+    .cat-node .op-del:hover { color:var(--cs-danger); }
+    .cat-l1-body { padding-left:24px; display:flex; flex-direction:column; }
+    .cat-l2-wrap { margin-bottom:8px; }
+    .cat-l2-body { padding-left:24px; display:flex; flex-direction:column; gap:2px; margin-bottom:6px; }
+    .cat-tree .cat-add { margin:4px 0; }
+    .cat-tree .cat-add input { width:176px; border:1px dashed var(--cs-border); border-radius:4px; padding:4px 8px; font-size:var(--cs-font-size-xs); outline:none; }
+    .cat-tree .cat-add input:focus { border-color:var(--cs-primary); border-style:solid; }
+    .cat-tree .cfg-add { align-self:flex-start; margin:6px 0 16px; }
+    /* 2026-07-29:类别树列头 + 折叠 chevron + 全部展开/收起 工具条 */
+    .cat-header { display:flex; align-items:center; gap:10px; padding:4px 8px; font-size:var(--cs-font-size-xs); color:var(--cs-text-tertiary); border-bottom:1px solid var(--cs-border-lighter); margin-bottom:6px; }
+    .cat-header .h-chev { width:16px; }
+    .cat-header .h-name { flex:0 0 176px; }
+    .cat-header .h-code { flex:0 0 116px; }
+    .cat-header .h-count { flex:0 0 92px; }
+    .cat-chev { width:16px; flex-shrink:0; cursor:pointer; color:var(--cs-text-tertiary); font-size:11px; line-height:1; transition:transform .2s; user-select:none; }
+    .cat-chev.collapsed { transform:rotate(-90deg); }
+    .cat-l1-body.collapsed, .cat-l2-body.collapsed { display:none; }
+    .cat-toolbar { display:flex; gap:12px; margin:0 0 8px; }
+    .cat-toolbar .link-btn { background:transparent; border:none; color:var(--cs-primary); font-size:var(--cs-font-size-xs); cursor:pointer; padding:0; }
+    .cat-toolbar .link-btn:hover { text-decoration:underline; }
+    /* 2026-07-29:电梯导航(复用 css/settings.css 的 .settings-anchor;适配 mo-content 滚动容器) */
+    .settings-anchor { top: 0; margin-bottom: 12px; }
+    .setting-section { scroll-margin-top: 56px; }
+  </style>
+</head>
+<body>
+<div class="mo-app">
+
+  <!-- ===== 顶栏 ===== -->
+  <header class="mo-topbar">
+    <div class="logo">商城运营后台</div>
+    <div class="tb-icons">
+      <!-- 2026-07-28:角色切换演示——菜单常显,页面内容仅主管可配(客服显示无权限占位) -->
+      <span style="font-size:var(--cs-font-size-sm);color:var(--cs-text-tertiary);">当前角色</span>
+      <select class="select" id="roleSwitch" style="width:auto;min-width:0;padding:2px 8px;">
+        <option value="agent">客服</option>
+        <option value="supervisor" selected>主管</option>
+      </select>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" title="刷新"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" title="通知"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" title="下载"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      <span class="tb-manual">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:14px;height:14px;"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        操作手册
+      </span>
+    </div>
+  </header>
+
+  <div class="mo-body">
+
+    <!-- ===== 侧边栏(与订单列表/客服工单同款) ===== -->
+    <aside class="mo-sidebar">
+      <div class="mo-menu-item">
+        <svg class="mi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span class="mi-label">首页</span>
+      </div>
+      <div class="mo-group collapsed">
+        <div class="mo-menu-item" onclick="this.parentElement.classList.toggle('collapsed')">
+          <svg class="mi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+          <span class="mi-label">选品管理</span>
+          <svg class="mi-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+      </div>
+      <div class="mo-group collapsed">
+        <div class="mo-menu-item" onclick="this.parentElement.classList.toggle('collapsed')">
+          <svg class="mi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M12 1v4m0 14v4M4.22 4.22l2.83 2.83m9.9 9.9 2.83 2.83M1 12h4m14 0h4M4.22 19.78l2.83-2.83m9.9-9.9 2.83-2.83"/></svg>
+          <span class="mi-label">运营配置</span>
+          <svg class="mi-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+      </div>
+      <div class="mo-group collapsed">
+        <div class="mo-menu-item" onclick="this.parentElement.classList.toggle('collapsed')">
+          <svg class="mi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+          <span class="mi-label">商城装修</span>
+          <svg class="mi-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+      </div>
+      <div class="mo-group collapsed">
+        <div class="mo-menu-item" onclick="this.parentElement.classList.toggle('collapsed')">
+          <svg class="mi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
+          <span class="mi-label">活动卡券</span>
+          <svg class="mi-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+      </div>
+      <div class="mo-group collapsed">
+        <div class="mo-menu-item" onclick="this.parentElement.classList.toggle('collapsed')">
+          <svg class="mi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          <span class="mi-label">积分管理</span>
+          <svg class="mi-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+      </div>
+      <!-- 2026-07-28:本版菜单所在组(订单与售后/系统设置)默认展开,其他组收起 -->
+      <div class="mo-group">
+        <div class="mo-menu-item" onclick="this.parentElement.classList.toggle('collapsed')">
+          <svg class="mi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          <span class="mi-label">订单与售后</span>
+          <svg class="mi-chev up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="mo-sub">
+          <a class="mo-sub-item" href="admin-order-list.html">订单列表<span class="menu-ver">V1.5</span></a>
+          <a class="mo-sub-item" href="admin-ticket.html">客服工单<span class="menu-ver">V1.5</span></a>
+          <a class="mo-sub-item">售后监控</a>
+        </div>
+      </div>
+      <div class="mo-group collapsed">
+        <div class="mo-menu-item" onclick="this.parentElement.classList.toggle('collapsed')">
+          <svg class="mi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span class="mi-label">渠道管理</span>
+          <svg class="mi-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="mo-sub">
+          <a class="mo-sub-item">商城列表</a>
+        </div>
+      </div>
+      <div class="mo-group">
+        <div class="mo-menu-item" style="color:var(--cs-text);" onclick="this.parentElement.classList.toggle('collapsed')">
+          <svg class="mi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82.33l.06.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06a1.65 1.65 0 0 0 .33 1.82V9c.26.604.852.997 1.51 1H21a2 2 0 0 1 0 4h-.09c-.658.003-1.25.396-1.51 1z"/></svg>
+          <span class="mi-label">系统设置</span>
+          <svg class="mi-chev up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="mo-sub">
+          <a class="mo-sub-item active" id="ticketCfgMenu">工单配置<span class="menu-ver">V1.5</span></a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ===== 主区域 ===== -->
+    <div class="mo-main">
+
+      <!-- 页签 -->
+      <div class="mo-tabs">
+        <div class="mo-tab">首页 <span class="tab-x">×</span></div>
+        <div class="mo-tab active">工单配置 <span class="tab-x">×</span></div>
+      </div>
+
+      <!-- 内容 -->
+      <main class="mo-content">
+
+      <div id="cfgContent">
+      <div class="flex-between mb-16">
+        <div><p style="font-size:var(--cs-font-size-base); color:var(--cs-text-tertiary);">配置工单三级分类、责任承担方、优先级、完成期限值、反馈方式,均可增删改;各项右侧为当前工单数量。保存后全局生效。</p></div>
+      </div>
+
+      <!-- 电梯导航(锚点快捷跳转 + 吸顶滚动高亮) -->
+      <div class="settings-anchor">
+        <a class="active" href="#category">工单业务类型</a>
+        <a href="#responsible">责任承担方</a>
+        <a href="#priority">优先级</a>
+        <a href="#deadline">完成期限值</a>
+        <a href="#feedback">反馈方式</a>
+      </div>
+
+      <!-- 2026-07-28:工单业务类型(原三级分类)——层级列表,一级/二级/三级均带「类型代码」可自定义;名称:一级枚举只读,二级/三级可改 -->
+      <div class="card setting-section" id="category">
+        <div class="section-head">
+          <h3>工单业务类型 <span class="head-desc">受理业务类型 → 咨询/投诉类别 → 具体类型;各级均可配「类型代码」;计数为当前工单数量</span></h3>
+        </div>
+
+        <div class="cat-toolbar">
+          <button class="link-btn" id="btnExpandAll">全部展开</button>
+          <button class="link-btn" id="btnCollapseAll">全部收起</button>
+        </div>
+        <div class="cat-tree">
+          <div class="cat-header"><span class="h-chev"></span><span class="h-name">名称</span><span class="h-code">类型代码</span><span class="h-count">工单数</span><span class="h-op">操作</span></div>
+          <!-- 一级:咨询业务(2026-07-28:名称可改+可删,删除前校验子分类) -->
+          <div class="cat-node lv1">
+            <span class="cat-chev">▾</span><input class="cat-name" value="咨询业务">
+            <input class="cat-code" value="ZX01" title="类型代码">
+            <span class="cat-count"><span class="num">134</span>个工单</span>
+            <span class="op op-del" onclick="delLv1(this)">删除</span>
+          </div>
+          <div class="cat-l1-body">
+            <!-- 二级:产品咨询 -->
+            <div class="cat-l2-wrap">
+              <div class="cat-node lv2">
+                <span class="cat-chev">▾</span><input class="cat-name" value="产品咨询">
+                <input class="cat-code" value="ZX0101" title="类型代码">
+                <span class="cat-count"><span class="num">76</span>个工单</span>
+                <span class="op op-del" onclick="delLv2(this)">删除</span>
+              </div>
+              <div class="cat-l2-body">
+                <div class="cat-node lv3"><input class="cat-name" value="产品信息"><input class="cat-code" value="ZX010101" title="类型代码"><span class="op op-del" onclick="delLv3(this)">×</span></div>
+                <div class="cat-node lv3"><input class="cat-name" value="操作使用"><input class="cat-code" value="ZX010102" title="类型代码"><span class="op op-del" onclick="delLv3(this)">×</span></div>
+                <div class="cat-node lv3"><input class="cat-name" value="售后网点"><input class="cat-code" value="ZX010103" title="类型代码"><span class="op op-del" onclick="delLv3(this)">×</span></div>
+                <div class="cat-node lv3"><input class="cat-name" value="产品原因更换"><input class="cat-code" value="ZX010104" title="类型代码"><span class="op op-del" onclick="delLv3(this)">×</span></div>
+                <div class="cat-node lv3"><input class="cat-name" value="产品原因退货"><input class="cat-code" value="ZX010105" title="类型代码"><span class="op op-del" onclick="delLv3(this)">×</span></div>
+                <div class="cat-node lv3"><input class="cat-name" value="缺货更换"><input class="cat-code" value="ZX010106" title="类型代码"><span class="op op-del" onclick="delLv3(this)">×</span></div>
+                <div class="cat-node lv3"><input class="cat-name" value="缺货取消"><input class="cat-code" value="ZX010107" title="类型代码"><span class="op op-del" onclick="delLv3(this)">×</span></div>
+                <div class="cat-node lv3"><input class="cat-name" value="开具发票"><input class="cat-code" value="ZX010108" title="类型代码"><span class="op op-del" onclick="delLv3(this)">×</span></div>
+                <div class="cat-node lv3"><input class="cat-name" value="其他"><input class="cat-code" value="ZX010109" title="类型代码"><span class="op op-del" onclick="delLv3(this)">×</span></div>
+                <div class="cat-add"><input placeholder="+ 添加三级类型(回车)" onkeydown="addLv3(event,this)"></div>
+              </div>
+            </div>
+            <!-- 二级:物流咨询 -->
+            <div class="cat-l2-wrap">
+              <div class="cat-node lv2">
+                <span class="cat-chev">▾</span><input class="cat-name" value="物流咨询">
+                <input class="cat-code" value="ZX0102" title="类型代码">
+                <span class="cat-count"><span class="num">58</span>个工单</span>
+                <span class="op op-del" onclick="delLv2(this)">删除</span>
+              </div>
+              <div class="cat-l2-body">
+                <div class="cat-node lv3"><input class="cat-name" value="配送情况"><input class="cat-code" value="ZX010201" title="类型代码"><span class="op op-del" onclick="delLv3(this)">×</span></div>
+                <div class="cat-node lv3"><input class="cat-name" value="更改配送地址"><input class="cat-code" value="ZX010202" title="类型代码"><span class="op op-del" onclick="delLv3(this)">×</span></div>
+                <div class="cat-node lv3"><input class="cat-name" value="客户原因取消配送"><input class="cat-code" value="ZX010203" title="类型代码"><span class="op op-del" onclick="delLv3(this)">×</span></div>
+                <div class="cat-node lv3"><input class="cat-name" value="客户原因重新配送"><input class="cat-code" value="ZX010204" title="类型代码"><span class="op op-del" onclick="delLv3(this)">×</span></div>
+                <div class="cat-node lv3"><input class="cat-name" value="物流原因取消配送"><input class="cat-code" value="ZX010205" title="类型代码"><span class="op op-del" onclick="delLv3(this)">×</span></div>
+                <div class="cat-node lv3"><input class="cat-name" value="物流原因重新配送"><input class="cat-code" value="ZX010206" title="类型代码"><span class="op op-del" onclick="delLv3(this)">×</span></div>
+                <div class="cat-node lv3"><input class="cat-name" value="商务导单错误"><input class="cat-code" value="ZX010207" title="类型代码"><span class="op op-del" onclick="delLv3(this)">×</span></div>
+                <div class="cat-node lv3"><input class="cat-name" value="其他"><input class="cat-code" value="ZX010208" title="类型代码"><span class="op op-del" onclick="delLv3(this)">×</span></div>
+                <div class="cat-add"><input placeholder="+ 添加三级类型(回车)" onkeydown="addLv3(event,this)"></div>
+              </div>
+            </div>
+            <button class="cfg-add" onclick="addLv2(this)">+ 添加二级类别</button>
+          </div>
+
+          <!-- 一级:投诉业务(2026-07-28:名称可改+可删,删除前校验子分类) -->
+          <div class="cat-node lv1">
+            <span class="cat-chev">▾</span><input class="cat-name" value="投诉业务">
+            <input class="cat-code" value="TS01" title="类型代码">
+            <span class="cat-count"><span class="num">113</span>个工单</span>
+            <span class="op op-del" onclick="delLv1(this)">删除</span>
+          </div>
+          <div class="cat-l1-body">
+            <!-- 二级:产品投诉 -->
+            <div class="cat-l2-wrap">
+              <div class="cat-node lv2">
+                <span class="cat-chev">▾</span><input class="cat-name" value="产品投诉">
+                <input class="cat-code" value="TS0101" title="类型代码">
+                <span class="cat-count"><span class="num">64</span>个工单</span>
+                <span class="op op-del" onclick="delLv2(this)">删除</span>
+              </div>
+              <div class="cat-l2-body">
+                <div class="cat-node lv3"><input class="cat-name" value="产品原因更换"><input class="cat-code" value="TS010101" title="类型代码"><span class="op op-del" onclick="delLv3(this)">×</span></div>
+                <div class="cat-node lv3"><input class="cat-name" value="产品原因退货"><input class="cat-code" value="TS010102" title="类型代码"><span class="op op-del" onclick="delLv3(this)">×</span></div>
+                <div class="cat-node lv3"><input class="cat-name" value="返修"><input class="cat-code" value="TS010103" title="类型代码"><span class="op op-del" onclick="delLv3(this)">×</span></div>
+                <div class="cat-node lv3"><input class="cat-name" value="补配件"><input class="cat-code" value="TS010104" title="类型代码"><span class="op op-del" onclick="delLv3(this)">×</span></div>
+                <div class="cat-node lv3"><input class="cat-name" value="缺货超时未收到"><input class="cat-code" value="TS010105" title="类型代码"><span class="op op-del" onclick="delLv3(this)">×</span></div>
+                <div class="cat-node lv3"><input class="cat-name" value="补偿"><input class="cat-code" value="TS010106" title="类型代码"><span class="op op-del" onclick="delLv3(this)">×</span></div>
+                <div class="cat-node lv3"><input class="cat-name" value="其他"><input class="cat-code" value="TS010107" title="类型代码"><span class="op op-del" onclick="delLv3(this)">×</span></div>
+                <div class="cat-add"><input placeholder="+ 添加三级类型(回车)" onkeydown="addLv3(event,this)"></div>
+              </div>
+            </div>
+            <!-- 二级:物流投诉 -->
+            <div class="cat-l2-wrap">
+              <div class="cat-node lv2">
+                <span class="cat-chev">▾</span><input class="cat-name" value="物流投诉">
+                <input class="cat-code" value="TS0102" title="类型代码">
+                <span class="cat-count"><span class="num">49</span>个工单</span>
+                <span class="op op-del" onclick="delLv2(this)">删除</span>
+              </div>
+              <div class="cat-l2-body">
+                <div class="cat-node lv3"><input class="cat-name" value="超时未收到"><input class="cat-code" value="TS010201" title="类型代码"><span class="op op-del" onclick="delLv3(this)">×</span></div>
+                <div class="cat-node lv3"><input class="cat-name" value="否认签收"><input class="cat-code" value="TS010202" title="类型代码"><span class="op op-del" onclick="delLv3(this)">×</span></div>
+                <div class="cat-node lv3"><input class="cat-name" value="少货"><input class="cat-code" value="TS010203" title="类型代码"><span class="op op-del" onclick="delLv3(this)">×</span></div>
+                <div class="cat-node lv3"><input class="cat-name" value="错货"><input class="cat-code" value="TS010204" title="类型代码"><span class="op op-del" onclick="delLv3(this)">×</span></div>
+                <div class="cat-node lv3"><input class="cat-name" value="物流破损更换"><input class="cat-code" value="TS010205" title="类型代码"><span class="op op-del" onclick="delLv3(this)">×</span></div>
+                <div class="cat-node lv3"><input class="cat-name" value="物流破损退货"><input class="cat-code" value="TS010206" title="类型代码"><span class="op op-del" onclick="delLv3(this)">×</span></div>
+                <div class="cat-node lv3"><input class="cat-name" value="丢失"><input class="cat-code" value="TS010207" title="类型代码"><span class="op op-del" onclick="delLv3(this)">×</span></div>
+                <div class="cat-node lv3"><input class="cat-name" value="其他"><input class="cat-code" value="TS010208" title="类型代码"><span class="op op-del" onclick="delLv3(this)">×</span></div>
+                <div class="cat-add"><input placeholder="+ 添加三级类型(回车)" onkeydown="addLv3(event,this)"></div>
+              </div>
+            </div>
+            <button class="cfg-add" onclick="addLv2(this)">+ 添加二级类别</button>
+          </div>
+          <button class="cfg-add" onclick="addLv1(this)">+ 添加一级类别</button>
+        </div>
+      </div>
+
+      <!-- V0.5:责任承担方(投诉类用,可配) -->
+      <div class="card setting-section" id="responsible">
+        <div class="section-head">
+          <h3>责任承担方 <span class="head-desc">投诉类工单必填;选项可配</span></h3>
+        </div>
+        <div class="cfg-list" id="responsibleList">
+          <div class="cfg-row"><input class="cfg-name" value="宏兆"><input class="cfg-desc" value="自营主体"><span class="cfg-count"><span class="num">52</span>个工单</span><button class="cfg-del" onclick="delRow(this,'responsible')" title="删除">×</button></div>
+          <div class="cfg-row"><input class="cfg-name" value="供应商"><input class="cfg-desc" value="供货方责任"><span class="cfg-count"><span class="num">38</span>个工单</span><button class="cfg-del" onclick="delRow(this,'responsible')" title="删除">×</button></div>
+          <div class="cfg-row"><input class="cfg-name" value="东莞邮政"><input class="cfg-desc" value="物流承运商"><span class="cfg-count"><span class="num">21</span>个工单</span><button class="cfg-del" onclick="delRow(this,'responsible')" title="删除">×</button></div>
+          <div class="cfg-row"><input class="cfg-name" value="昆山吉波"><input class="cfg-desc" value="物流承运商"><span class="cfg-count"><span class="num">14</span>个工单</span><button class="cfg-del" onclick="delRow(this,'responsible')" title="删除">×</button></div>
+        </div>
+        <button class="cfg-add" onclick="addRow('responsible')">+ 添加责任承担方</button>
+      </div>
+
+      <!-- V0.5:优先级(一般/紧急/特急) -->
+      <div class="card setting-section" id="priority">
+        <div class="section-head">
+          <h3>优先级 <span class="head-desc">用于分类/排序/视觉标识(不驱动时效)</span></h3>
+        </div>
+        <div class="cfg-list" id="priorityList">
+          <div class="cfg-row"><input class="cfg-name" value="一般"><input class="cfg-desc" value="常规处理"><span class="cfg-count"><span class="num">120</span>个工单</span><button class="cfg-del" onclick="delRow(this,'priority')" title="删除">×</button></div>
+          <div class="cfg-row"><input class="cfg-name" value="紧急"><input class="cfg-desc" value="优先处理"><span class="cfg-count"><span class="num">86</span>个工单</span><button class="cfg-del" onclick="delRow(this,'priority')" title="删除">×</button></div>
+          <div class="cfg-row"><input class="cfg-name" value="特急"><input class="cfg-desc" value="立即处理"><span class="cfg-count"><span class="num">42</span>个工单</span><button class="cfg-del" onclick="delRow(this,'priority')" title="删除">×</button></div>
+        </div>
+        <button class="cfg-add" onclick="addRow('priority')">+ 添加优先级</button>
+      </div>
+
+      <!-- V0.5:完成期限值(代替 SLA,可配) -->
+      <div class="card setting-section" id="deadline">
+        <div class="section-head">
+          <h3>完成期限值 <span class="head-desc">代替 SLA 时效;到期→超时标记+通知;单位固定为「天」,填写正整数(2026-09-01 开发评审)</span></h3>
+        </div>
+        <div class="cfg-list" id="deadlineList">
+          <div class="cfg-row"><input class="cfg-name" value="1" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'').replace(/^0+/,'')"><span class="cfg-unit">天</span><input class="cfg-desc" value="紧急售后"><span class="cfg-count"><span class="num">35</span>个工单</span><button class="cfg-del" onclick="delRow(this,'deadline')" title="删除">×</button></div>
+          <div class="cfg-row"><input class="cfg-name" value="7" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'').replace(/^0+/,'')"><span class="cfg-unit">天</span><input class="cfg-desc" value="常规售后"><span class="cfg-count"><span class="num">180</span>个工单</span><button class="cfg-del" onclick="delRow(this,'deadline')" title="删除">×</button></div>
+          <div class="cfg-row"><input class="cfg-name" value="15" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'').replace(/^0+/,'')"><span class="cfg-unit">天</span><input class="cfg-desc" value="复杂/跨部门"><span class="cfg-count"><span class="num">111</span>个工单</span><button class="cfg-del" onclick="delRow(this,'deadline')" title="删除">×</button></div>
+        </div>
+        <button class="cfg-add" onclick="addRow('deadline')">+ 添加期限值</button>
+      </div>
+
+      <!-- V0.5:反馈方式(2026-07-28:新增为可配卡片;"合作商"→"客户",建单/编辑下拉同源) -->
+      <div class="card setting-section" id="feedback">
+        <div class="section-head">
+          <h3>反馈方式 <span class="head-desc">工单受理渠道;建单/编辑下拉同源</span></h3>
+        </div>
+        <div class="cfg-list" id="feedbackList">
+          <div class="cfg-row"><input class="cfg-name" value="电话"><input class="cfg-desc" value="客服热线"><span class="cfg-count"><span class="num">62</span>个工单</span><button class="cfg-del" onclick="delRow(this,'feedback')" title="删除">×</button></div>
+          <div class="cfg-row"><input class="cfg-name" value="在线客服会话"><input class="cfg-desc" value="在线客服"><span class="cfg-count"><span class="num">48</span>个工单</span><button class="cfg-del" onclick="delRow(this,'feedback')" title="删除">×</button></div>
+          <div class="cfg-row"><input class="cfg-name" value="短信"><input class="cfg-desc" value="短信反馈"><span class="cfg-count"><span class="num">15</span>个工单</span><button class="cfg-del" onclick="delRow(this,'feedback')" title="删除">×</button></div>
+          <div class="cfg-row"><input class="cfg-name" value="业务口"><input class="cfg-desc" value="业务部门接口"><span class="cfg-count"><span class="num">12</span>个工单</span><button class="cfg-del" onclick="delRow(this,'feedback')" title="删除">×</button></div>
+          <div class="cfg-row"><input class="cfg-name" value="客户平台"><input class="cfg-desc" value="客户自助平台"><span class="cfg-count"><span class="num">8</span>个工单</span><button class="cfg-del" onclick="delRow(this,'feedback')" title="删除">×</button></div>
+          <div class="cfg-row"><input class="cfg-name" value="客户邮件"><input class="cfg-desc" value="客户邮件"><span class="cfg-count"><span class="num">5</span>个工单</span><button class="cfg-del" onclick="delRow(this,'feedback')" title="删除">×</button></div>
+        </div>
+        <button class="cfg-add" onclick="addRow('feedback')">+ 添加反馈方式</button>
+      </div>
+
+      <!-- 吸底保存栏 -->
+      <div class="settings-footer">
+        <div style="display:flex; align-items:center; gap:16px;">
+          <div class="footer-tip">修改后请点击「保存设置」生效</div>
+          <span class="save-hint" id="saveHint" style="display:none;">有 <span id="dirtyCount">0</span> 个模块已修改</span>
+        </div>
+        <div class="footer-actions">
+          <button class="btn-default" id="btnReset">重置默认</button>
+          <button class="btn-primary" id="btnSave">保存设置</button>
+        </div>
+      </div>
+      </div><!-- /#cfgContent -->
+
+      <!-- 无权限占位(角色=客服时显示;菜单常显,内容仅主管可配) -->
+      <div class="card" id="noPerm" style="display:none;">工单配置仅主管可配,请将右上角「当前角色」切换为主管后查看</div>
+
+      </main>
+    </div>
+  </div>
+</div>
+
+<script>
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+var dirtySections = new Set();
+var saveHint = document.getElementById('saveHint');
+var dirtyCountEl = document.getElementById('dirtyCount');
+function updateDirtyUI() {
+  var count = dirtySections.size;
+  if (count > 0) { saveHint.style.display = ''; dirtyCountEl.textContent = count; }
+  else { saveHint.style.display = 'none'; }
+}
+function markDirty(section) {
+  if (!section || !section.id) return;
+  dirtySections.add(section.id);
+  section.classList.add('dirty');
+  updateDirtyUI();
+}
+
+/* 行式增删改(责任承担方 / 优先级 / 完成期限值) */
+function addRow(group) {
+  var list = document.getElementById(group + 'List');
+  var row = document.createElement('div');
+  row.className = 'cfg-row';
+  /* 2026-09-01 开发评审:完成期限值 单位固定为「天」,输入限正整数 */
+  var nameInput = group === 'deadline'
+    ? '<input class="cfg-name" value="7" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,\'\').replace(/^0+/,\'\')"><span class="cfg-unit">天</span>'
+    : '<input class="cfg-name" value="新选项">';
+  row.innerHTML = nameInput + '<input class="cfg-desc" value="说明"><span class="cfg-count"><span class="num">0</span>个工单</span><button class="cfg-del" onclick="delRow(this,\'' + group + '\')" title="删除">×</button>';
+  list.appendChild(row);
+  markDirty(document.getElementById(group));
+}
+function delRow(btn, group) {
+  var list = document.getElementById(group + 'List');
+  if (list.children.length <= 1) { if (window.csModal && csModal.toast) csModal.toast('至少保留 1 项'); return; }
+  btn.parentElement.remove();
+  markDirty(document.getElementById(group));
+}
+
+/* 2026-07-28:工单业务类型 层级列表 增删(名称/类型代码均 input 可直改,无需行内编辑)
+ * 一级/二级/三级 均可改;均带「类型代码」;删除任意分类前校验是否有子分类(有则拦截) */
+function addLv2(btn) {
+  var body = btn.closest('.cat-l1-body');
+  var wrap = document.createElement('div');
+  wrap.className = 'cat-l2-wrap';
+  wrap.innerHTML =
+    '<div class="cat-node lv2">'
+      + '<span class="cat-chev">▾</span><input class="cat-name" value="新类别">'
+      + '<input class="cat-code" value="" title="类型代码">'
+      + '<span class="cat-count"><span class="num">0</span>个工单</span>'
+      + '<span class="op op-del" onclick="delLv2(this)">删除</span>'
+    + '</div>'
+    + '<div class="cat-l2-body">'
+      + '<div class="cat-add"><input placeholder="+ 添加三级类型(回车)" onkeydown="addLv3(event,this)"></div>'
+    + '</div>';
+  body.insertBefore(wrap, btn);
+  wrap.querySelector('.cat-name').focus();
+  markDirty(document.getElementById('category'));
+}
+function delLv2(op) {
+  var wrap = op.closest('.cat-l2-wrap');
+  if (wrap.querySelector('.cat-l2-body .cat-node.lv3')) {
+    if (window.csModal && csModal.toast) csModal.toast('该二级类别下仍有三级类型,请先删除子分类');
+    return;
+  }
+  wrap.remove();
+  markDirty(document.getElementById('category'));
+}
+function addLv3(e, input) {
+  if (e.key !== 'Enter' || !input.value.trim()) return;
+  var body = input.closest('.cat-l2-body');
+  var node = document.createElement('div');
+  node.className = 'cat-node lv3';
+  node.innerHTML = '<input class="cat-name" value="' + esc(input.value.trim()) + '"><input class="cat-code" value="" title="类型代码"><span class="op op-del" onclick="delLv3(this)">×</span>';
+  body.insertBefore(node, input.closest('.cat-add'));
+  input.value = '';
+  node.querySelector('.cat-name').focus();
+  markDirty(document.getElementById('category'));
+}
+function delLv3(op) {
+  op.closest('.cat-node.lv3').remove();
+  markDirty(document.getElementById('category'));
+}
+/* 一级增删(2026-07-28:名称可改;删除前校验是否有二级子分类;至少保留 1 个一级) */
+function addLv1(btn) {
+  var tree = document.getElementById('category').querySelector('.cat-tree');
+  var node = document.createElement('div');
+  node.className = 'cat-node lv1';
+  node.innerHTML = '<span class="cat-chev">▾</span><input class="cat-name" value="新一级分类"><input class="cat-code" value="" title="类型代码"><span class="cat-count"><span class="num">0</span>个工单</span><span class="op op-del" onclick="delLv1(this)">删除</span>';
+  var body = document.createElement('div');
+  body.className = 'cat-l1-body';
+  body.innerHTML = '<button class="cfg-add" onclick="addLv2(this)">+ 添加二级类别</button>';
+  tree.appendChild(node);
+  tree.appendChild(body);
+  node.querySelector('.cat-name').focus();
+  markDirty(document.getElementById('category'));
+}
+function delLv1(op) {
+  var node = op.closest('.cat-node.lv1');
+  var nxt = node.nextElementSibling;
+  var body = (nxt && nxt.classList.contains('cat-l1-body')) ? nxt : null;
+  var tree = document.getElementById('category').querySelector('.cat-tree');
+  var l1count = 0;
+  Array.prototype.forEach.call(tree.children, function (c) { if (c.classList.contains('cat-node') && c.classList.contains('lv1')) l1count++; });
+  if (l1count <= 1) {
+    if (window.csModal && csModal.toast) csModal.toast('至少保留 1 个一级分类');
+    return;
+  }
+  if (body && body.querySelector('.cat-l2-wrap')) {
+    if (window.csModal && csModal.toast) csModal.toast('该一级分类下仍有二级类别,请先删除子分类');
+    return;
+  }
+  if (body) body.remove();
+  node.remove();
+  markDirty(document.getElementById('category'));
+}
+
+document.querySelectorAll('.card.setting-section').forEach(function (section) {
+  section.addEventListener('input', function () { markDirty(section); });
+});
+function findDupCode() {
+  var seen = {}; var dup = null;
+  document.querySelectorAll('#category .cat-code').forEach(function (inp) {
+    var v = (inp.value || '').trim();
+    if (!v || dup) return;
+    if (seen[v]) dup = v; else seen[v] = true;
+  });
+  return dup;
+}
+document.getElementById('btnSave').addEventListener('click', function () {
+  var dup = findDupCode();
+  if (dup) { if (window.csModal && csModal.toast) csModal.toast('类型代码重复:「' + dup + '」,请修改后保存'); return; }
+  dirtySections.clear();
+  document.querySelectorAll('.card.setting-section.dirty').forEach(function (s) { s.classList.remove('dirty'); });
+  updateDirtyUI();
+  if (window.csModal && csModal.toast) csModal.toast('工单配置已保存(三级分类 / 责任承担方 / 优先级 / 完成期限值 / 反馈方式)');
+});
+document.getElementById('btnReset').addEventListener('click', function () {
+  if (window.csModal && csModal.toast) csModal.toast('已重置为默认值');
+  setTimeout(function () { location.reload(); }, 300);
+});
+
+/* 2026-07-29:类别树折叠 chevron(委派,动态节点也生效)+ 全部展开/收起 */
+document.addEventListener('click', function (e) {
+  var chev = e.target.closest('.cat-chev'); if (!chev) return;
+  var node = chev.closest('.cat-node');
+  var body = node && node.nextElementSibling;
+  if (body && (body.classList.contains('cat-l1-body') || body.classList.contains('cat-l2-body'))) {
+    body.classList.toggle('collapsed');
+    chev.classList.toggle('collapsed');
+  }
+});
+function collapseAllLv3() {
+  document.querySelectorAll('#category .cat-l2-body').forEach(function (b) { b.classList.add('collapsed'); });
+  document.querySelectorAll('#category .cat-node.lv2 > .cat-chev').forEach(function (c) { c.classList.add('collapsed'); });
+}
+document.getElementById('btnCollapseAll').addEventListener('click', collapseAllLv3);
+collapseAllLv3(); /* 2026-07-29:工单业务类型默认收起三级(页面加载即折叠 lv3 叶子) */
+document.getElementById('btnExpandAll').addEventListener('click', function () {
+  document.querySelectorAll('#category .collapsed').forEach(function (el) { el.classList.remove('collapsed'); });
+});
+
+/* 2026-07-28:工单配置菜单常显,页面内容仅主管可配——客服角色显示无权限占位 */
+var roleSwitch = document.getElementById('roleSwitch');
+function syncRoleUI() {
+  var isSup = roleSwitch.value === 'supervisor';
+  document.getElementById('cfgContent').style.display = isSup ? '' : 'none';
+  document.getElementById('noPerm').style.display = isSup ? 'none' : '';
+}
+roleSwitch.addEventListener('change', syncRoleUI);
+syncRoleUI();
+
+/* 2026-07-29:电梯导航——点击快捷跳转 + 吸顶滚动高亮(scroll 容器=.mo-content) */
+(function () {
+  var anchorLinks = Array.prototype.slice.call(document.querySelectorAll('.settings-anchor a'));
+  var anchorSections = Array.prototype.slice.call(document.querySelectorAll('.setting-section[id]'));
+  var scrollRoot = document.querySelector('.mo-content');
+  function setActiveAnchor(id) {
+    anchorLinks.forEach(function (l) { l.classList.toggle('active', l.getAttribute('href') === '#' + id); });
+  }
+  anchorLinks.forEach(function (link) {
+    link.addEventListener('click', function (e) {
+      var id = (link.getAttribute('href') || '').replace('#', '');
+      var sec = id && document.getElementById(id);
+      if (!sec) return;
+      e.preventDefault();
+      sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setActiveAnchor(id);
+    });
+  });
+  if ('IntersectionObserver' in window && anchorSections.length) {
+    var ratios = {};
+    var spy = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) { ratios[en.target.id] = en.isIntersecting ? en.intersectionRatio : 0; });
+      var bestId = null, best = 0;
+      anchorSections.forEach(function (s) {
+        var r = ratios[s.id] || 0;
+        if (r <= 0) { var rect = s.getBoundingClientRect(); if (rect.top < 120) r = 0.1; }
+        if (r > best) { best = r; bestId = s.id; }
+      });
+      if (bestId) setActiveAnchor(bestId);
+    }, { root: scrollRoot, rootMargin: '-52px 0px -55% 0px', threshold: [0, 0.2, 0.5, 1] });
+    anchorSections.forEach(function (s) { spy.observe(s); });
+  }
+})();
+</script>
+</body>
+</html>

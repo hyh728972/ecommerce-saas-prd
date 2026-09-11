@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>发起补偿 · 商城运营后台</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="js/ticket-dict.js"></script>
+  <style>
+    body { margin:0; }
+    .as-bar { display:flex; align-items:center; gap:12px; padding:12px 24px; border-bottom:1px solid var(--cs-border-light); }
+    .as-bar .back { font-size:13px; color:var(--cs-text-tertiary); cursor:pointer; }
+    .as-bar .title { font-size:16px; font-weight:600; }
+    .as-bar .tk { font-size:13px; color:var(--cs-text-secondary); margin-left:auto; }
+    .as-body { padding:20px 24px; }
+    .as-card { background:#fff; border:1px solid var(--cs-border-light); border-radius:var(--cs-radius); padding:18px 20px; margin-bottom:14px; }
+    .as-sec { font-size:var(--cs-font-size-sm); font-weight:var(--cs-font-weight-semibold); color:var(--cs-text-secondary); margin:0 0 12px; display:flex; align-items:center; gap:6px; }
+    .as-sec::before { content:""; width:3px; height:13px; background:var(--cs-primary); border-radius:2px; }
+    .as-row { display:flex; gap:14px; margin-bottom:12px; }
+    .as-field { flex:1; min-width:0; }
+    .as-label { font-size:var(--cs-font-size-sm); color:var(--cs-text-tertiary); margin-bottom:4px; }
+    .as-input { width:100%; box-sizing:border-box; border:1px solid var(--cs-border); border-radius:var(--cs-radius-sm); padding:7px 10px; font-size:var(--cs-font-size-sm); outline:none; }
+    .as-tip { font-size:var(--cs-font-size-xs); color:var(--cs-text-tertiary); padding:10px 14px; background:var(--cs-primary-bg); border-radius:var(--cs-radius-sm); }
+    .as-foot { display:flex; justify-content:flex-end; gap:8px; }
+  </style>
+</head>
+<body>
+  <div class="mo-topbar">
+    <div class="logo">商城运营后台</div>
+    <div style="margin-left:auto; font-size:13px; color:var(--cs-text-tertiary);">工单 → 发起补偿</div>
+  </div>
+
+  <div class="as-bar">
+    <span class="back" onclick="history.back()">← 返回工单</span>
+    <span class="title">发起补偿</span>
+    <span class="tk">来源工单:<b id="tkId">—</b></span>
+  </div>
+
+  <div class="as-body">
+    <div class="as-card">
+      <div class="as-sec">补偿信息(占位 · 补偿/财务系统对接后接入)</div>
+      <div class="as-row">
+        <div class="as-field"><div class="as-label">补偿类型</div>
+          <select class="as-input"><option>优惠券</option><option>积分</option><option>现金补偿</option><option>赠品</option></select></div>
+        <div class="as-field"><div class="as-label">补偿金额(¥)</div><input class="as-input" placeholder="0.00" /></div>
+        <div class="as-field"><div class="as-label">补偿客户</div><input class="as-input" placeholder="自动带入来源工单客户" /></div>
+      </div>
+      <div class="as-field"><div class="as-label">补偿原因</div>
+        <textarea class="as-input" rows="3" placeholder="说明补偿原因(可带入来源工单描述)"></textarea></div>
+    </div>
+
+    <div class="as-tip">💡 此页为原型占位页。正式流程由补偿/财务系统承接,从工单「发起补偿」携带工单号 <b id="tkId2">—</b> 跳入,完成后回写工单操作日志。</div>
+
+    <div class="as-card">
+      <div class="as-foot">
+        <button class="btn-default" onclick="history.back()">取消</button>
+        <button class="btn-primary" onclick="submit()">提交补偿申请</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    var P = new URLSearchParams(location.search);
+    var tid = P.get('ticket_id') || '';
+    document.getElementById('tkId').textContent = tid || '—';
+    document.getElementById('tkId2').textContent = tid || '—';
+    function submit() {
+      if (window.csModal && csModal.toast) csModal.toast('补偿申请已提交(原型演示,回写工单 ' + tid + ')');
+      else alert('补偿申请已提交(原型演示)');
+      setTimeout(function () { history.back(); }, 600);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>客服工单 — 开发交付原型入口</title>
+<link rel="stylesheet" href="styles.css" />
+<style>
+  body { background: var(--cs-bg-page); color: var(--cs-text); font-size: var(--cs-font-size-base, 13px); }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 32px 24px 48px; }
+  .head { padding-bottom: 14px; border-bottom: 1px solid var(--cs-border-light); margin-bottom: 20px; }
+  .head h1 { margin: 0 0 4px; font-size: 18px; font-weight: 600; }
+  .head .sub { font-size: 12px; color: var(--cs-text-tertiary); line-height: 1.7; }
+  .head .sub b { color: var(--cs-text-secondary); }
+
+  .sec-title { display: flex; align-items: center; gap: 8px; margin: 26px 0 10px; font-size: 14px; font-weight: 600; }
+  .sec-title::before { content: ""; width: 3px; height: 14px; background: var(--cs-primary); border-radius: 2px; }
+  .sec-title .n { font-size: 11px; font-weight: 400; color: var(--cs-text-placeholder); }
+
+  .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .card { display: block; background: var(--cs-bg-card); border: 1px solid var(--cs-border-light); border-radius: 8px; padding: 14px 16px; text-decoration: none; color: inherit; transition: .15s; }
+  .card:hover { border-color: var(--cs-primary); background: var(--cs-primary-bg, #f0f7ff); }
+  .card .t { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; }
+  .card .t .no { font-size: 11px; color: #fff; background: var(--cs-primary); border-radius: 4px; padding: 1px 7px; flex-shrink: 0; }
+  .card .d { margin-top: 5px; font-size: 12px; color: var(--cs-text-tertiary); line-height: 1.7; }
+  .card.core { border-left: 3px solid var(--cs-primary); }
+  .card.entry { border-left: 3px solid var(--cs-success); }
+  .card.ext { border-left: 3px solid var(--cs-text-placeholder); }
+
+  .prd-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  .prd-list li { display: flex; align-items: baseline; gap: 10px; background: var(--cs-bg-card); border: 1px solid var(--cs-border-light); border-radius: 6px; padding: 10px 14px; font-size: 12.5px; }
+  .prd-list .ord { font-size: 11px; font-weight: 600; color: var(--cs-primary); border: 1px solid var(--cs-primary); border-radius: 50%; width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; align-self: center; }
+  .prd-list a { color: var(--cs-primary); text-decoration: none; font-weight: 600; font-family: Consolas, monospace; font-size: 12px; }
+  .prd-list a:hover { text-decoration: underline; }
+  .prd-list .desc { color: var(--cs-text-tertiary); line-height: 1.7; }
+  .prd-list .desc b { color: var(--cs-text-secondary); }
+
+  .notice { margin-top: 26px; padding: 12px 14px; background: #fff7e6; border: 1px solid #ffd591; border-radius: 6px; font-size: 12px; color: #ad6800; line-height: 2; }
+  .notice b { color: #874d00; }
+
+  .foot { margin-top: 22px; padding-top: 12px; border-top: 1px solid var(--cs-border-light); font-size: 11px; color: var(--cs-text-placeholder); line-height: 1.8; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="head">
+    <h1>客服工单 — 开发交付原型</h1>
+    <div class="sub">
+      打包日期 2026-09-01 · 源自 在线客服-V1.0(与 OCS main 同步) · <b>本包仅含客服工单 1 期范围</b>,不含在线客服其余模块<br>
+      主 PRD:<b>PRD-客服工单-V0.8.md</b>(数据库/API/状态机/交付项以此为准) · 静态原型,mock 数据,浏览器直接打开
+    </div>
+  </div>
+
+  <div class="sec-title">核心页面 <span class="n">工单模块本体 · 新建 4 页</span></div>
+  <div class="cards">
+    <a class="card core" href="admin-ticket.html">
+      <div class="t"><span class="no">1</span>工单列表 admin-ticket.html</div>
+      <div class="d">状态分栏 / 三级分类筛选 / 完成期限筛选 / 倒计时列 / 导出(仅主管)<br>行操作按状态:处理中=详情·编辑·发起售后·发起补偿(平铺);未处理/已完工仅详情</div>
+    </a>
+    <a class="card core" href="admin-ticket-create.html">
+      <div class="t"><span class="no">2</span>工单创建 admin-ticket-create.html</div>
+      <div class="d">standalone / order / batch / session 四模式 · 会话与订单上下文预填 · 三级级联 · 批量追加订单</div>
+    </a>
+    <a class="card core" href="admin-ticket-detail.html">
+      <div class="t"><span class="no">3</span>工单详情 admin-ticket-detail.html</div>
+      <div class="d">工单跟进(首次跟进自动受理) / 附件 / 倒计时 / 收货信息独立分组<br>底栏:处理中=发起售后·发起补偿·完工;已完工终态只读</div>
+    </a>
+    <a class="card core" href="admin-ticket-settings.html">
+      <div class="t"><span class="no">4</span>工单配置 admin-ticket-settings.html</div>
+      <div class="d">三级分类 / 责任承担方 / 优先级 / 完成期限值(单位天,正整数) 增删改 · 仅主管可配</div>
+    </a>
+  </div>
+
+  <div class="sec-title">建单入口 <span class="n">三个来源 · 改现有 3 页</span></div>
+  <div class="cards">
+    <a class="card entry" href="admin-workbench.html">
+      <div class="t"><span class="no">①</span>客服工作台 admin-workbench.html</div>
+      <div class="d">选中会话 → 顶栏「创建工单」→ 右侧抽屉建单(会话不中断) · 反馈方式默认「在线客服会话」<br>其余工作台功能不在本包范围</div>
+    </a>
+    <a class="card entry" href="admin-session-record.html">
+      <div class="t"><span class="no">②</span>会话记录 admin-session-record.html</div>
+      <div class="d">行操作「创建工单」→ 跳建单页 mode=session,带会话上下文(离线待处理行无此按钮)</div>
+    </a>
+    <a class="card entry" href="admin-order-list.html">
+      <div class="t"><span class="no">③</span>订单列表 admin-order-list.html</div>
+      <div class="d">工具栏「批量创建工单」(勾选 ≥1 单,多单合并一张) → 建单页 mode=batch 自动带出订单信息</div>
+    </a>
+    <a class="card ext" href="admin-after-sale.html">
+      <div class="t"><span class="no">↗</span>售后/补偿占位 admin-after-sale.html</div>
+      <div class="d">工单「发起售后」「发起补偿」的跳转目标占位页<br>售后不带字段(C2);补偿携带工单号 · 2 期 OMS 集成后回写</div>
+    </a>
+  </div>
+
+  <div class="sec-title">PRD 必读顺序 <span class="n">见包根 ../../PRD/ 目录(即交付包的 PRD 文件夹)</span></div>
+  <ul class="prd-list">
+    <li><span class="ord">1</span><a href="../../PRD/PRD-客服工单-V0.8.md">PRD-客服工单-V0.8.md</a><span class="desc"><b>现行主 PRD</b> — 状态机 / 五表 / API 清单 / 交付项路线,一切以此为准</span></li>
+    <li><span class="ord">2</span><a href="../../PRD/PRD-后台-V0.9.md">PRD-后台-V0.9.md</a><span class="desc">底座依赖 — 通知 / 角色 / 会话基础设施(工单为 V0.9 的迭代增量)</span></li>
+    <li><span class="ord">3</span><a href="../../PRD/PRD-工作台转工单-V0.1.md">PRD-工作台转工单-V0.1.md</a><span class="desc">建单入口①的增量定义(⚠️ 术语为旧「转工单」,现行口径「创建工单」)</span></li>
+    <li><span class="ord">4</span><a href="../../PRD/PRD-会话记录创建工单-V0.1.md">PRD-会话记录创建工单-V0.1.md</a><span class="desc">建单入口②的增量定义</span></li>
+  </ul>
+
+  <div class="notice">
+    <b>已裁决要点(2026-09-01 V0.8)</b>:催办与「回复用户」已移除(remind API / ticket.reminded 事件 / 人工催办链路全删;超时扫描与超时通知<b>保留</b>) ·
+    后台 V0.9 中的「催办」(UC-T-03)是会话超时催办,与工单无关,勿混淆 ·
+    BRD pptx 不在包内,需要向产品索取 · OMS 字段清单待确认,受理字段族暂以 mock 为准
+  </div>
+
+  <div class="foot">
+    共享运行时:js/(cascader·cs-icons·cs-modal·notify·ticket-dict) · modals/×28 · styles.css · nav.js —— 与在线客服主原型同源<br>
+    侧边栏 nav.js 菜单为完整系统菜单,本包仅实现工单相关页面,点其他菜单打不开属正常
+  </div>
+
+</div>
+</body>
+</html>
