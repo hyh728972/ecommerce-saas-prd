@@ -393,8 +393,7 @@ tr.drag-source { opacity: .4; }
     <div class="modal-header"><h3>编辑(平台)前台分类</h3><button class="modal-close" onclick="closeModal('editBaselineModal')">✕</button></div>
     <div class="modal-body">
       <div class="form-group"><label>前台分类名称（平台维护，不可修改）</label><input type="text" id="editBaseName" readonly style="background:var(--bg-hover);color:var(--text-secondary);cursor:not-allowed;"></div>
-      <div class="form-group"><label>自定义前端显示名称</label><input type="text" id="editBaseCustomName" placeholder="不填则取分类名称" maxlength="30"><div class="hint">限制30字以内；C端与列表将展示该名称，平台原名保留；平台再次发布不会覆盖此名称</div><div id="editBaseDupWarning" class="warning-box" style="display:none;margin-top:8px;"></div></div>
-      <div class="hint" style="margin-top:8px;color:var(--orange);">仅可自定义显示名称，分类结构、图标、类型等属性由运营平台维护</div>
+      <div class="form-group"><label>自定义前端显示名称</label><input type="text" id="editBaseCustomName" placeholder="不填则取分类名称" maxlength="30"><div id="editBaseDupWarning" class="warning-box" style="display:none;margin-top:8px;"></div></div>
     </div>
     <div class="modal-footer"><a href="javascript:void(0)" onclick="closeModal('editBaselineModal')" style="color:var(--text-secondary);text-decoration:none;font-size:13px;">取消</a><a href="javascript:void(0)" onclick="saveEditBaseline()" style="color:var(--accent);text-decoration:none;font-size:13px;font-weight:500;">保存</a></div>
   </div>
@@ -427,7 +426,7 @@ tr.drag-source { opacity: .4; }
       <!-- Tab 1: 已在该分类 -->
       <div id="managePaneCurrent">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-          <input type="text" id="manageCurrentSearch" placeholder="搜索SKU名称 / 客户商品编码" oninput="renderManageCurrent()" style="flex:1;height:32px;padding:0 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12.5px;font-family:inherit;outline:none;">
+          <input type="text" id="manageCurrentSearch" placeholder="搜索SKU名称 / 商城SKU" oninput="renderManageCurrent()" style="flex:1;height:32px;padding:0 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12.5px;font-family:inherit;outline:none;">
           <button class="btn-sm danger" onclick="batchRemoveFromCate()">批量移出</button>
         </div>
         <div class="manage-list" id="manageCurrentList"></div>
@@ -437,7 +436,7 @@ tr.drag-source { opacity: .4; }
       <!-- Tab 2: 添加商品 -->
       <div id="managePaneAdd" style="display:none;">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-          <input type="text" id="manageAddSearch" placeholder="搜索SKU名称 / 客户商品编码" oninput="renderManageAdd()" style="flex:1;height:32px;padding:0 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12.5px;font-family:inherit;outline:none;">
+          <input type="text" id="manageAddSearch" placeholder="搜索SKU名称 / 商城SKU" oninput="renderManageAdd()" style="flex:1;height:32px;padding:0 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12.5px;font-family:inherit;outline:none;">
           <button class="btn-sm primary" onclick="batchAddToCate()">加入分类</button>
         </div>
         <div class="manage-list" id="manageAddList"></div>
@@ -1193,7 +1192,7 @@ function manageRowHtml(p, checked, action) {
   return '<div class="manage-row">'
     + '<input type="checkbox" style="width:14px;height:14px;accent-color:var(--accent);cursor:pointer;flex-shrink:0;" ' + (checked ? 'checked ' : '') + 'onchange="toggleManageCheck(\'' + action + '\',\'' + p.id + '\',this.checked)">'
     + '<div class="m-img">' + p.img + '</div>'
-    + '<div class="m-info"><div class="m-name">' + p.name + '</div><div class="m-code">客户商品编码：' + p.code + '</div></div>'
+    + '<div class="m-info"><div class="m-name">' + p.name + '</div><div class="m-code">商城SKU：' + p.code + '</div></div>'
     + statusHtml
     + '<span class="m-price">¥' + p.price + '</span>'
     + '</div>';
