@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>用户权益发放 - 品牌商城后台</title>
+<style>
+:root {
+  --bg-app:#f4f3f0; --bg-sidebar:#1e1e22; --bg-surface:#ffffff; --bg-hover:#f7f6f4; --bg-input:#f9f8f7;
+  --border:#e6e4e0; --border-light:#f0eeeb;
+  --text-primary:#1a1a1c; --text-secondary:#6b6b70; --text-muted:#99999d; --text-sidebar:#c4c4c9;
+  --accent:#2d2d33; --accent-soft:#f0eeeb;
+  --blue:#2563eb; --blue-bg:#f5f8ff; --blue-border:#d4e0fc;
+  --red:#da3e3a; --red-bg:#fef4f3; --red-border:#fcd9d7;
+  --green:#16a34a; --green-bg:#f4fdf6; --green-border:#c6f0d4;
+  --orange:#d97706; --orange-bg:#fffbf0; --orange-border:#fde8c4;
+  --purple:#7c3aed; --purple-bg:#faf8ff; --purple-border:#e4dcfc;
+  --gray:#6b7280; --gray-bg:#f8f8f7; --gray-border:#e8e6e3;
+  --radius-sm:4px; --radius:8px; --radius-lg:12px;
+  --shadow:0 1px 3px rgba(0,0,0,.06); --shadow-lg:0 4px 16px rgba(0,0,0,.10);
+  --transition:160ms ease;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:"Microsoft YaHei",sans-serif;background:var(--bg-app);color:var(--text-primary);display:flex;min-height:100vh;-webkit-font-smoothing:antialiased;}
+.sidebar{width:232px;min-width:232px;background:var(--bg-sidebar);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;z-index:10;}
+.sidebar-brand{padding:20px 20px 28px;border-bottom:1px solid rgba(255,255,255,.06);}
+.sidebar-brand .logo{font-size:17px;font-weight:600;color:#fff;letter-spacing:-.02em;display:flex;align-items:center;gap:10px;}
+.sidebar-brand .sub{font-size:11px;color:var(--text-sidebar);margin-top:2px;}
+.sidebar-nav{flex:1;padding:12px 10px;display:flex;flex-direction:column;gap:2px;}
+.nav-section-label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.25);padding:14px 10px 6px;display:flex;align-items:center;gap:4px;cursor:pointer;user-select:none;}
+.nav-section-label:hover{color:rgba(255,255,255,.45);}
+.section-arrow{font-size:8px;transition:transform .2s ease;flex-shrink:0;}
+.nav-section.collapsed .section-arrow{transform:rotate(-90deg);}
+.nav-section.collapsed .nav-section-items{display:none;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:6px;color:var(--text-sidebar);font-size:13.5px;cursor:pointer;transition:all var(--transition);text-decoration:none;letter-spacing:.01em;}
+.nav-item:hover{background:rgba(255,255,255,.05);color:#fff;}
+.nav-item.active{background:rgba(255,255,255,.10);color:#fff;font-weight:500;}
+.nav-icon{width:18px;height:18px;opacity:.55;flex-shrink:0;}
+.nav-item.active .nav-icon{opacity:1;}
+.nav-item .badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:600;padding:1px 7px;border-radius:10px;min-width:20px;text-align:center;line-height:18px;}
+.main{flex:1;display:flex;flex-direction:column;min-width:0;}
+.topbar{height:52px;min-height:52px;background:var(--bg-surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 28px;gap:16px;z-index:5;}
+.topbar .breadcrumb{font-size:12.5px;color:var(--text-muted);letter-spacing:.01em;}
+.topbar .breadcrumb a{color:var(--text-muted);text-decoration:none;}
+.topbar .breadcrumb a:hover{color:var(--text-primary);}
+.topbar .breadcrumb span{color:var(--text-primary);font-weight:500;}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:16px;}
+.user-avatar{width:30px;height:30px;border-radius:50%;background:#e6e4e0;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);}
+.content{flex:1;display:flex;flex-direction:column;padding:24px 28px;max-width:900px;}
+.page-header{margin-bottom:24px;}
+.page-header h1{font-size:22px;font-weight:600;letter-spacing:-.02em;}
+.page-header p{font-size:13px;color:var(--text-muted);margin-top:4px;}
+
+.form-panel{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;}
+.form-section{margin-bottom:24px;}
+.form-section:last-child{margin-bottom:0;}
+.form-section-title{font-size:15px;font-weight:600;color:var(--text-primary);margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+#userSelectPanel{margin-top:24px;}
+.form-section-title .section-icon{width:20px;height:20px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;background:var(--blue-bg);color:var(--blue);font-size:11px;}
+
+.form-group{margin-bottom:16px;}
+.form-group:last-child{margin-bottom:0;}
+.form-group label{display:block;font-size:12px;color:var(--text-muted);margin-bottom:6px;font-weight:500;}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;background:var(--bg-surface);color:var(--text-primary);outline:none;transition:border-color var(--transition);}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--accent);}
+.form-group textarea{resize:vertical;min-height:80px;}
+.form-row{display:flex;gap:12px;}
+.form-row .form-group{flex:1;}
+.form-hint{font-size:11.5px;color:var(--text-muted);margin-top:4px;}
+
+/* ===== 下拉搜索框 ===== */
+.search-select{position:relative;}
+.search-select .search-input-wrap{position:relative;display:flex;align-items:center;}
+.search-select .search-input-wrap input{width:100%;padding:10px 36px 10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;background:var(--bg-surface);color:var(--text-primary);outline:none;transition:border-color var(--transition);cursor:pointer;}
+.search-select .search-input-wrap input:focus{border-color:var(--accent);}
+.search-select .search-input-wrap input.has-value{background:var(--blue-bg);border-color:var(--blue-border);color:var(--blue);}
+.search-select .search-input-wrap .dropdown-arrow{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--text-muted);pointer-events:none;transition:transform .2s;}
+.search-select.open .search-input-wrap .dropdown-arrow{transform:translateY(-50%) rotate(180deg);}
+.search-select .dropdown-panel{display:none;position:absolute;left:0;right:0;top:100%;margin-top:4px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-lg);z-index:200;max-height:280px;overflow:hidden;display:none;flex-direction:column;}
+.search-select.open .dropdown-panel{display:flex;}
+.search-select .dropdown-search{padding:8px 10px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.search-select .dropdown-search input{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:inherit;background:var(--bg-input);color:var(--text-primary);outline:none;}
+.search-select .dropdown-search input:focus{border-color:var(--accent);}
+.search-select .dropdown-list{overflow-y:auto;flex:1;}
+.search-select .dropdown-item{padding:10px 14px;cursor:pointer;font-size:13px;transition:all var(--transition);border-bottom:1px solid var(--border-light);display:flex;align-items:center;gap:10px;}
+.search-select .dropdown-item:last-child{border-bottom:none;}
+.search-select .dropdown-item:hover{background:var(--bg-hover);}
+.search-select .dropdown-item.selected{background:var(--blue-bg);color:var(--blue);}
+.search-select .dropdown-item .item-avatar{width:32px;height:32px;border-radius:var(--radius-sm);background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--text-secondary);flex-shrink:0;}
+.search-select .dropdown-item .item-info{flex:1;min-width:0;}
+.search-select .dropdown-item .item-name{font-weight:500;color:var(--text-primary);font-size:13px;margin-bottom:1px;}
+.search-select .dropdown-item.selected .item-name{color:var(--blue);}
+.search-select .dropdown-item .item-sub{font-size:11.5px;color:var(--text-muted);}
+.search-select .dropdown-item .item-extra{font-family:"Microsoft YaHei",sans-serif;font-size:12px;font-weight:500;color:var(--blue);white-space:nowrap;}
+.search-select .dropdown-empty{padding:20px;text-align:center;font-size:12px;color:var(--text-muted);}
+
+/* 模板详情卡片（选择模板后展示） */
+.template-detail-card{display:none;margin-top:12px;border:1px solid var(--blue-border);border-radius:var(--radius);padding:16px;background:var(--blue-bg);}
+.template-detail-card.show{display:flex;align-items:flex-start;gap:14px;}
+.template-detail-card .td-avatar{width:48px;height:48px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:600;flex-shrink:0;border:1px solid var(--border);}
+.template-detail-card .td-avatar.points{background:linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%);color:#92400e;}
+.template-detail-card .td-avatar.coupon{background:linear-gradient(135deg, #dbeafe 0%, #60a5fa 100%);color:#fff;}
+.template-detail-card .td-avatar.fullminus{background:linear-gradient(135deg, #d1fae5 0%, #34d399 100%);color:#fff;}
+.template-detail-card .td-avatar.discount{background:linear-gradient(135deg, #fde8c4 0%, #d97706 100%);color:#fff;}
+.template-detail-card .td-avatar.ticket{background:linear-gradient(135deg, #fcd9d7 0%, #da3e3a 100%);color:#fff;}
+.template-detail-card .td-avatar.gift{background:linear-gradient(135deg, #fef4f3 0%, #da3e3a 100%);color:#fff;}
+.template-detail-card .td-info{flex:1;min-width:0;padding-top:4px;}
+.template-detail-card .td-name{font-size:15px;font-weight:600;color:var(--text-primary);margin-bottom:8px;}
+.template-detail-card .td-specs{display:flex;flex-direction:column;gap:4px;margin-bottom:6px;width:100%;}
+.template-detail-card .td-spec-row{display:flex;font-size:12px;line-height:1.6;}
+.template-detail-card .td-spec-label{color:var(--text-muted);width:100px;flex-shrink:0;}
+.template-detail-card .td-spec-value{color:var(--text-primary);font-weight:500;flex:1;}
+.template-detail-card .td-spec-value .highlight{color:var(--blue);font-family:"Microsoft YaHei",sans-serif;font-weight:600;}
+.template-detail-card .td-meta{font-size:11.5px;color:var(--text-muted);line-height:1.6;}
+.template-detail-card .td-actions{flex-shrink:0;display:flex;align-items:center;}
+.template-detail-card .td-change-btn{padding:4px 10px;font-size:11.5px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-surface);color:var(--text-secondary);cursor:pointer;font-family:inherit;transition:all var(--transition);}
+.template-detail-card .td-change-btn:hover{border-color:var(--blue);color:var(--blue);}
+
+/* 选中品牌商城信息条 */
+.mall-selected-info{display:none;margin-top:8px;padding:10px 14px;background:var(--blue-bg);border:1px solid var(--blue-border);border-radius:var(--radius-sm);align-items:center;gap:10px;}
+.mall-selected-info.show{display:flex;}
+.mall-selected-info .msi-name{font-size:13px;font-weight:500;color:var(--text-primary);}
+.mall-selected-info .msi-points{font-size:12px;color:var(--text-muted);margin-left:4px;}
+.mall-selected-info .msi-points .points-value{font-family:"Microsoft YaHei",sans-serif;color:var(--blue);font-weight:500;}
+
+/* 发放类型切换 */
+.send-type-toggle{display:flex;gap:12px;margin-bottom:24px;}
+.send-type-card{flex:1;border:1px solid var(--border);border-radius:var(--radius);padding:18px;cursor:pointer;transition:all var(--transition);display:flex;align-items:center;gap:14px;}
+.send-type-card:hover{border-color:var(--accent);background:var(--bg-hover);}
+.send-type-card.selected{border-color:var(--accent);background:var(--accent-soft);}
+.send-type-card .st-icon{width:44px;height:44px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.send-type-card .st-icon.coupon{background:var(--blue-bg);color:var(--blue);}
+.send-type-card .st-icon.points{background:var(--green-bg);color:var(--green);}
+.send-type-card.selected .st-icon.coupon{background:var(--blue);color:#fff;}
+.send-type-card.selected .st-icon.points{background:var(--green);color:#fff;}
+.send-type-card .st-text{flex:1;}
+.send-type-card .st-title{font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:3px;}
+.send-type-card .st-desc{font-size:11.5px;color:var(--text-muted);}
+.config-block{display:none;}
+.config-block.active{display:block;}
+.points-amount-group{display:flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-surface);}
+.points-amount-group input{flex:1;border:none;background:none;padding:10px 12px;font-size:13px;font-family:inherit;outline:none;}
+.points-amount-group .unit{font-size:13px;color:var(--text-muted);white-space:nowrap;padding-right:12px;}
+
+/* ===== 用户选择面板（选人直充） ===== */
+.user-select-panel{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-top:12px;}
+.user-select-panel .usp-toolbar{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--bg-input);border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.user-select-panel .usp-toolbar .usp-search{flex:1;min-width:200px;position:relative;}
+.user-select-panel .usp-toolbar .usp-search input{width:100%;padding:8px 12px 8px 32px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:inherit;background:var(--bg-surface);color:var(--text-primary);outline:none;transition:border-color var(--transition);}
+.user-select-panel .usp-toolbar .usp-search input:focus{border-color:var(--accent);}
+.user-select-panel .usp-toolbar .usp-search svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--text-muted);pointer-events:none;}
+.user-select-panel .usp-toolbar .usp-info{font-size:12px;color:var(--text-muted);white-space:nowrap;}
+.user-select-panel .usp-toolbar .usp-info strong{color:var(--text-primary);}
+.user-select-panel .usp-toolbar .btn{font-size:11.5px;padding:5px 10px;}
+.user-table-wrap{overflow-x:auto;}
+.user-table-wrap table{width:100%;border-collapse:collapse;font-size:12.5px;}
+.user-table-wrap thead th{background:#fafaf9;text-align:left;padding:10px 12px;font-weight:500;font-size:11.5px;color:var(--text-muted);letter-spacing:.02em;border-bottom:1px solid var(--border);white-space:nowrap;}
+.user-table-wrap thead th:first-child{padding-left:20px;width:40px;}
+.user-table-wrap tbody td{padding:10px 12px;border-bottom:1px solid var(--border-light);vertical-align:middle;}
+.user-table-wrap tbody td:first-child{padding-left:20px;}
+.user-table-wrap tbody tr{cursor:pointer;transition:background var(--transition);}
+.user-table-wrap tbody tr:hover{background:var(--bg-hover);}
+.user-table-wrap tbody tr.selected{background:var(--blue-bg);}
+.user-table-wrap tbody tr.selected td{color:var(--blue);}
+.user-table-wrap .user-cell{display:flex;align-items:center;gap:8px;}
+.user-table-wrap .user-mini-avatar{width:28px;height:28px;border-radius:50%;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--text-secondary);flex-shrink:0;}
+.user-table-wrap .user-cell .user-name{font-weight:500;color:var(--text-primary);}
+.user-table-wrap tr.selected .user-cell .user-name{color:var(--blue);}
+.user-table-wrap .checkbox-cell{width:36px;text-align:center;}
+.user-table-wrap .checkbox-cell input[type="checkbox"]{accent-color:var(--accent);cursor:pointer;width:15px;height:15px;}
+.user-pagination{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-top:1px solid var(--border);background:#fafaf9;}
+.user-pagination .page-info{font-size:11.5px;color:var(--text-muted);}
+.user-pagination .page-btns{display:flex;align-items:center;gap:4px;}
+.user-pagination .page-btn{min-width:30px;width:30px;height:30px;padding:0;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-surface);cursor:pointer;font-size:11.5px;color:var(--text-primary);font-family:inherit;transition:all var(--transition);}
+.user-pagination .page-btn:hover{border-color:var(--text-muted);}
+.user-pagination .page-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.user-pagination .page-btn.disabled{opacity:.35;pointer-events:none;}
+.user-pagination .page-size select{height:28px;padding:0 8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:11.5px;font-family:inherit;background:var(--bg-surface);color:var(--text-primary);outline:none;}
+
+.preview-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(22,163,74,0.15);}
+.preview-row:last-child{border-bottom:none;}
+.preview-row .preview-label{font-size:12px;color:var(--text-secondary);}
+.preview-row .preview-value{font-size:12px;font-weight:500;color:var(--text-primary);}
+.preview-row .preview-value.points{font-family:"Microsoft YaHei",sans-serif;color:var(--green);}
+
+.form-actions{display:flex;gap:8px;margin-top:24px;padding-top:24px;border-top:1px solid var(--border);justify-content:flex-end;}
+.btn{display:inline-flex;align-items:center;justify-content:center;padding:10px 20px;border-radius:var(--radius-sm);font-size:13px;font-family:inherit;cursor:pointer;border:1px solid transparent;transition:all var(--transition);white-space:nowrap;font-weight:500;gap:6px;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{opacity:.88;}
+.btn-outline{border-color:var(--border);color:var(--text-primary);background:var(--bg-surface);}
+.btn-outline:hover{border-color:var(--text-muted);background:var(--bg-hover);}
+.btn-blue{background:var(--blue);color:#fff;border-color:var(--blue);}
+.btn-blue:hover{opacity:.88;}
+
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:300;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--bg-surface);border-radius:var(--radius-lg);width:100%;max-width:480px;box-shadow:var(--shadow-lg);}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);}
+.modal-header h3{font-size:15px;font-weight:600;}
+.modal-close{background:none;border:none;font-size:20px;color:var(--text-muted);cursor:pointer;padding:4px;line-height:1;}
+.modal-close:hover{color:var(--text-primary);}
+.modal-body{padding:20px;}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;padding:14px 20px;border-top:1px solid var(--border);}
+
+.toast-container{position:fixed;top:24px;right:24px;z-index:400;display:flex;flex-direction:column;gap:8px;}
+.toast{background:var(--bg-sidebar);color:#fff;padding:12px 18px;border-radius:var(--radius);font-size:13px;box-shadow:var(--shadow-lg);}
+.toast.success{border-left:3px solid var(--green);}
+.toast.info{border-left:3px solid var(--blue);}
+.toast.error{border-left:3px solid var(--red);}
+</style>
+</head>
+<body>
+
+<aside class="sidebar" id="app-sidebar" data-nav-active="mall-points"></aside>
+<script src="../assets/common-sidebar.js"></script>
+<script src="../assets/common-batch-no.js"></script>
+
+<div class="main">
+  <div class="topbar">
+    <div class="breadcrumb">营销管理 / <a href="06.商城积分管理-原型页面.html">商城积分管理</a> / <span>用户权益发放</span></div>
+    <div class="topbar-right">
+      <span style="font-size:12px;color:var(--text-muted);">品牌运营 晓琳</span>
+      <div class="user-avatar">晓</div>
+    </div>
+  </div>
+  <div class="content">
+    <div class="page-header">
+      <h1>用户权益发放</h1>
+      <p>向本商城用户发放卡券或积分，按消耗直接扣减本商城积分池。</p>
+    </div>
+
+    <div class="form-panel">
+      <!-- 第1步：选择发放类型（固定本商城） -->
+      <div class="form-section">
+        <div class="form-section-title">
+          <div class="section-icon">1</div>
+          选择发放类型
+        </div>
+        <div class="form-group">
+          <label>品牌商城信息</label>
+          <div class="mall-selected-info show" id="mallSelectedInfo" style="display:flex;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            <span class="msi-name" id="msiName">苏银商城</span>
+            <span class="msi-points">积分余额：<span class="points-value" id="msiPoints">150,000</span> 积分</span>
+          </div>
+          <div class="form-hint">发放将消耗本商城积分池余额</div>
+        </div>
+      </div>
+
+      <!-- 发放类型切换 -->
+      <div class="send-type-toggle">
+        <div class="send-type-card selected" onclick="selectSendType(this,'coupon')">
+          <div class="st-icon coupon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="12" y1="4" x2="12" y2="10"/></svg>
+          </div>
+          <div class="st-text"><div class="st-title">发放卡券</div><div class="st-desc">选择卡券模板，向本商城用户发放卡券</div></div>
+        </div>
+        <div class="send-type-card" onclick="selectSendType(this,'points')">
+          <div class="st-icon points">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/></svg>
+          </div>
+          <div class="st-text"><div class="st-title">发放积分</div><div class="st-desc">直接向本商城用户账户充入积分</div></div>
+        </div>
+      </div>
+
+      <!-- 卡券配置 -->
+      <div class="config-block active" id="couponConfig">
+
+      <!-- 第2步：选择模板 -->
+      <div class="form-section">
+        <div class="form-section-title">
+          <div class="section-icon">2</div>
+          选择卡券模板
+        </div>
+        <div class="form-group" id="templateSelectGroup">
+          <label>卡券模板 *</label>
+          <div class="search-select" id="templateSearchSelect">
+            <div class="search-input-wrap" onclick="toggleSearchDropdown('templateSearchSelect')">
+              <input type="text" id="templateSearchInput" placeholder="搜索模板名称或类型..." autocomplete="off" onfocus="openSearchDropdown('templateSearchSelect')" oninput="filterDropdown('templateSearchSelect')" />
+              <svg class="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div class="dropdown-panel">
+              <div class="dropdown-search">
+                <input type="text" id="templateDropdownSearch" placeholder="输入关键词筛选..." autocomplete="off" oninput="filterDropdown('templateSearchSelect')" />
+              </div>
+              <div class="dropdown-list" id="templateDropdownList">
+              </div>
+            </div>
+          </div>
+          <!-- 选中模板后的详情卡片 -->
+          <div class="template-detail-card" id="templateDetailCard">
+            <div class="td-avatar fullminus" id="tdAvatar">减</div>
+            <div class="td-info">
+              <div class="td-name" id="tdName">满200减50券</div>
+              <div class="td-specs" id="tdSpecs">
+              </div>
+              <div class="td-meta" id="tdMeta">模板ID：M00005</div>
+            </div>
+            <div class="td-actions">
+              <button class="td-change-btn" onclick="clearTemplateSelection();event.stopPropagation();">更换模板</button>
+            </div>
+          </div>
+          <div class="form-hint">搜索并选择卡券模板。本商城发放时只需选择模板、改名、发放即可，无需再次配置参数。</div>
+        </div>
+      </div>
+
+      <!-- 第3步：设置数量和改名 -->
+      <div class="form-section">
+        <div class="form-section-title">
+          <div class="section-icon">3</div>
+          设置数量和改名
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>发放数量 *</label>
+            <input type="number" id="sendQuantity" placeholder="请输入发放数量" min="1" value="100" onchange="updatePreview()" />
+            <div class="form-hint" id="sendQuantityHint">生成卡券的数量</div>
+          </div>
+          <div class="form-group">
+            <label>自定义名称（可选）</label>
+            <input type="text" id="customName" placeholder="如：专享满减券" />
+            <div class="form-hint">可修改卡券展示名称，不填则使用模板名称</div>
+          </div>
+        </div>
+
+      </div>
+
+      </div><!-- /couponConfig -->
+
+      <!-- 积分配置 -->
+      <div class="config-block" id="pointsConfig">
+        <div class="form-section">
+          <div class="form-section-title">
+            <div class="section-icon">2</div>
+            设置发放积分
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>每人发放积分 *</label>
+              <div class="points-amount-group"><input type="number" id="pointsPerUser" placeholder="请输入每位用户发放的积分" min="1" value="100" oninput="updatePointsConversion();updatePreview()" /><span class="unit">积分/人</span></div>
+              <div class="form-hint">总消耗 = 每人积分 × 用户数，扣减所选品牌商城积分池</div>
+            </div>
+            <div class="points-conversion" id="pointsConversion" style="display:none;align-self:stretch;padding-top:22px;font-size:13px;font-family:inherit;color:var(--text-secondary);white-space:nowrap;">
+              <span style="display:flex;align-items:center;height:37px;color:var(--text-muted);">
+                = <span id="conversionValue" style="font-weight:600;color:var(--blue);margin:0 2px;">0</span> <span id="conversionUnit">积分</span>
+              </span>
+            </div>
+            <div class="form-group">
+              <label>积分有效期 *</label>
+              <select id="pointsValidity" onchange="updatePreview()">
+                <option value="365">1年</option>
+                <option value="730">2年</option>
+                <option value="1095">3年</option>
+                <option value="0">无</option>
+              </select>
+              <div class="form-hint">积分充入用户账户后按此有效期到期</div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>发放备注（可选）</label>
+            <input type="text" id="pointsRemark" placeholder="如：会员回馈积分" />
+            <div class="form-hint">用于发放记录中标注本次积分发放用途</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 选择发放用户（卡券直充 / 积分发放共用） -->
+      <div class="form-section" id="userSelectPanel">
+        <div class="form-section-title">
+          <div class="section-icon" id="userStepNumber">4</div>
+          选择发放用户
+        </div>
+        <div class="form-group">
+          <label>发放对象（选择用户，直接充入用户账户）*</label>
+          <div class="user-select-panel">
+            <div class="usp-toolbar">
+              <div class="usp-search">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" id="userSearchInput" placeholder="搜索用户名 / 用户ID / 手机号..." oninput="filterUsers()" autocomplete="off" />
+              </div>
+              <span class="usp-info">已选 <strong id="selectedUserCount">1</strong> / <strong id="totalUserCount">48</strong> 人</span>
+              <button class="btn btn-outline btn-sm" onclick="selectAllUsers()">全选当前页</button>
+              <button class="btn btn-outline btn-sm" onclick="clearAllUsers()">清空选择</button>
+              <button class="btn btn-outline btn-sm" onclick="openImportUsers()">导入手机号</button>
+            </div>
+            <div class="user-table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th class="checkbox-cell"><input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAllPage(this)" /></th>
+                    <th style="width:25%;">昵称</th>
+                    <th style="width:30%;">手机号</th>
+                    <th style="width:45%;">注册时间</th>
+                  </tr>
+                </thead>
+                <tbody id="userTableBody">
+                </tbody>
+              </table>
+            </div>
+            <div class="user-pagination">
+              <div class="page-info" id="userPageInfo">显示第 1-10 条，共 48 条</div>
+              <div class="page-size">
+                <select id="userPageSize" onchange="changePageSize()">
+                  <option value="10">10条/页</option>
+                  <option value="20" selected>20条/页</option>
+                  <option value="50">50条/页</option>
+                </select>
+              </div>
+              <div class="page-btns" id="userPageBtns">
+              </div>
+            </div>
+          </div>
+          <div class="form-hint">单次仅向本商城用户发放</div>
+        </div>
+      </div>
+
+      <!-- 操作按钮 -->
+      <div class="form-actions">
+        <button class="btn btn-outline" onclick="cancelSend()">取消</button>
+        <button class="btn btn-blue" onclick="submitSend()">确认发放</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 确认发放模态框 -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>确认发放</h3>
+      <button class="modal-close" onclick="closeConfirmModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div id="previewBody"></div>
+      <div style="margin-top:16px;padding:12px;background:var(--blue-bg);border-radius:var(--radius-sm);font-size:12px;color:var(--blue);">
+        注意：发放后积分将立即扣减本商城积分池，可在"积分池明细"查看发放记录。
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeConfirmModal()">取消</button>
+      <button class="btn btn-primary" onclick="confirmSend()">确认发放</button>
+    </div>
+  </div>
+</div>
+
+<!-- 导入选择弹窗（选人直充导入手机号 / 使用已有卡密导入卡号） -->
+<div class="modal-overlay" id="importModal">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-header">
+      <h3 id="importTitle">导入选择</h3>
+      <button class="modal-close" onclick="closeImportModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div style="background:var(--blue-bg);border:1px solid var(--blue-border);border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;color:var(--blue);line-height:1.6;margin-bottom:12px;" id="importTip"></div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label id="importLabel">粘贴内容</label>
+        <textarea id="importTextarea" rows="8" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:"Microsoft YaHei",sans-serif;outline:none;resize:vertical;" placeholder="每行一个，支持逗号/空格/换行分隔"></textarea>
+        <div style="margin-top:6px;font-size:11.5px;"><span style="color:var(--blue);cursor:pointer;" onclick="fillSampleImport()">填充示例</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeImportModal()">取消</button>
+      <button class="btn btn-primary" onclick="confirmImport()">确认导入</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ===== 演示数据 =====
+var MALL_LIST = [
+  { id: 'P202607001', name: '苏银商城', points: 150000, avatar: '苏', status: 'active' },
+  { id: 'P2606002', name: '泡泡玛特官方商城', points: 98500, avatar: '泡', status: 'active' },
+  { id: 'P2606001', name: '锦程员工福利商城', points: 42000, avatar: '锦', status: 'active' },
+  { id: 'P2606003', name: '美尚内购商城', points: 75000, avatar: '美', status: 'active' },
+  { id: 'P2606004', name: '锦程积分商城', points: 28000, avatar: '锦', status: 'frozen' },
+  { id: 'P2606005', name: '泡泡玛特企业购', points: 68000, avatar: '泡', status: 'active' },
+  { id: 'P2606006', name: '蜀味员工专区', points: 55000, avatar: '蜀', status: 'active' },
+  { id: 'P2606007', name: '汇通内购平台', points: 120000, avatar: '汇', status: 'active' }
+];
+
+var TEMPLATE_LIST = [
+  { id: 'M00005', name: '满200减50券', type: 'fullminus', typeLabel: '满减券', avatarText: '减', avatarClass: 'fullminus',
+    exchangePoints: 45, validityDays: 15, validityRedeemDays: 7, useRange: '全场通用', useRangeDesc: '满200元可用',
+    specText: '满200减50元', usageNote: '适用于大额购物场景，满200元可用，不可与其他满减券叠加',
+    status: 'published' },
+  { id: 'M00003', name: '5元购物券', type: 'coupon', typeLabel: '优惠券', avatarText: '券', avatarClass: 'coupon',
+    exchangePoints: 5, validityDays: 7, validityRedeemDays: 7, useRange: '全场通用', useRangeDesc: '不限品类、不限商品',
+    specText: '¥5元', usageNote: '适用于全场商品购物抵扣，不可与其他优惠券叠加使用',
+    status: 'published' },
+  { id: 'M00007', name: '手机专属8折券', type: 'discount', typeLabel: '折扣券', avatarText: '折', avatarClass: 'discount',
+    exchangePoints: 80, validityDays: 10, validityRedeemDays: 3, useRange: '指定品类', useRangeDesc: '仅限手机商品使用',
+    specText: '8折优惠（最高¥50）', usageNote: '仅限手机品类使用，最高可优惠50元',
+    status: 'published' },
+  { id: 'M00001', name: '标准积分卡', type: 'points', typeLabel: '积分卡', avatarText: '积', avatarClass: 'points',
+    exchangePoints: 100, validityDays: 30, validityRedeemDays: 0, useRange: '全场通用', useRangeDesc: '不限品类、不限商品',
+    specText: '100积分/张', usageNote: '适用于全平台积分发放，不可与其他优惠叠加使用',
+    status: 'published' },
+  { id: 'M00008', name: '电影票次卡', type: 'ticket', typeLabel: '商品次卡', avatarText: '票', avatarClass: 'ticket',
+    exchangePoints: 90, validityDays: 60, validityRedeemDays: 0, useRange: '电影票兑换', useRangeDesc: '仅限兑换电影票',
+    specText: '可观影 3 次', usageNote: '适用于电影票兑换，支持全部影院和全部影片类型',
+    status: 'published' },
+  { id: 'M00010', name: '蛋糕叔叔礼品卡', type: 'gift', typeLabel: '礼品卡', avatarText: '礼', avatarClass: 'gift',
+    exchangePoints: 200, validityDays: 90, validityRedeemDays: 0, useRange: '第三方：蛋糕叔叔', useRangeDesc: '蛋糕叔叔品牌商品可用',
+    specText: '面值 ¥200', usageNote: '适用于蛋糕叔叔品牌商品，余额可跨订单拆分消费，支持多卡叠加使用',
+    status: 'published' }
+];
+
+// ===== 状态变量 =====
+var selectedMall = { id: 'P202607001', name: '苏银商城', points: 150000 };
+var selectedTemplate = { id: 'M00005', name: '满200减50券', exchangePoints: 45, type: 'fullminus' };
+var selectedSendMethod = 'direct';
+var selectedUsers = [];
+var sendType = 'coupon'; // 'coupon' | 'points'
+
+// 品牌积分名称与兑换比例（从品牌积分配置同步，当前示例：苏银商城）
+var brandPointsConfig = { name: '苏银豆', ratio: 10 };
+
+// 更新品牌积分换算显示
+function updatePointsConversion() {
+  var input = document.getElementById('pointsPerUser');
+  var display = document.getElementById('pointsConversion');
+  var valEl = document.getElementById('conversionValue');
+  var unitEl = document.getElementById('conversionUnit');
+  if (!input || !display || !valEl || !unitEl) return;
+  var val = parseInt(input.value) || 0;
+  var converted = val * brandPointsConfig.ratio;
+  valEl.textContent = converted.toLocaleString();
+  unitEl.textContent = brandPointsConfig.name;
+  display.style.display = val > 0 ? 'block' : 'none';
+}
+
+// 发放类型切换
+function selectSendType(element, type) {
+  document.querySelectorAll('.send-type-card').forEach(function(c){ c.classList.remove('selected'); });
+  element.classList.add('selected');
+  sendType = type;
+  document.getElementById('couponConfig').classList.toggle('active', type === 'coupon');
+  document.getElementById('pointsConfig').classList.toggle('active', type === 'points');
+  // 用户选择区块序号：卡券第4步 / 积分第3步
+  var stepEl = document.getElementById('userStepNumber');
+  if (stepEl) stepEl.textContent = type === 'coupon' ? '4' : '3';
+  // 积分模式：刷新品牌积分换算；卡券模式：隐藏换算
+  if (type === 'points') { updatePointsConversion(); }
+  else { var pc = document.getElementById('pointsConversion'); if (pc) pc.style.display = 'none'; }
+
+  // 一期仅支持"选人直充"，积分模式固定为选人直充，始终展示用户面板
+  var userPanel = document.getElementById('userSelectPanel');
+  if (type === 'points') { selectedSendMethod = 'direct'; }
+  userPanel.style.display = 'block';
+  updatePreview();
+}
+
+// ===== Toast =====
+function showToast(type, message) {
+  var container = document.getElementById('toastContainer');
+  var toast = document.createElement('div');
+  toast.className = 'toast ' + type;
+  toast.textContent = message;
+  container.appendChild(toast);
+  setTimeout(function() { toast.remove(); }, 3000);
+}
+
+// ===== 下拉搜索框逻辑 =====
+function toggleSearchDropdown(containerId) {
+  var container = document.getElementById(containerId);
+  var isOpen = container.classList.contains('open');
+  if (isOpen) {
+    closeAllDropdowns();
+  } else {
+    closeAllDropdowns();
+    container.classList.add('open');
+    var input = container.querySelector('.search-input-wrap input');
+    var dropdownInput = container.querySelector('.dropdown-search input');
+    if (dropdownInput) { dropdownInput.value = ''; dropdownInput.focus(); }
+    renderDropdownItems(containerId);
+  }
+}
+
+function openSearchDropdown(containerId) {
+  var container = document.getElementById(containerId);
+  if (!container.classList.contains('open')) {
+    closeAllDropdowns();
+    container.classList.add('open');
+    renderDropdownItems(containerId);
+  }
+}
+
+function closeAllDropdowns() {
+  document.querySelectorAll('.search-select.open').forEach(function(el) {
+    el.classList.remove('open');
+  });
+}
+
+function filterDropdown(containerId) {
+  renderDropdownItems(containerId);
+}
+
+function renderDropdownItems(containerId) {
+  var container = document.getElementById(containerId);
+  var dropdownInput = container.querySelector('.dropdown-search input');
+  var listEl = container.querySelector('.dropdown-list');
+  var keyword = (dropdownInput ? dropdownInput.value : '').toLowerCase();
+
+  var items;
+  if (containerId === 'mallSearchSelect') {
+    items = MALL_LIST;
+  } else {
+    items = TEMPLATE_LIST;
+  }
+
+  var filtered = items.filter(function(item) {
+    if (!keyword) return true;
+    return (item.name || '').toLowerCase().indexOf(keyword) >= 0 ||
+           (item.id || '').toLowerCase().indexOf(keyword) >= 0 ||
+           (item.typeLabel || '').toLowerCase().indexOf(keyword) >= 0;
+  });
+
+  if (filtered.length === 0) {
+    listEl.innerHTML = '<div class="dropdown-empty">无匹配结果</div>';
+    return;
+  }
+
+  var html = '';
+  filtered.forEach(function(item) {
+    var isSelected = false;
+    if (containerId === 'mallSearchSelect') {
+      isSelected = selectedMall && selectedMall.id === item.id;
+    } else {
+      isSelected = selectedTemplate && selectedTemplate.id === item.id;
+    }
+    var cls = 'dropdown-item' + (isSelected ? ' selected' : '');
+
+    if (containerId === 'mallSearchSelect') {
+      // 品牌商城下拉项：头像 + 名称+积分
+      var statusBadge = item.status === 'frozen' ? '<span style="font-size:10px;color:var(--red);margin-left:4px;">(已冻结)</span>' : '';
+      html += '<div class="' + cls + '" onclick="selectMallItem(\'' + item.id + '\',\'' + item.name + '\',' + item.points + ');event.stopPropagation();">' +
+        '<div class="item-avatar">' + item.avatar + '</div>' +
+        '<div class="item-info">' +
+          '<div class="item-name">' + item.name + statusBadge + '</div>' +
+          '<div class="item-sub">' + item.id + '</div>' +
+        '</div>' +
+        '<div class="item-extra">' + item.points.toLocaleString() + ' 积分</div>' +
+      '</div>';
+    } else {
+      // 模板下拉项：渐变色头像 + 名称+描述 + 兑换积分
+      html += '<div class="' + cls + '" onclick="selectTemplateItem(\'' + item.id + '\');event.stopPropagation();">' +
+        '<div class="item-avatar ' + item.avatarClass + '" style="color:' + (item.avatarClass === 'points' ? '#92400e' : '#fff') + ';background:' +
+          (item.avatarClass === 'points' ? 'linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%)' :
+           item.avatarClass === 'coupon' ? 'linear-gradient(135deg, #dbeafe 0%, #60a5fa 100%)' :
+           item.avatarClass === 'fullminus' ? 'linear-gradient(135deg, #d1fae5 0%, #34d399 100%)' :
+           item.avatarClass === 'discount' ? 'linear-gradient(135deg, #fde8c4 0%, #d97706 100%)' :
+           item.avatarClass === 'gift' ? 'linear-gradient(135deg, #fef4f3 0%, #da3e3a 100%)' :
+           'linear-gradient(135deg, #fcd9d7 0%, #da3e3a 100%)') + ';">' + item.avatarText + '</div>' +
+        '<div class="item-info">' +
+          '<div class="item-name">' + item.name + '</div>' +
+          '<div class="item-sub">' + item.typeLabel + ' · ' + item.specText + ' · 发放后' + item.validityDays + '天/兑换后' + (item.validityRedeemDays > 0 ? item.validityRedeemDays + '天' : '不限') + '</div>' +
+        '</div>' +
+        '<div class="item-extra">' + item.exchangePoints + ' 积分</div>' +
+      '</div>';
+    }
+  });
+  listEl.innerHTML = html;
+}
+
+// ===== 品牌商城选择 =====
+function selectMallItem(mallId, mallName, mallPoints) {
+  selectedMall = { id: mallId, name: mallName, points: mallPoints };
+
+  // 更新搜索输入框
+  var input = document.getElementById('mallSearchInput');
+  input.value = mallName + ' (' + mallId + ')';
+  input.classList.add('has-value');
+
+  // 显示已选信息条
+  document.getElementById('msiName').textContent = mallName;
+  document.getElementById('msiPoints').textContent = mallPoints.toLocaleString();
+  document.getElementById('mallSelectedInfo').classList.add('show');
+
+  // 关闭下拉
+  closeAllDropdowns();
+
+  // 切换品牌商城后刷新用户列表
+  refreshUserPanel();
+  updatePreview();
+}
+
+// ===== 模板选择 =====
+function selectTemplateItem(templateId) {
+  var tpl = TEMPLATE_LIST.find(function(t) { return t.id === templateId; });
+  if (!tpl) return;
+
+  selectedTemplate = {
+    id: tpl.id, name: tpl.name, exchangePoints: tpl.exchangePoints, type: tpl.type,
+    typeLabel: tpl.typeLabel, avatarText: tpl.avatarText, avatarClass: tpl.avatarClass,
+    specText: tpl.specText, validityDays: tpl.validityDays,
+    useRange: tpl.useRange, useRangeDesc: tpl.useRangeDesc, usageNote: tpl.usageNote,
+    status: tpl.status
+  };
+
+  // 更新搜索输入框
+  var input = document.getElementById('templateSearchInput');
+  input.value = tpl.name + ' (' + tpl.id + ')';
+  input.classList.add('has-value');
+
+  // 展示模板详情卡片
+  showTemplateDetailCard(tpl);
+
+  // 关闭下拉
+  closeAllDropdowns();
+  // 积分卡模板：发放即到账，仅保留"选人直充"，不生成/使用卡密
+  applyTemplateMethodRestriction(tpl);
+  updatePreview();
+}
+
+// 积分卡(type=points)发放即到账，不应生成卡密或使用已有卡密，仅保留选人直充
+function applyTemplateMethodRestriction(tpl) {
+  var isPoints = !!(tpl && tpl.type === 'points');
+  var cardkeyCard = document.getElementById('methodCardCardkey');
+  var existingCard = document.getElementById('methodCardExisting');
+  if (cardkeyCard) cardkeyCard.style.display = isPoints ? 'none' : '';
+  if (existingCard) existingCard.style.display = isPoints ? 'none' : '';
+  if (isPoints && selectedSendMethod !== 'direct') {
+    var directCard = document.getElementById('methodCardDirect');
+    if (directCard) selectSendMethod(directCard, 'direct');
+  }
+}
+
+function clearTemplateSelection() {
+  selectedTemplate = { id: '', name: '', exchangePoints: 0, type: '' };
+  var input = document.getElementById('templateSearchInput');
+  input.value = '';
+  input.classList.remove('has-value');
+  document.getElementById('templateDetailCard').classList.remove('show');
+  // 清除模板后恢复全部发放方式可选
+  applyTemplateMethodRestriction(null);
+  updatePreview();
+}
+
+function showTemplateDetailCard(tpl) {
+  var card = document.getElementById('templateDetailCard');
+  var avatar = document.getElementById('tdAvatar');
+  avatar.textContent = tpl.avatarText;
+  avatar.className = 'td-avatar ' + tpl.avatarClass;
+  document.getElementById('tdName').innerHTML = tpl.name + ' <span style="font-size:11px;color:var(--text-muted);font-weight:400;">模板ID：' + tpl.id + '</span>';
+  document.getElementById('tdMeta').textContent = ''; // 已合并到名称行
+
+  // 构建规格信息（标签-值对）
+  var specsHtml = '';
+  specsHtml += '<div class="td-spec-row"><span class="td-spec-label">兑换单价</span><span class="td-spec-value"><span class="highlight">' + tpl.exchangePoints + ' 积分</span>/张</span></div>';
+  specsHtml += '<div class="td-spec-row"><span class="td-spec-label">优惠内容</span><span class="td-spec-value">' + tpl.specText + '</span></div>';
+  specsHtml += '<div class="td-spec-row"><span class="td-spec-label">有效期(发放后)</span><span class="td-spec-value">' + tpl.validityDays + ' 天</span></div>';
+  specsHtml += '<div class="td-spec-row"><span class="td-spec-label">有效期(兑换后)</span><span class="td-spec-value">' + (tpl.validityRedeemDays > 0 ? tpl.validityRedeemDays + ' 天' : '不限') + '</span></div>';
+  specsHtml += '<div class="td-spec-row"><span class="td-spec-label">使用范围</span><span class="td-spec-value">' + tpl.useRange + '</span></div>';
+  if (tpl.useRangeDesc) {
+    specsHtml += '<div class="td-spec-row"><span class="td-spec-label">使用门槛</span><span class="td-spec-value">' + tpl.useRangeDesc + '</span></div>';
+  }
+  if (tpl.usageNote) {
+    specsHtml += '<div class="td-spec-row"><span class="td-spec-label">使用说明</span><span class="td-spec-value">' + tpl.usageNote + '</span></div>';
+  }
+  document.getElementById('tdSpecs').innerHTML = specsHtml;
+
+  card.classList.add('show');
+}
+
+// ===== 发放方式 =====
+function selectSendMethod(element, method) {
+  // 积分卡模板仅允许"选人直充"，禁止切换到卡密类方式
+  if (method === 'cardkey' && selectedTemplate && selectedTemplate.type === 'points') {
+    showToast('info', '积分卡发放即到账，仅支持选人直充，不支持生成/使用卡密');
+    return;
+  }
+  var cards = document.querySelectorAll('.send-method-card');
+  cards.forEach(function(card) { card.classList.remove('selected'); });
+  if (element) element.classList.add('selected');
+  selectedSendMethod = method;
+
+  var userPanel = document.getElementById('userSelectPanel');
+  userPanel.style.display = method === 'direct' ? 'block' : 'none';
+  syncSendQuantity();
+}
+
+// 根据发放方式同步发放数量，避免数量与实际发放对象不匹配：
+// - 选人直充：每人1张，数量 = 已选用户数（只读）
+// - 生成卡密：手动输入（可编辑）
+function syncSendQuantity() {
+  var input = document.getElementById('sendQuantity');
+  var hint = document.getElementById('sendQuantityHint');
+  if (!input) return;
+  if (selectedSendMethod === 'direct') {
+    input.value = selectedUsers.length;
+    input.readOnly = true;
+    if (hint) hint.textContent = '每人1张，发放数量自动等于已选用户数（当前 ' + selectedUsers.length + ' 人）';
+  } else {
+    input.readOnly = false;
+    if (hint) hint.textContent = '生成卡券的数量';
+  }
+  updatePreview();
+}
+
+// ===== 品牌商城用户数据（按品牌商城编码索引） =====
+var MALL_USERS = {
+  'P202607001': generateMockUsers('苏银', 48),
+  'P2606002': generateMockUsers('泡泡玛特', 35),
+  'P2606001': generateMockUsers('锦程福利', 22),
+  'P2606003': generateMockUsers('美尚', 60),
+  'P2606004': generateMockUsers('锦程积分', 15),
+  'P2606005': generateMockUsers('泡泡企业', 30),
+  'P2606006': generateMockUsers('蜀味', 18),
+  'P2606007': generateMockUsers('汇通', 40)
+};
+
+function generateMockUsers(prefix, count) {
+  var surnames = ['张','李','王','赵','陈','刘','黄','周','吴','徐','孙','马','朱','胡','郭','何','高','林','罗','郑'];
+  var users = [];
+  for (var i = 1; i <= count; i++) {
+    var surname = surnames[(i - 1) % surnames.length];
+    var month = String(Math.floor(Math.random() * 12) + 1).padStart(2, '0');
+    var day = String(Math.floor(Math.random() * 28) + 1).padStart(2, '0');
+    users.push({
+      id: prefix + '-USER-' + String(i).padStart(4, '0'),
+      name: surname + (i <= 20 ? ['三','四','五','六','七','八','九','十','十一','十二','十三','十四','十五','十六','十七','十八','十九','二十'][i-1] : i),
+      phone: '138' + String(Math.floor(Math.random() * 90000000 + 10000000)),
+      regTime: '2025-' + month + '-' + day + ' ' + String(Math.floor(Math.random()*24)).padStart(2,'0') + ':' + String(Math.floor(Math.random()*60)).padStart(2,'0') + ':' + String(Math.floor(Math.random()*60)).padStart(2,'0'),
+      avatar: surname
+    });
+  }
+  return users;
+}
+
+// ===== 用户分页状态 =====
+var userCurrentPage = 1;
+var userPageSize = 20;
+var userFilteredList = []; // 当前筛选后的用户列表
+
+// ===== 用户选择 =====
+function filterUsers() {
+  userCurrentPage = 1;
+  renderUserTable();
+}
+
+function getCurrentUserList() {
+  var mallId = selectedMall.id;
+  var allUsers = MALL_USERS[mallId] || [];
+  var keyword = (document.getElementById('userSearchInput').value || '').toLowerCase();
+  if (!keyword) return allUsers;
+  return allUsers.filter(function(u) {
+    return u.name.toLowerCase().indexOf(keyword) >= 0 ||
+           u.id.toLowerCase().indexOf(keyword) >= 0 ||
+           u.phone.indexOf(keyword) >= 0;
+  });
+}
+
+function renderUserTable() {
+  userFilteredList = getCurrentUserList();
+  var total = userFilteredList.length;
+  var totalPages = Math.ceil(total / userPageSize);
+  if (userCurrentPage > totalPages) userCurrentPage = Math.max(1, totalPages);
+
+  var start = (userCurrentPage - 1) * userPageSize;
+  var pageUsers = userFilteredList.slice(start, start + userPageSize);
+
+  var tbody = document.getElementById('userTableBody');
+  var html = '';
+  if (pageUsers.length === 0) {
+    html = '<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-muted);">暂无匹配用户</td></tr>';
+  } else {
+    pageUsers.forEach(function(u) {
+      var isSel = selectedUsers.indexOf(u.id) >= 0;
+      var rowCls = isSel ? ' selected' : '';
+      var checked = isSel ? ' checked' : '';
+      html += '<tr class="' + rowCls + '" onclick="toggleUserRow(\'' + u.id + '\', this)">' +
+        '<td class="checkbox-cell" onclick="event.stopPropagation();"><input type="checkbox" ' + checked + ' onchange="toggleUserCheckbox(\'' + u.id + '\', this)" /></td>' +
+        '<td><div class="user-cell"><div class="user-mini-avatar">' + u.avatar + '</div><span class="user-name">' + u.name + '</span></div></td>' +
+        '<td><span style="font-size:12px;color:var(--text-secondary);">' + u.phone + '</span></td>' +
+        '<td><span style="font-size:11.5px;color:var(--text-muted);">' + u.regTime + '</span></td>' +
+      '</tr>';
+    });
+  }
+  tbody.innerHTML = html;
+
+  // 更新全选checkbox
+  var allOnPage = pageUsers.length > 0 && pageUsers.every(function(u) { return selectedUsers.indexOf(u.id) >= 0; });
+  document.getElementById('selectAllCheckbox').checked = allOnPage;
+  document.getElementById('selectAllCheckbox').indeterminate = !allOnPage && pageUsers.some(function(u) { return selectedUsers.indexOf(u.id) >= 0; });
+
+  // 更新计数
+  document.getElementById('selectedUserCount').textContent = selectedUsers.length;
+  document.getElementById('totalUserCount').textContent = total;
+
+  // 更新分页信息
+  var end = Math.min(start + userPageSize, total);
+  document.getElementById('userPageInfo').textContent = total > 0 ? '显示第 ' + (start + 1) + '-' + end + ' 条，共 ' + total + ' 条' : '共 0 条';
+
+  // 渲染分页按钮
+  renderUserPagination(totalPages);
+
+  // 选人直充方式下，发放数量需随用户选择自动联动
+  syncSendQuantity();
+}
+
+function renderUserPagination(totalPages) {
+  var container = document.getElementById('userPageBtns');
+  var html = '';
+
+  // 上一页
+  html += '<button class="page-btn ' + (userCurrentPage <= 1 ? 'disabled' : '') + '" onclick="goToUserPage(' + (userCurrentPage - 1) + ')">‹</button>';
+
+  // 页码
+  var maxShow = 5;
+  var startPage = Math.max(1, userCurrentPage - Math.floor(maxShow / 2));
+  var endPage = Math.min(totalPages, startPage + maxShow - 1);
+  if (endPage - startPage < maxShow - 1) startPage = Math.max(1, endPage - maxShow + 1);
+
+  for (var i = startPage; i <= endPage; i++) {
+    html += '<button class="page-btn ' + (i === userCurrentPage ? 'active' : '') + '" onclick="goToUserPage(' + i + ')">' + i + '</button>';
+  }
+
+  // 下一页
+  html += '<button class="page-btn ' + (userCurrentPage >= totalPages ? 'disabled' : '') + '" onclick="goToUserPage(' + (userCurrentPage + 1) + ')">›</button>';
+
+  container.innerHTML = html;
+}
+
+function goToUserPage(page) {
+  var totalPages = Math.ceil(userFilteredList.length / userPageSize);
+  if (page < 1 || page > totalPages || page === userCurrentPage) return;
+  userCurrentPage = page;
+  renderUserTable();
+}
+
+function changePageSize() {
+  userPageSize = parseInt(document.getElementById('userPageSize').value);
+  userCurrentPage = 1;
+  renderUserTable();
+}
+
+function toggleUserRow(userId, row) {
+  var idx = selectedUsers.indexOf(userId);
+  if (idx >= 0) {
+    selectedUsers.splice(idx, 1);
+  } else {
+    selectedUsers.push(userId);
+  }
+  renderUserTable();
+}
+
+function toggleUserCheckbox(userId, checkbox) {
+  if (checkbox.checked) {
+    if (selectedUsers.indexOf(userId) < 0) selectedUsers.push(userId);
+  } else {
+    var idx = selectedUsers.indexOf(userId);
+    if (idx >= 0) selectedUsers.splice(idx, 1);
+  }
+  renderUserTable();
+}
+
+function toggleSelectAllPage(checkbox) {
+  var start = (userCurrentPage - 1) * userPageSize;
+  var pageUsers = userFilteredList.slice(start, start + userPageSize);
+  if (checkbox.checked) {
+    pageUsers.forEach(function(u) {
+      if (selectedUsers.indexOf(u.id) < 0) selectedUsers.push(u.id);
+    });
+  } else {
+    var pageIds = pageUsers.map(function(u) { return u.id; });
+    selectedUsers = selectedUsers.filter(function(id) { return pageIds.indexOf(id) < 0; });
+  }
+  renderUserTable();
+}
+
+function selectAllUsers() {
+  var start = (userCurrentPage - 1) * userPageSize;
+  var pageUsers = userFilteredList.slice(start, start + userPageSize);
+  pageUsers.forEach(function(u) {
+    if (selectedUsers.indexOf(u.id) < 0) selectedUsers.push(u.id);
+  });
+  renderUserTable();
+}
+
+function clearAllUsers() {
+  selectedUsers = [];
+  renderUserTable();
+}
+
+function refreshUserPanel() {
+  userCurrentPage = 1;
+  selectedUsers = [];
+  document.getElementById('userSearchInput').value = '';
+  renderUserTable();
+}
+
+// ===== 导入选择（选人直充导入手机号自动选人） =====
+function openImportUsers(){
+  if(!selectedMall.id){ showToast('info','当前商城未加载'); return; }
+  document.getElementById('importTitle').textContent='导入手机号自动选人';
+  document.getElementById('importTip').innerHTML='粘贴用户手机号（每行一个，支持逗号/空格/换行分隔），系统将自动勾选当前品牌商城下匹配的用户。';
+  document.getElementById('importLabel').textContent='手机号列表';
+  document.getElementById('importTextarea').value='';
+  document.getElementById('importTextarea').placeholder='13800000001\n13800000002\n13800000003';
+  document.getElementById('importModal').classList.add('open');
+}
+function closeImportModal(){ document.getElementById('importModal').classList.remove('open'); }
+function fillSampleImport(){
+  var ta=document.getElementById('importTextarea');
+  var allUsers=MALL_USERS[selectedMall.id]||[];
+  ta.value=allUsers.slice(0,3).map(function(u){return u.phone;}).join('\n');
+}
+function confirmImport(){
+  var raw=document.getElementById('importTextarea').value||'';
+  var items=raw.split(/[\s,，;；]+/).map(function(s){return s.trim();}).filter(Boolean);
+  if(!items.length){ showToast('info','请粘贴至少一条内容'); return; }
+  var allUsers=MALL_USERS[selectedMall.id]||[];
+  var matched=0, unmatched=[];
+  items.forEach(function(ph){
+    var u=allUsers.find(function(x){return x.phone===ph;});
+    if(u){ if(selectedUsers.indexOf(u.id)<0) selectedUsers.push(u.id); matched++; }
+    else unmatched.push(ph);
+  });
+  renderUserTable();
+  if(unmatched.length) showToast('info','已选中 '+matched+' 人，'+unmatched.length+' 条手机号未匹配：'+unmatched.slice(0,5).join(' ')+(unmatched.length>5?'…':''));
+  else showToast('success','已选中 '+matched+' 位匹配用户');
+  closeImportModal();
+}
+
+// ===== 预览更新 =====
+function pvRow(label, value, cls) {
+  return '<div class="preview-row"><span class="preview-label">' + label + '</span><span class="preview-value ' + (cls||'') + '">' + value + '</span></div>';
+}
+function fmt(n) { return Number(n).toLocaleString(); }
+
+function updatePreview() {
+  var body;
+  var mallName = selectedMall.name || '未选择';
+  var mallPoints = selectedMall.points || 0;
+
+  if (sendType === 'points') {
+    var perUser = parseInt(document.getElementById('pointsPerUser').value) || 0;
+    var userCount = selectedUsers.length;
+    var totalPoints = perUser * userCount;
+    var remaining = mallPoints - totalPoints;
+    var pvSel = document.getElementById('pointsValidity');
+    var pvVal = pvSel ? pvSel.value : '365';
+    var pvLabel = pvVal === '0' ? '无' : ({'365':'1年','730':'2年','1095':'3年'}[pvVal] || '1年');
+    body = '';
+    body += pvRow('发放类型', '积分发放');
+    body += pvRow('品牌商城', mallName);
+    body += pvRow('每人发放', fmt(perUser) + ' 积分/人');
+    body += pvRow('积分有效期', pvLabel);
+    body += pvRow('发放用户', userCount + ' 人');
+    body += pvRow('消耗积分', '-' + fmt(totalPoints) + ' 积分', 'points');
+    body += pvRow('品牌商城剩余积分', remaining < 0 ? '余额不足，无法发放' : fmt(remaining) + ' 积分', 'points');
+  } else {
+    var quantity = parseInt(document.getElementById('sendQuantity').value) || 0;
+    var totalPoints2 = quantity * (selectedTemplate.exchangePoints || 0);
+    var remaining2 = mallPoints - totalPoints2;
+    body = '';
+    body += pvRow('发放类型', '卡券发放');
+    body += pvRow('品牌商城', mallName);
+    body += pvRow('卡券模板', selectedTemplate.name || '未选择');
+    body += pvRow('发放数量', quantity + ' 张');
+    body += pvRow('单价兑换积分', (selectedTemplate.exchangePoints || 0) + ' 积分/张', 'points');
+    if (selectedSendMethod === 'cardkey') body += pvRow('发放方式', '生成卡密（线下传递）');
+    else body += pvRow('发放用户', selectedUsers.length + ' 人');
+    body += pvRow('消耗积分', '-' + fmt(totalPoints2) + ' 积分', 'points');
+    body += pvRow('品牌商城剩余积分', remaining2 < 0 ? '余额不足，无法发放' : fmt(remaining2) + ' 积分', 'points');
+  }
+  document.getElementById('previewBody').innerHTML = body;
+}
+
+// ===== 提交 =====
+function submitSend() {
+  if (!selectedMall.id) { showToast('info', '请选择品牌商城'); return; }
+
+  if (sendType === 'points') {
+    var perUser = parseInt(document.getElementById('pointsPerUser').value) || 0;
+    if (perUser <= 0) { showToast('info', '请输入每人发放积分'); return; }
+    if (selectedUsers.length === 0) { showToast('info', '请选择目标用户'); return; }
+    var totalPointsP = perUser * selectedUsers.length;
+    if (totalPointsP > selectedMall.points) { showToast('error', '积分余额不足，无法发放'); return; }
+    updatePreview();
+    document.getElementById('confirmModal').classList.add('open');
+    return;
+  }
+
+  var quantity = parseInt(document.getElementById('sendQuantity').value) || 0;
+  if (!selectedTemplate.id) { showToast('info', '请选择卡券模板'); return; }
+  // 选人直充：数量由所选对象自动联动，先校验对象是否已选
+  if (selectedSendMethod === 'direct') {
+    if (selectedUsers.length === 0) { showToast('info', '请选择目标用户'); return; }
+  } else {
+    if (quantity <= 0) { showToast('info', '请输入有效的发放数量'); return; }
+  }
+
+  var totalPoints = quantity * (selectedTemplate.exchangePoints || 0);
+  if (totalPoints > selectedMall.points) { showToast('error', '积分余额不足，无法发放'); return; }
+
+  updatePreview();
+  document.getElementById('confirmModal').classList.add('open');
+}
+
+function closeConfirmModal() { document.getElementById('confirmModal').classList.remove('open'); }
+
+function confirmSend() {
+  closeConfirmModal();
+  var batchNo = (typeof genIssueBatchNo === 'function') ? genIssueBatchNo() : 'C20260701001';
+  if (sendType === 'points') {
+    var perUser = parseInt(document.getElementById('pointsPerUser').value) || 0;
+    showToast('success', '已为 ' + selectedMall.name + ' 的 ' + selectedUsers.length + ' 位用户每人发放 ' + perUser + ' 积分（批次号 ' + batchNo + '）');
+  } else {
+    var isPointsCard = selectedTemplate.type === 'points';
+    var qty = document.getElementById('sendQuantity').value;
+    var message;
+    if (isPointsCard) {
+      // 积分卡发放即到账，使用"到账"措辞
+      message = '已为 ' + selectedMall.name + ' 的 ' + selectedUsers.length + ' 位用户到账积分卡（批次号 ' + batchNo + '）';
+    } else {
+      message = '已为 ' + selectedMall.name + ' 成功发放 ' + qty + ' 张卡券（批次号 ' + batchNo + '）';
+    }
+    showToast('success', message);
+  }
+  setTimeout(function() { window.location.href = '21b.商城积分池明细-原型页面.html'; }, 2000);
+}
+
+function cancelSend() { resetForm(); showToast('info', '已取消发放'); }
+
+function resetForm() {
+  selectedMall = { id: 'P202607001', name: '苏银商城', points: 150000 };
+  selectedTemplate = { id: 'M00005', name: '满200减50券', exchangePoints: 45, type: 'fullminus' };
+  selectedSendMethod = 'direct';
+  selectedUsers = [];
+  sendType = 'coupon';
+
+  // 发放类型重置为卡券
+  var typeCards = document.querySelectorAll('.send-type-card');
+  typeCards.forEach(function(card, index) { card.classList.toggle('selected', index === 0); });
+  document.getElementById('couponConfig').classList.add('active');
+  document.getElementById('pointsConfig').classList.remove('active');
+  var ppu = document.getElementById('pointsPerUser'); if (ppu) ppu.value = '100';
+  var pv = document.getElementById('pointsValidity'); if (pv) pv.value = '365';
+  var pr = document.getElementById('pointsRemark'); if (pr) pr.value = '';
+
+  // 品牌商城重置
+  document.getElementById('msiName').textContent = '苏银商城';
+  document.getElementById('msiPoints').textContent = '150,000';
+  document.getElementById('mallSelectedInfo').classList.add('show');
+
+  // 模板重置
+  document.getElementById('templateSearchInput').value = '满200减50券 (M00005)';
+  document.getElementById('templateSearchInput').classList.add('has-value');
+  var defaultTpl = TEMPLATE_LIST[0];
+  showTemplateDetailCard(defaultTpl);
+  applyTemplateMethodRestriction(defaultTpl);
+
+  document.getElementById('sendQuantity').value = '100';
+  document.getElementById('customName').value = '';
+
+  var methodCards = document.querySelectorAll('.send-method-card');
+  methodCards.forEach(function(card, index) { card.classList.toggle('selected', index === 0); });
+  document.getElementById('userSelectPanel').style.display = 'block';
+  var _ckPanel = document.getElementById('cardkeySelectPanel');
+  if (_ckPanel) _ckPanel.style.display = 'none';
+
+  // 重置用户列表
+  userCurrentPage = 1;
+  selectedUsers = [];
+  document.getElementById('userSearchInput').value = '';
+  renderUserTable();
+
+
+  updatePreview();
+}
+
+// ===== 点击外部关闭下拉 =====
+document.addEventListener('click', function(e) {
+  var insideSearchSelect = e.target.closest('.search-select');
+  if (!insideSearchSelect) {
+    closeAllDropdowns();
+  }
+});
+
+// ===== 初始化 =====
+(function() {
+  // 预设选中当前品牌商城
+  document.getElementById('msiName').textContent = '苏银商城';
+  document.getElementById('msiPoints').textContent = '150,000';
+  document.getElementById('mallSelectedInfo').classList.add('show');
+
+  // 预设选中满200减50券
+  document.getElementById('templateSearchInput').value = '满200减50券 (M00005)';
+  document.getElementById('templateSearchInput').classList.add('has-value');
+  showTemplateDetailCard(TEMPLATE_LIST[0]);
+
+  // 渲染用户列表
+  renderUserTable();
+  updatePreview();
+
+  // 使用已有卡密方式已移除（一期仅支持选人直充），原 URL 参数预填卡密逻辑已删除
+})();
+</script>
+
+</body>
+</html>
