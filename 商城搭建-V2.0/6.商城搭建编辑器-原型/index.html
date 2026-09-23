@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>商城模板搭建系统 - 运营工作台</title>
+  <link rel="stylesheet" href="styles.css?v=26" />
+</head>
+<body>
+  <div id="app">
+    <!-- 侧边栏 -->
+    <aside class="sidebar">
+      <div class="logo">商城运营后台</div>
+      <nav class="sidebar-nav">
+        <div class="sidebar-menu-item sidebar-menu-static">
+          <span class="sidebar-menu-icon" aria-hidden="true">⌂</span>
+          工作台首页
+        </div>
+        <div class="sidebar-menu-item sidebar-menu-static">
+          <span class="sidebar-menu-icon" aria-hidden="true">▣</span>
+          商城运营后台
+        </div>
+        <div class="sidebar-menu-parent" data-menu-toggle="build-center">
+          <span class="sidebar-menu-icon" aria-hidden="true">⚙</span>
+          搭建中心
+          <span class="sidebar-menu-arrow" aria-hidden="true">▴</span>
+        </div>
+        <div class="sidebar-menu-sub" id="menu-build-center">
+          <button type="button" class="sidebar-menu-item active" data-center="templates">模板中心</button>
+          <button type="button" class="sidebar-menu-item" data-center="apps">应用中心</button>
+        </div>
+      </nav>
+      <div class="sidebar-footer">
+        <span class="user">运营账号：ops@platform.com</span>
+      </div>
+    </aside>
+
+    <!-- 主内容区 -->
+    <main class="main">
+      <div class="main-top" id="main-top">
+        <header class="main-page-header">
+          <h1 class="main-page-title" id="main-page-title">模板中心</h1>
+          <div class="main-page-actions">
+            <button type="button" class="btn btn-primary" id="btn-new-template">+ 新建模板</button>
+            <button type="button" class="btn btn-primary hidden" id="btn-new-app">+ 新建应用</button>
+          </div>
+        </header>
+        <div class="main-filters main-filters--templates" id="main-filters-templates">
+          <div class="filter-group">
+            <label for="filter-template-name">名称</label>
+            <input type="text" id="filter-template-name" class="filter-input" placeholder="请输入名称" />
+          </div>
+          <div class="filter-group">
+            <label for="filter-terminal">终端类型</label>
+            <select id="filter-terminal">
+              <option value="">全部</option>
+              <option value="pc">PC端</option>
+              <option value="mp">小程序/H5端</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="filter-status">状态</label>
+            <select id="filter-status">
+              <option value="">全部</option>
+              <option value="draft">草稿</option>
+              <option value="published">已发布</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="filter-tag">标签</label>
+            <select id="filter-tag">
+              <option value="">全部</option>
+              <option value="美妆">美妆</option>
+              <option value="食品">食品</option>
+              <option value="服饰">服饰</option>
+              <option value="618大促">618大促</option>
+            </select>
+          </div>
+          <button type="button" class="btn btn-ghost" id="btn-batch-tag">批量设置标签</button>
+        </div>
+        <div class="main-filters main-filters--apps hidden" id="main-filters-apps">
+          <div class="filter-group">
+            <label for="filter-app-name">名称</label>
+            <input type="text" id="filter-app-name" class="filter-input" placeholder="请输入名称" />
+          </div>
+          <div class="filter-group">
+            <label for="filter-app-status">状态</label>
+            <select id="filter-app-status">
+              <option value="">全部</option>
+              <option value="published">已发布</option>
+              <option value="draft">草稿</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="filter-app-channel">来源渠道</label>
+            <select id="filter-app-channel">
+              <option value="">全部渠道</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <nav class="main-tabs" id="main-tabs-templates">
+        <button type="button" class="main-tab active" data-terminal="">全部</button>
+        <button type="button" class="main-tab" data-terminal="mp">小程序/H5端模板列表</button>
+        <button type="button" class="main-tab" data-terminal="pc">PC端模板列表</button>
+      </nav>
+      <nav class="main-tabs hidden" id="main-tabs-apps">
+        <button type="button" class="main-tab" data-page="apps">单端应用</button>
+        <button type="button" class="main-tab" data-page="multi-apps">多端应用</button>
+      </nav>
+
+      <div class="main-body">
+      <!-- 小程序/H5 模板列表页 -->
+      <section id="page-templates" class="page active">
+        <div class="template-gallery-wrap">
+          <div class="template-gallery-toolbar">
+            <label class="template-check-all">
+              <input type="checkbox" id="check-all" />
+              <span>全选当前页</span>
+            </label>
+            <span class="template-selection-summary" id="template-selection-summary">已选择 0 个模板</span>
+          </div>
+          <div class="template-grid" id="template-tbody"></div>
+          <div class="table-pagination" id="template-pagination"></div>
+        </div>
+      </section>
+
+      <!-- 模板下页面管理页（中间页） -->
+      <section id="page-template-pages" class="page">
+        <div class="template-pages-layout">
+          <aside class="template-pages-sider">
+            <div class="template-pages-back">
+              <button type="button" class="btn btn-ghost btn-sm" id="btn-back-to-templates">返回模板中心</button>
+            </div>
+            <nav class="template-pages-menu" id="template-pages-menu">
+              <button type="button" class="template-pages-menu-item active" data-type="home">首页</button>
+              <button type="button" class="template-pages-menu-item" data-type="category">分类页</button>
+              <button type="button" class="template-pages-menu-item" data-type="activity">活动页</button>
+              <button type="button" class="template-pages-menu-item" data-type="mine">我的页面</button>
+              <button type="button" class="template-pages-menu-item" data-type="product-detail">商品详情页</button>
+            </nav>
+            <div class="template-pages-menu-footer">
+              <span class="template-pages-current-label" id="template-pages-current-label">当前：首页</span>
+            </div>
+          </aside>
+
+          <div class="template-pages-main">
+            <header class="page-header">
+              <h1 id="template-pages-title">页面管理</h1>
+              <button type="button" class="btn btn-primary" id="btn-new-page">新建页面</button>
+            </header>
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>页面名称</th>
+                    <th>状态</th>
+                    <th>修改时间</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody id="template-pages-tbody"></tbody>
+              </table>
+              <div class="table-pagination" id="template-pages-pagination"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PC 模板列表页 -->
+      <section id="page-pc-templates" class="page">
+        <div class="template-gallery-wrap">
+          <div class="template-gallery-toolbar">
+            <label class="template-check-all">
+              <input type="checkbox" id="check-all-pc" />
+              <span>全选当前页</span>
+            </label>
+            <span class="template-selection-summary" id="pc-template-selection-summary">已选择 0 个模板</span>
+          </div>
+          <div class="template-grid" id="pc-template-tbody"></div>
+          <div class="table-pagination" id="pc-template-pagination"></div>
+        </div>
+      </section>
+
+      <!-- 单端应用列表 -->
+      <section id="page-apps" class="page">
+        <div class="app-gallery-wrap">
+          <div class="app-grid" id="app-list-grid"></div>
+          <div class="table-pagination" id="app-list-pagination"></div>
+        </div>
+      </section>
+
+      <!-- 多端应用列表 -->
+      <section id="page-multi-apps" class="page">
+        <div class="app-gallery-wrap">
+          <div class="app-grid" id="multi-app-list-grid"></div>
+          <div class="table-pagination" id="multi-app-list-pagination"></div>
+        </div>
+      </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- 选择新建类型 -->
+  <div id="modal-select-create-type" class="modal">
+    <div class="modal-content modal-select-create-type">
+      <div class="modal-header">
+        <h2>选择新建类型</h2>
+        <button type="button" class="modal-close" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="create-type-grid">
+          <button type="button" class="create-type-card" id="btn-create-type-template">
+            <span class="create-type-icon create-type-icon--template" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                <path d="M5 5h6v6H5V5zm8 0h6v6h-6V5zM5 13h6v6H5v-6zm8 0h6v6h-6v-6z"/>
+              </svg>
+            </span>
+            <span class="create-type-title">新建模板</span>
+            <span class="create-type-desc">创建可复用的商城页面模板，供多个商城引用</span>
+          </button>
+          <button type="button" class="create-type-card" id="btn-create-type-app">
+            <span class="create-type-icon create-type-icon--app" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                <path d="M4 6h16v2H4V6zm0 5h16v2H4v-2zm0 5h16v2H4v-2z"/>
+              </svg>
+            </span>
+            <span class="create-type-title">新建应用</span>
+            <span class="create-type-desc">基于模板创建独立商城应用，可直接配置并发布</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 新建模板弹窗 -->
+  <div id="modal-new-template" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>新建模板</h2>
+        <button type="button" class="modal-close" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-actions">
+          <label class="radio-card">
+            <input type="radio" name="create-type" value="blank" checked />
+            <span class="card-label">从空白新建</span>
+            <span class="card-desc">从零开始配置商城模板</span>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="create-type" value="copy" />
+            <span class="card-label">复制已有模板</span>
+            <span class="card-desc">基于现有模板快速创建</span>
+          </label>
+        </div>
+        <div id="copy-source-wrap" class="form-group hidden">
+          <label>选择要复制的模板</label>
+          <select id="copy-template-select"></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label-required">终端类型</label>
+          <div class="form-radio-row">
+            <label class="form-radio-inline">
+              <input type="radio" name="new-template-terminal" value="mp" checked />
+              <span>小程序/H5</span>
+            </label>
+            <label class="form-radio-inline">
+              <input type="radio" name="new-template-terminal" value="pc" />
+              <span>PC 端</span>
+            </label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>模板名称</label>
+          <input type="text" id="template-name" placeholder="请输入模板名称" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost modal-cancel">取消</button>
+        <button type="button" class="btn btn-primary" id="btn-confirm-new">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 发布前预览确认 -->
+  <div id="modal-publish-preview" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>发布前预览</h2>
+        <button type="button" class="modal-close" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="tip">请确认模板在 PC 与移动端预览无误后再发布。</p>
+        <div class="preview-tabs">
+          <!-- <button type="button" class="preview-tab active" data-device="pc">PC 预览</button> -->
+          <button type="button" class="preview-tab" data-device="mobile">移动端预览</button>
+        </div>
+        <div class="preview-frame pc" id="preview-frame">
+          <div class="preview-placeholder">模板预览区域（演示）</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost modal-cancel">返回编辑</button>
+        <button type="button" class="btn btn-primary" id="btn-confirm-publish">确认发布</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 批量设置标签 -->
+  <div id="modal-batch-tag" class="modal">
+    <div class="modal-content modal-batch-tag">
+      <div class="modal-header">
+        <div>
+          <h2>批量设置标签</h2>
+          <p class="batch-tag-subtitle">已选 <strong id="batch-count">0</strong> 个模板</p>
+        </div>
+        <button type="button" class="modal-close" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>标签</label>
+          <p class="batch-tag-hint batch-tag-hint--tight">
+            以下为所选模板标签的并集；点击 × 删除标签，或在输入框中输入后按回车 / 逗号 添加。点击「应用」将同步到所有已选模板（相对打开弹窗时的列表：少掉的视为删除，多出的视为新增）
+          </p>
+          <div class="batch-tag-chip-wrap" id="batch-unified-chips" aria-live="polite">
+            <input type="text" class="batch-tag-chip-input" id="batch-unified-input" placeholder="输入后按回车添加" autocomplete="off" />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer modal-footer--batch-tag">
+        <span class="batch-tag-footer-note">操作将同步应用至所有已选模板</span>
+        <div class="modal-footer-actions">
+          <button type="button" class="btn btn-ghost modal-cancel">取消</button>
+          <button type="button" class="btn btn-primary" id="btn-confirm-batch-tag">应用</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 推送品牌商城 -->
+  <div id="modal-push" class="modal">
+    <div class="modal-content modal-lg">
+      <div class="modal-header">
+        <h2>推送到品牌商城</h2>
+        <button type="button" class="modal-close" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>选择模板</label>
+          <select id="push-template-select"></select>
+        </div>
+        <div class="form-group">
+          <label>推送方式</label>
+          <label class="radio-inline"><input type="radio" name="push-type" value="template" checked /> 仅推送模板（品牌方自行填数据）</label>
+          <!-- <label class="radio-inline"><input type="radio" name="push-type" value="template-data" /> 模板 + 数据一并推送</label> -->
+        </div>
+        <div class="form-group">
+          <label>选择品牌方（可多选）</label>
+          <div class="brand-check-list" id="push-brand-list"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost modal-cancel">取消</button>
+        <button type="button" class="btn btn-primary" id="btn-confirm-push">确认推送</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 分类页选择模板弹窗 -->
+  <div id="modal-category-template" class="modal">
+    <div class="modal-content modal-lg modal-xl">
+      <div class="modal-header">
+        <h2>选择分类页模板</h2>
+        <button type="button" class="modal-close" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="tip">请选择一种分类页布局，确定后将进入编辑器进行配置。</p>
+        <div class="category-template-grid" id="category-template-list">
+          <label class="radio-card category-template-card">
+            <input type="radio" name="category-template" value="level3" />
+            <span class="card-label">三级分类页</span>
+            <span class="card-desc">左侧一级分类 + 右侧二级分组与三级图标网格</span>
+          </label>
+          <label class="radio-card category-template-card">
+            <input type="radio" name="category-template" value="level2" />
+            <span class="card-label">二级分类页</span>
+            <span class="card-desc">左侧一级分类 + 右侧二级图标网格（无分组标题）</span>
+          </label>
+          <label class="radio-card category-template-card">
+            <input type="radio" name="category-template" value="level2-list" />
+            <span class="card-label">二级分类+商品列表页</span>
+            <span class="card-desc">左侧一级分类 + 右侧 Tab 子分类 + 商品列表</span>
+          </label>
+          <label class="radio-card category-template-card">
+            <input type="radio" name="category-template" value="level1-tab" />
+            <span class="card-label">一级分类+商品分类页（横向 Tab）</span>
+            <span class="card-desc">顶部横向 Tab 子分类 + 商品列表</span>
+          </label>
+          <label class="radio-card category-template-card">
+            <input type="radio" name="category-template" value="level1-list" />
+            <span class="card-label">一级分类+商品分类页（直接列表）</span>
+            <span class="card-desc">左侧一级分类 + 右侧直接商品列表</span>
+          </label>
+          <label class="radio-card category-template-card">
+            <input type="radio" name="category-template" value="level1-list-b" />
+            <span class="card-label">一级分类+商品分类页（直接列表样式二）</span>
+            <span class="card-desc">左侧一级分类 + 右侧商品列表，另一种卡片样式</span>
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost modal-cancel">取消</button>
+        <button type="button" class="btn btn-primary" id="btn-confirm-category-template">确定</button>
+      </div>
+    </div>
+  </div>
+
+  </div>
+
+  <!-- 新建应用弹窗 -->
+  <div id="modal-new-app" class="modal">
+    <div class="modal-content modal-new-app" id="modal-new-app-content">
+      <div class="modal-header">
+        <h2>新建应用</h2>
+        <button type="button" class="modal-close" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body new-app-body">
+        <div class="new-app-layout">
+          <div class="new-app-form-panel">
+            <div class="form-group">
+              <label class="form-label-required" for="new-app-name">应用名称</label>
+              <input type="text" id="new-app-name" placeholder="请输入应用名称" />
+            </div>
+            <div class="form-group" id="new-app-terminal-group">
+              <label class="form-label-required">终端类型</label>
+              <div class="form-radio-row">
+                <label class="form-radio-inline">
+                  <input type="radio" name="new-app-terminal" value="mp" checked />
+                  <span>小程序/H5</span>
+                </label>
+                <label class="form-radio-inline">
+                  <input type="radio" name="new-app-terminal" value="pc" />
+                  <span>PC 端</span>
+                </label>
+              </div>
+              <p class="form-hint">单端应用仅选择一种终端类型</p>
+            </div>
+            <div class="form-group hidden" id="new-app-multi-hint-group">
+              <label class="form-label-plain">终端范围</label>
+              <p class="form-hint" style="margin:0">多端应用将同时覆盖小程序/H5 与 PC 端</p>
+            </div>
+            <div class="form-group">
+              <label class="form-label-required" for="new-app-channel-mall">渠道商城</label>
+              <select id="new-app-channel-mall"></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label-required">复制搭建页面</label>
+              <div class="form-radio-row">
+                <label class="form-radio-inline">
+                  <input type="radio" name="new-app-copy-pages" value="all" />
+                  <span>该商城所有页面</span>
+                </label>
+                <label class="form-radio-inline">
+                  <input type="radio" name="new-app-copy-pages" value="specify" checked />
+                  <span>指定复制页面</span>
+                </label>
+              </div>
+              <div id="new-app-pages-specify-wrap" class="new-app-specify-wrap">
+                <div class="new-app-checkbox-grid" id="new-app-pages-list"></div>
+              </div>
+              <p class="form-hint" id="new-app-pages-hint">已选择 3 个页面，默认勾选首页、分类、我的</p>
+            </div>
+            <div class="form-group">
+              <label class="form-label-plain">复制商品数据</label>
+              <label class="form-checkbox-inline">
+                <input type="checkbox" id="new-app-copy-goods" checked />
+                <span>复制所有商品数据</span>
+              </label>
+              <div id="new-app-price-wrap" class="new-app-price-box">
+                <div class="new-app-price-title">价格设置</div>
+                <div class="form-radio-row">
+                  <label class="form-radio-inline">
+                    <input type="radio" name="new-app-price-type" value="mall" checked />
+                    <span>该商城的商品价格</span>
+                  </label>
+                  <label class="form-radio-inline">
+                    <input type="radio" name="new-app-price-type" value="supplier" />
+                    <span>商品供应商价格 × 系数</span>
+                  </label>
+                </div>
+                <div class="push-detail-coeff-row" id="new-app-coeff-row">
+                  <span>系数</span>
+                  <input type="number" id="new-app-price-coeff" value="1.2" min="0.01" max="99.99" step="0.01" />
+                </div>
+              </div>
+              <p class="form-hint" id="new-app-goods-hint">复制商品数据，价格沿用渠道商城的商品价格</p>
+            </div>
+            <div class="form-group">
+              <label class="form-label-plain">推送渠道商城</label>
+              <div class="form-radio-row">
+                <label class="form-radio-inline">
+                  <input type="radio" name="new-app-push-channel" value="all" />
+                  <span>全部渠道</span>
+                </label>
+                <label class="form-radio-inline">
+                  <input type="radio" name="new-app-push-channel" value="specify" checked />
+                  <span>指定渠道</span>
+                </label>
+              </div>
+              <div id="new-app-push-specify-wrap" class="new-app-specify-wrap">
+                <input type="text" id="new-app-channel-search" class="new-app-channel-search" placeholder="搜索渠道名称" />
+                <div class="new-app-channel-list" id="new-app-channel-list"></div>
+              </div>
+              <p class="form-hint" id="new-app-push-hint">请至少选择一个渠道</p>
+            </div>
+          </div>
+          <aside class="new-app-preview-panel hidden" id="new-app-preview-panel" aria-label="应用预览">
+            <div class="new-app-preview-inner">
+              <div class="new-app-phone">
+                <div class="new-app-phone-notch"></div>
+                <div class="new-app-phone-header" id="new-app-preview-title">首页</div>
+                <div class="new-app-phone-screen" id="new-app-preview-screen"></div>
+                <div class="new-app-phone-tabbar">
+                  <span class="active"></span><span></span><span></span><span></span>
+                </div>
+              </div>
+              <div class="new-app-preview-pages" id="new-app-preview-pages"></div>
+            </div>
+          </aside>
+        </div>
+      </div>
+      <div class="modal-footer modal-footer--new-app">
+        <button type="button" class="btn btn-ghost" id="btn-new-app-preview">
+          <svg class="btn-icon-eye" viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true">
+            <path d="M12 5c-5 0-9 4.5-9 7s4 7 9 7 9-4.5 9-7-4-7-9-7zm0 11a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm0-2.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/>
+          </svg>
+          应用预览
+        </button>
+        <button type="button" class="btn btn-ghost hidden" id="btn-new-app-close-preview">关闭预览</button>
+        <div class="modal-footer-actions">
+          <button type="button" class="btn btn-ghost modal-cancel">取消</button>
+          <button type="button" class="btn btn-ghost" id="btn-new-app-save-draft">保存草稿</button>
+          <button type="button" class="btn btn-primary" id="btn-new-app-confirm-push" disabled>确认推送</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 推送应用弹窗 -->
+  <div id="modal-promote-app" class="modal">
+    <div class="modal-content modal-sm">
+      <div class="modal-header">
+        <h2>推送应用</h2>
+        <button type="button" class="modal-close" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="publish-app-info">应用名称：<span id="promote-app-name"></span></p>
+        <div class="publish-push-field">
+          <label>推送渠道商城</label>
+          <div class="form-radio-row">
+            <label class="form-radio-inline">
+              <input type="radio" name="promote-push-channel" value="all" />
+              <span>全部渠道</span>
+            </label>
+            <label class="form-radio-inline">
+              <input type="radio" name="promote-push-channel" value="custom" />
+              <span>指定渠道</span>
+            </label>
+          </div>
+          <div id="promote-push-channel-panel" class="push-channel-panel">
+            <input type="text" id="promote-push-search" class="new-app-channel-search" placeholder="搜索渠道名称" />
+            <div class="push-mall-list" id="promote-push-mall-list"></div>
+          </div>
+          <p class="form-hint" id="promote-push-hint">请选择全部渠道或指定渠道</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost modal-cancel">取消</button>
+        <button type="button" class="btn btn-primary" id="btn-promote-app-confirm" disabled>确认推送</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 推送详情弹窗 -->
+  <div id="modal-push-detail" class="modal">
+    <div class="modal-content modal-push-detail" id="modal-push-detail-content">
+      <div class="modal-header">
+        <h2>推送详情</h2>
+        <button type="button" class="modal-close" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body new-app-body">
+        <div class="new-app-layout">
+          <div class="new-app-form-panel push-detail-readonly">
+            <div class="form-group">
+              <label class="form-label-required">应用名称</label>
+              <input type="text" id="push-detail-app-name" disabled />
+            </div>
+            <div class="form-group">
+              <label class="form-label-required">渠道商城</label>
+              <select id="push-detail-channel-mall" disabled></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label-required">复制搭建页面</label>
+              <div class="form-radio-row">
+                <label class="form-radio-inline">
+                  <input type="radio" name="push-detail-page-mode" value="all" disabled />
+                  <span>该商城所有页面</span>
+                </label>
+                <label class="form-radio-inline">
+                  <input type="radio" name="push-detail-page-mode" value="custom" disabled />
+                  <span>指定复制页面</span>
+                </label>
+              </div>
+              <div id="push-detail-page-panel" class="new-app-specify-wrap">
+                <div class="new-app-checkbox-grid" id="push-detail-page-list"></div>
+              </div>
+              <p class="form-hint" id="push-detail-page-hint"></p>
+            </div>
+            <div class="form-group">
+              <label class="form-label-plain">复制商品数据</label>
+              <label class="form-checkbox-inline">
+                <input type="checkbox" id="push-detail-copy-goods" disabled />
+                <span>复制所有商品数据</span>
+              </label>
+              <div id="push-detail-price-wrap" class="new-app-price-box">
+                <div class="new-app-price-title">价格设置</div>
+                <div class="form-radio-row">
+                  <label class="form-radio-inline">
+                    <input type="radio" name="push-detail-price-type" value="default" disabled />
+                    <span>该商城的商品价格</span>
+                  </label>
+                  <label class="form-radio-inline">
+                    <input type="radio" name="push-detail-price-type" value="supplier" disabled />
+                    <span>商品供应商价格 × 系数</span>
+                  </label>
+                </div>
+                <div class="push-detail-coeff-row" id="push-detail-coeff-row">
+                  <span>系数</span>
+                  <input type="number" id="push-detail-price-coeff" value="1.2" disabled />
+                </div>
+              </div>
+              <p class="form-hint" id="push-detail-goods-hint"></p>
+            </div>
+            <div class="form-group">
+              <label class="form-label-plain">推送渠道商城</label>
+              <div class="form-radio-row">
+                <label class="form-radio-inline">
+                  <input type="radio" name="push-detail-channel-mode" value="all" disabled />
+                  <span>全部渠道</span>
+                </label>
+                <label class="form-radio-inline">
+                  <input type="radio" name="push-detail-channel-mode" value="custom" disabled />
+                  <span>指定渠道</span>
+                </label>
+              </div>
+              <div id="push-detail-channel-panel" class="push-channel-panel">
+                <div class="push-mall-list push-mall-list-readonly" id="push-detail-mall-list"></div>
+              </div>
+              <p class="form-hint" id="push-detail-channel-hint"></p>
+            </div>
+          </div>
+          <aside class="new-app-preview-panel hidden" id="push-detail-preview-panel" aria-label="应用预览">
+            <div class="new-app-preview-inner">
+              <div class="new-app-phone">
+                <div class="new-app-phone-notch"></div>
+                <div class="new-app-phone-header" id="push-detail-preview-title">首页</div>
+                <div class="new-app-phone-screen" id="push-detail-preview-screen"></div>
+                <div class="new-app-phone-tabbar">
+                  <span class="active"></span><span></span><span></span><span></span>
+                </div>
+              </div>
+              <div class="new-app-preview-pages" id="push-detail-preview-pages"></div>
+            </div>
+          </aside>
+        </div>
+      </div>
+      <div class="modal-footer modal-footer--new-app">
+        <button type="button" class="btn btn-ghost" id="btn-push-detail-preview">应用预览</button>
+        <button type="button" class="btn btn-ghost hidden" id="btn-push-detail-close-preview">关闭预览</button>
+        <div class="modal-footer-actions">
+          <button type="button" class="btn btn-ghost modal-cancel">关闭</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 应用内提示/确认弹窗 -->
+  <div id="modal-app-dialog" class="modal app-dialog-mask">
+    <div class="modal-content modal-sm">
+      <div class="modal-header">
+        <h2 id="app-dialog-title">提示</h2>
+        <button type="button" class="modal-close" id="app-dialog-close" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="dialog-message" id="app-dialog-message"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost" id="app-dialog-cancel">取消</button>
+        <button type="button" class="btn btn-primary" id="app-dialog-ok">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="app-toast" id="app-toast"></div>
+
+  <script src="data.js?v=16"></script>
+  <script src="app.js?v=30"></script>
+</body>
+</html>

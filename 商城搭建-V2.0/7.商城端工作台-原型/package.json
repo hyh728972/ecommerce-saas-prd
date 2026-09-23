@@ -1,0 +1,8 @@
+{
+  "name": "mall-prototype",
+  "private": true,
+  "scripts": {
+    "start": "node scripts/static-server.cjs"
+  },
+  "devDependencies": {}
+}

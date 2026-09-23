@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>商城运营后台 - 模板列表</title>
+  <link rel="stylesheet" href="css/template-list.css">
+</head>
+<body>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="menu-item"><span class="menu-icon">⌂</span> 工作台首页</div>
+    <div class="menu-item"><span class="menu-icon">▣</span> 品牌商城后台 <span class="arrow">▾</span></div>
+    <div class="menu-parent"><span class="menu-icon">⚙</span> 商城搭建 <span class="arrow">▴</span></div>
+    <div class="menu-sub">
+      <div class="menu-item active" id="menuTemplateList" onclick="switchMainPage('list')">模板列表</div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-brand">品牌商城后台</div>
+      <div class="topbar-right">
+        <span title="刷新">↻</span>
+        <span title="通知">🔔</span>
+        <div class="avatar">管</div>
+      </div>
+    </header>
+
+    <main class="content tab-template" id="mainContent">
+      <div class="page-header">
+        <h1 class="page-title" id="pageTitle">模板列表</h1>
+      </div>
+
+      <!-- 统一搜索 -->
+      <div class="filter-card" id="mainFilterCard">
+        <div class="filter-row">
+          <div class="filter-item">
+            <label>名称</label>
+            <input type="text" id="keywordFilter" placeholder="请输入名称">
+          </div>
+          <div class="filter-item filter-tab-only filter-template-only">
+            <label>标签</label>
+            <select id="tagFilter">
+              <option value="">全部标签</option>
+              <option value="11">11</option>
+              <option value="22">22</option>
+              <option value="44">44</option>
+            </select>
+          </div>
+          <button class="btn filter-tab-only filter-template-only" id="batchTagBtn">批量设置标签</button>
+          <div class="filter-actions filter-tab-only filter-app-only">
+            <button class="btn btn-primary" id="appSearchBtn" type="button">搜索</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab + 列表 -->
+      <div class="list-card" id="pageListWrap">
+        <div class="content-tabs">
+          <span class="content-tab active" data-tab="template" onclick="switchListTab('template')">模板列表</span>
+          <span class="content-tab" data-tab="app" onclick="switchListTab('app')">应用列表</span>
+        </div>
+        <div class="list-card-body">
+          <!-- 模板列表 -->
+          <div class="list-panel active" id="panelTemplate">
+            <div class="select-bar">
+              <label>
+                <input type="checkbox" id="selectAll">
+                全选当前页
+              </label>
+            </div>
+            <div class="template-grid" id="templateGrid"></div>
+            <div class="pagination">
+              <span id="totalInfo">总共 2 条</span>
+              <span class="page-num disabled">‹</span>
+              <span class="page-num active">1</span>
+              <span class="page-num disabled">›</span>
+              <span class="page-size">
+                <select>
+                  <option>5 条/页</option>
+                  <option>10 条/页</option>
+                  <option>20 条/页</option>
+                </select>
+              </span>
+            </div>
+          </div>
+
+          <!-- 应用列表 -->
+          <div class="list-panel" id="panelApp">
+            <div class="template-grid" id="appGrid"></div>
+            <div class="pagination">
+              <span id="appTotalInfo">总共 2 条</span>
+              <span class="page-num disabled">‹</span>
+              <span class="page-num active">1</span>
+              <span class="page-num disabled">›</span>
+              <span class="page-size">
+                <select>
+                  <option>5 条/页</option>
+                  <option>10 条/页</option>
+                  <option>20 条/页</option>
+                </select>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+ 
+
+<!-- 新建选择弹窗 -->
+<div class="modal-mask" id="createModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">选择新建类型</div>
+      <button class="modal-close" onclick="closeCreateModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="create-options">
+        <div class="create-option" onclick="createTemplate()">
+          <div class="create-option-icon template">▣</div>
+          <div class="create-option-title">新建模板</div>
+          <div class="create-option-desc">创建可复用的商城页面模板，供多个商城引用</div>
+        </div>
+        <div class="create-option" onclick="createApp()">
+          <div class="create-option-icon app">▤</div>
+          <div class="create-option-title">新建应用</div>
+          <div class="create-option-desc">基于模板创建独立商城应用，可直接配置并发布</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 新建应用弹窗 -->
+<div class="modal-mask" id="createAppModal">
+  <div class="modal modal-lg" id="createAppModalBox">
+    <div class="modal-header">
+      <div class="modal-title">新建应用</div>
+      <button class="modal-close" onclick="closeCreateAppModal()">×</button>
+    </div>
+    <div class="modal-body create-app-body">
+      <div class="create-app-form-wrap">
+        <div class="modal-form">
+          <div class="form-row">
+            <label><span class="req">*</span>应用名称</label>
+            <div class="field">
+              <input type="text" id="createAppName" placeholder="请填写应用名称" maxlength="50">
+            </div>
+          </div>
+          <div class="form-row">
+            <label><span class="req">*</span>渠道商城</label>
+            <div class="field">
+              <select id="channelMallSelect"></select>
+            </div>
+          </div>
+          <div class="form-row">
+            <label><span class="req">*</span>复制搭建页面</label>
+            <div class="field">
+              <div class="radio-group">
+                <label>
+                  <input type="radio" name="copyPageMode" value="all" checked onchange="onCopyPageModeChange()">
+                  该商城所有页面
+                </label>
+                <label>
+                  <input type="radio" name="copyPageMode" value="custom" onchange="onCopyPageModeChange()">
+                  指定复制页面
+                </label>
+              </div>
+              <div class="page-check-panel" id="pageCheckPanel">
+                <label class="page-check-all">
+                  <input type="checkbox" id="pageCheckAll" onchange="toggleAllPages(this.checked)">
+                  全选
+                </label>
+                <div class="page-check-list" id="pageCheckList"></div>
+              </div>
+              <div class="field-hint" id="copyPageHint">将复制所选渠道商城的全部搭建页面</div>
+            </div>
+          </div>
+          <div class="form-row">
+            <label>复制商品数据</label>
+            <div class="field">
+              <label class="checkbox-row">
+                <input type="checkbox" id="copyAllProducts" checked onchange="onCopyProductsChange()">
+                复制所有商品数据
+              </label>
+              <div class="price-setting-panel show" id="priceSettingPanel">
+                <div class="price-setting-title">价格设置</div>
+                <div class="radio-group">
+                  <label>
+                    <input type="radio" name="priceMode" value="default" checked onchange="onPriceModeChange()">
+                    该商城的商品价格
+                  </label>
+                  <label>
+                    <input type="radio" name="priceMode" value="supplier" onchange="onPriceModeChange()">
+                    商品供应商价格 × 系数
+                  </label>
+                </div>
+                <div class="coeff-row" id="coeffRow">
+                  <span>系数</span>
+                  <input type="number" id="priceCoeff" value="1.2" min="0.01" max="99.99" step="0.01">
+                </div>
+              </div>
+              <div class="field-hint" id="copyProductHint">将同步复制渠道商城的全部商品及库存数据</div>
+            </div>
+          </div>
+          <div class="form-row">
+            <label>推送渠道商城</label>
+            <div class="field">
+              <div class="radio-group">
+                <label>
+                  <input type="radio" name="pushChannelMode" value="all" onchange="onCreatePushChannelModeChange()">
+                  全部渠道
+                </label>
+                <label>
+                  <input type="radio" name="pushChannelMode" value="custom" onchange="onCreatePushChannelModeChange()">
+                  指定渠道
+                </label>
+              </div>
+              <div class="push-channel-panel" id="pushChannelPanel">
+                <input type="text" class="publish-push-search" id="pushMallSearch"
+                  placeholder="搜索渠道名称" oninput="filterPushMallList()">
+                <div class="push-mall-list" id="pushMallList"></div>
+              </div>
+              <div class="field-hint" id="pushChannelHint"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="create-app-preview-panel" id="createAppPreviewPanel">
+        <div class="create-app-preview-layout">
+          <div class="create-app-preview-main">
+            <div class="preview-device-wrap">
+              <div class="preview-device">
+                <div class="preview-device-frame">
+                  <div class="preview-device-notch"></div>
+                  <div class="preview-device-status">
+                    <span>9:41</span>
+                    <span>▮▮▮</span>
+                  </div>
+                  <div class="preview-screen" id="createAppPreviewScreen"></div>
+                  <div class="preview-device-home-bar"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="preview-page-tabs" id="createAppPreviewPageTabs"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer modal-footer-split">
+      <button class="btn app-preview-btn" id="appPreviewBtn" onclick="toggleAppPreview()">👁 应用预览</button>
+      <div class="modal-footer-actions">
+        <button class="btn" onclick="closeCreateAppModal()">取消</button>
+        <button class="btn btn-primary" id="createAppPushBtn" disabled onclick="submitCreateAppPush()">确认推送</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="proto-badge">交互原型 · 品牌商城端</div>
+
+</div>
+
+<!-- 使用应用弹窗 -->
+<div class="modal-mask" id="useAppModal">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <div class="modal-title">使用应用</div>
+      <button class="modal-close" type="button" onclick="closeUseAppModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="publish-app-info">应用名称：<span id="useAppName"></span></div>
+      <div class="publish-push-field">
+        <label>数据处理方式</label>
+        <div class="radio-group">
+          <label>
+            <input type="radio" name="useAppDataMode" value="overwrite" checked>
+            覆盖当前商品数据、分类数据
+          </label>
+          <label>
+            <input type="radio" name="useAppDataMode" value="merge">
+            合并当前数据
+          </label>
+        </div>
+        <div class="field-hint" id="useAppDataHint">覆盖将替换品牌商城现有商品与分类数据</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" type="button" onclick="closeUseAppModal()">取消</button>
+      <button class="btn btn-primary" type="button" onclick="submitUseApp()">确认使用</button>
+    </div>
+  </div>
+</div>
+
+<!-- 推送应用弹窗 -->
+<div class="modal-mask" id="promoteAppModal">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <div class="modal-title">推送应用</div>
+      <button class="modal-close" type="button" onclick="closePromoteAppModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="publish-app-info">应用名称：<span id="promoteAppName"></span></div>
+      <div class="publish-push-field">
+        <label>推送渠道商城</label>
+        <div class="radio-group">
+          <label>
+            <input type="radio" name="promotePushChannelMode" value="all" onchange="onPromotePushChannelModeChange()">
+            全部渠道
+          </label>
+          <label>
+            <input type="radio" name="promotePushChannelMode" value="custom" onchange="onPromotePushChannelModeChange()">
+            指定渠道
+          </label>
+        </div>
+        <div class="push-channel-panel" id="promotePushChannelPanel">
+          <input type="text" class="publish-push-search" id="promotePushMallSearch"
+            placeholder="搜索渠道名称" oninput="filterPromotePushMallList()">
+          <div class="push-mall-list" id="promotePushMallList"></div>
+        </div>
+        <div class="field-hint" id="promotePushChannelHint"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" type="button" onclick="closePromoteAppModal()">取消</button>
+      <button class="btn btn-primary" type="button" id="promoteAppPushBtn" disabled onclick="submitPromoteApp()">确认推送</button>
+    </div>
+  </div>
+</div>
+
+<!-- 推送详情弹窗 -->
+<div class="modal-mask" id="pushDetailModal">
+  <div class="modal modal-lg push-detail-modal" id="pushDetailModalBox">
+    <div class="modal-header">
+      <div class="modal-title">详情</div>
+      <button class="modal-close" type="button" onclick="closePushDetailModal()">×</button>
+    </div>
+    <div class="modal-body create-app-body">
+      <div class="create-app-form-wrap">
+        <div class="modal-form push-detail-form">
+        <div class="form-row push-detail-readonly">
+          <label><span class="req">*</span>应用名称</label>
+          <div class="field">
+            <input type="text" id="pushDetailAppNameInput" placeholder="请输入应用名称" maxlength="50" disabled>
+          </div>
+        </div>
+        <div class="form-row push-detail-readonly">
+          <label>包含页面</label>
+          <div class="field">
+            <div class="detail-page-list" id="pushDetailPageList"></div>
+          </div>
+        </div>
+        <div class="form-row push-detail-readonly">
+          <label>商品数据</label>
+          <div class="field">
+            <div class="detail-info-list" id="pushDetailProductDisplay"></div>
+          </div>
+        </div>
+        </div>
+      </div>
+      <div class="create-app-preview-panel" id="pushDetailPreviewPanel">
+        <div class="create-app-preview-layout">
+          <div class="create-app-preview-main">
+            <div class="preview-device-wrap">
+              <div class="preview-device">
+                <div class="preview-device-frame">
+                  <div class="preview-device-notch"></div>
+                  <div class="preview-device-status">
+                    <span>9:41</span>
+                    <span>▮▮▮</span>
+                  </div>
+                  <div class="preview-screen" id="pushDetailPreviewScreen"></div>
+                  <div class="preview-device-home-bar"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="preview-page-tabs" id="pushDetailPreviewPageTabs"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer modal-footer-split">
+      <button class="btn app-preview-btn" id="pushDetailPreviewBtn" type="button" onclick="togglePushDetailPreview()">👁 应用预览</button>
+      <div class="modal-footer-actions">
+        <button class="btn" type="button" onclick="closePushDetailModal()">关闭</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 应用内提示/确认弹窗 -->
+<div class="modal-mask app-dialog-mask" id="appDialog">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <div class="modal-title" id="appDialogTitle">提示</div>
+      <button class="modal-close" type="button" onclick="closeAppDialog()">×</button>
+    </div>
+    <div class="modal-body">
+      <p class="dialog-message" id="appDialogMessage"></p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" type="button" id="appDialogCancelBtn" onclick="onAppDialogCancel()">取消</button>
+      <button class="btn btn-primary" type="button" id="appDialogOkBtn" onclick="onAppDialogOk()">确定</button>
+    </div>
+  </div>
+</div>
+
+<div class="app-toast" id="appToast"></div>
+
+  <script>window.BRAND_MALL_PAGE = true;</script>
+  <script src="js/data.js"></script>
+  <script src="js/template-list.js"></script>
+</body>
+</html>

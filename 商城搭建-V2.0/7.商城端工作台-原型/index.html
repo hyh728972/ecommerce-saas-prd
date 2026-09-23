@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>商城端 - 运营工作台</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- 侧边栏 -->
+    <aside class="sidebar">
+      <div class="logo">商城端</div>
+      <nav class="nav">
+        <a href="#" class="nav-item active" data-page="templates">模板中心</a>
+        <a href="#" class="nav-item" data-page="mall-list">我的应用</a>
+        <a href="#" class="nav-item" data-page="marketing-popup">营销弹窗</a>
+      </nav>
+      <div class="sidebar-footer">
+        <span class="user">运营账号：ops@platform.com</span>
+      </div>
+    </aside>
+
+    <!-- 主内容区（对齐搭建端：共享顶栏 + 筛选 + 内容区） -->
+    <main class="main">
+      <div class="main-top" id="main-top">
+        <header class="main-page-header">
+          <h1 class="main-page-title" id="main-page-title">模板中心</h1>
+          <div class="main-page-actions">
+            <button type="button" class="btn btn-primary hidden" id="btn-new-mall">+ 新建商城</button>
+            <button type="button" class="btn btn-primary hidden" id="btn-new-popup">+ 新建弹窗</button>
+          </div>
+        </header>
+
+        <div class="main-filters main-filters--templates" id="main-filters-templates">
+          <div class="filter-group">
+            <label for="template-search-input">名称</label>
+            <input
+              type="text"
+              id="template-search-input"
+              class="filter-input"
+              placeholder="请输入名称"
+            />
+          </div>
+          <div class="filter-group">
+            <label for="filter-terminal">终端类型</label>
+            <select id="filter-terminal">
+              <option value="">全部</option>
+              <option value="pc">PC端</option>
+              <option value="mp">小程序/H5端</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="filter-tag">标签</label>
+            <select id="filter-tag">
+              <option value="">全部</option>
+              <option value="美妆">美妆</option>
+              <option value="食品">食品</option>
+              <option value="服饰">服饰</option>
+              <option value="618大促">618大促</option>
+            </select>
+          </div>
+          <button type="button" class="btn btn-ghost" id="btn-template-search">查询</button>
+          <button type="button" class="btn btn-ghost btn-link-reset" id="btn-template-reset">重置</button>
+        </div>
+
+        <div class="main-filters main-filters--apps hidden" id="main-filters-apps">
+          <div class="filter-group">
+            <label for="mall-search-input">名称</label>
+            <input type="text" id="mall-search-input" class="filter-input" placeholder="请输入名称" />
+          </div>
+          <div class="filter-group">
+            <label for="filter-app-terminal">终端类型</label>
+            <select id="filter-app-terminal">
+              <option value="">全部</option>
+              <option value="pc">PC端</option>
+              <option value="mp">小程序/H5端</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="filter-app-status">状态</label>
+            <select id="filter-app-status">
+              <option value="">全部</option>
+              <option value="published">已发布</option>
+              <option value="draft">草稿</option>
+            </select>
+          </div>
+          <button type="button" class="btn btn-ghost" id="btn-mall-search">查询</button>
+          <button type="button" class="btn btn-ghost btn-link-reset" id="btn-mall-reset">重置</button>
+        </div>
+
+        <div class="main-filters main-filters--popup hidden" id="main-filters-popup">
+          <div class="query-form-panel" id="popup-query-panel">
+            <div class="query-form-grid">
+              <div class="query-form-item">
+                <label class="query-form-label" for="popup-search-input">弹窗名称：</label>
+                <input type="text" id="popup-search-input" placeholder="请输入弹窗名称" />
+              </div>
+              <div class="query-form-item">
+                <label class="query-form-label" for="popup-filter-status">状态：</label>
+                <select id="popup-filter-status">
+                  <option value="">全部</option>
+                  <option value="active">投放中</option>
+                  <option value="scheduled">待投放</option>
+                  <option value="ended">已结束</option>
+                  <option value="draft">草稿</option>
+                  <option value="paused">已停用</option>
+                </select>
+              </div>
+              <div class="query-form-item">
+                <label class="query-form-label" for="popup-filter-page">投放页面：</label>
+                <select id="popup-filter-page">
+                  <option value="">全部</option>
+                  <option value="home">首页</option>
+                  <option value="category">分类页</option>
+                  <option value="cart">购物车</option>
+                  <option value="mine">我的</option>
+                </select>
+              </div>
+              <div class="query-form-item">
+                <label class="query-form-label" for="popup-filter-target">目标用户：</label>
+                <select id="popup-filter-target">
+                  <option value="">全部</option>
+                  <option value="all">全部用户</option>
+                  <option value="new">新用户</option>
+                  <option value="old">老用户</option>
+                  <option value="specific">特定用户</option>
+                </select>
+              </div>
+              <div class="query-form-item query-form-advanced">
+                <label class="query-form-label" for="popup-filter-jump">跳转行为：</label>
+                <select id="popup-filter-jump">
+                  <option value="">全部</option>
+                  <option value="activity">活动页</option>
+                  <option value="product">商品详情</option>
+                </select>
+              </div>
+              <div class="query-form-item query-form-advanced">
+                <label class="query-form-label" for="popup-filter-time-start">投放开始：</label>
+                <input type="date" id="popup-filter-time-start" />
+              </div>
+              <div class="query-form-item query-form-advanced">
+                <label class="query-form-label" for="popup-filter-time-end">投放结束：</label>
+                <input type="date" id="popup-filter-time-end" />
+              </div>
+              <div class="query-form-actions">
+                <button type="button" class="btn btn-query-collapse" id="btn-popup-collapse" aria-expanded="true">
+                  <span class="btn-query-collapse-text">收起</span>
+                  <svg class="btn-query-collapse-icon" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+                    <path d="M2 7.5L6 3.5L10 7.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+                <button type="button" class="btn btn-query-reset" id="btn-popup-reset">重置</button>
+                <button type="button" class="btn btn-primary btn-query-submit" id="btn-popup-search">查询</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <nav class="main-tabs" id="main-tabs-templates">
+        <button type="button" class="main-tab active" data-terminal="">全部</button>
+        <button type="button" class="main-tab" data-terminal="mp">小程序/H5端模板列表</button>
+        <button type="button" class="main-tab" data-terminal="pc">PC端模板列表</button>
+      </nav>
+      <nav class="main-tabs hidden" id="main-tabs-apps">
+        <button type="button" class="main-tab active" data-app-mode="single">单端应用</button>
+        <button type="button" class="main-tab" data-app-mode="multi">多端应用</button>
+      </nav>
+
+      <div class="main-body">
+        <!-- 模板中心 -->
+        <section id="page-templates" class="page active">
+          <div class="template-gallery-wrap">
+            <div class="template-gallery-toolbar-note">以下为已发布的模板，可直接选择使用</div>
+            <div class="template-grid" id="template-tbody"></div>
+            <div class="table-pagination" id="template-pagination"></div>
+          </div>
+        </section>
+
+        <!-- 我的应用 -->
+        <section id="page-mall-list" class="page">
+          <div class="template-gallery-wrap">
+            <div class="template-gallery-toolbar-note">应用基于模板创建：仅一个应用处于「已发布」，其余为「草稿」</div>
+            <div class="template-grid" id="app-tbody"></div>
+            <div class="table-pagination" id="mall-list-pagination"></div>
+          </div>
+        </section>
+
+        <!-- 营销弹窗列表页 -->
+        <section id="page-marketing-popup" class="page">
+          <div class="table-wrap">
+            <table class="data-table" id="popup-table">
+              <thead>
+                <tr>
+                  <th>弹窗名称</th>
+                  <th>投放时间</th>
+                  <th>投放页面</th>
+                  <th>跳转页面</th>
+                  <th>状态</th>
+                  <th style="min-width: 180px;">操作</th>
+                </tr>
+              </thead>
+              <tbody id="popup-tbody"></tbody>
+            </table>
+            <div class="table-pagination" id="popup-pagination"></div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  
+
+  <!-- 发布前预览确认 -->
+  <div id="modal-publish-preview" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>发布前预览</h2>
+        <button type="button" class="modal-close" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="tip">请确认模板在 PC 与移动端预览无误后再发布。</p>
+        <div class="preview-tabs">
+          <!-- <button type="button" class="preview-tab active" data-device="pc">PC 预览</button> -->
+          <button type="button" class="preview-tab" data-device="mobile">移动端预览</button>
+        </div>
+        <div class="preview-frame pc" id="preview-frame">
+          <div class="preview-placeholder">模板预览区域（演示）</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost modal-cancel">返回编辑</button>
+        <button type="button" class="btn btn-primary" id="btn-confirm-publish">确认发布</button>
+      </div>
+    </div>
+  </div>
+
+  
+
+  <!-- 分类页选择模板弹窗 -->
+  <div id="modal-category-template" class="modal">
+    <div class="modal-content modal-lg modal-xl">
+      <div class="modal-header">
+        <h2>选择分类页模板</h2>
+        <button type="button" class="modal-close" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="tip">请选择一种分类页布局，确定后将进入编辑器进行配置。</p>
+        <div class="category-template-grid" id="category-template-list">
+          <label class="radio-card category-template-card">
+            <input type="radio" name="category-template" value="level3" />
+            <span class="card-label">三级分类页</span>
+            <span class="card-desc">左侧一级分类 + 右侧二级分组与三级图标网格</span>
+          </label>
+          <label class="radio-card category-template-card">
+            <input type="radio" name="category-template" value="level2" />
+            <span class="card-label">二级分类页</span>
+            <span class="card-desc">左侧一级分类 + 右侧二级图标网格（无分组标题）</span>
+          </label>
+          <label class="radio-card category-template-card">
+            <input type="radio" name="category-template" value="level2-list" />
+            <span class="card-label">二级分类+商品列表页</span>
+            <span class="card-desc">左侧一级分类 + 右侧 Tab 子分类 + 商品列表</span>
+          </label>
+          <label class="radio-card category-template-card">
+            <input type="radio" name="category-template" value="level1-tab" />
+            <span class="card-label">一级分类+商品分类页（横向 Tab）</span>
+            <span class="card-desc">顶部横向 Tab 子分类 + 商品列表</span>
+          </label>
+          <label class="radio-card category-template-card">
+            <input type="radio" name="category-template" value="level1-list" />
+            <span class="card-label">一级分类+商品分类页（直接列表）</span>
+            <span class="card-desc">左侧一级分类 + 右侧直接商品列表</span>
+          </label>
+          <label class="radio-card category-template-card">
+            <input type="radio" name="category-template" value="level1-list-b" />
+            <span class="card-label">一级分类+商品分类页（直接列表样式二）</span>
+            <span class="card-desc">左侧一级分类 + 右侧商品列表，另一种卡片样式</span>
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost modal-cancel">取消</button>
+        <button type="button" class="btn btn-primary" id="btn-confirm-category-template">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 使用模板 -->
+  <div id="modal-use-template" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>使用模板</h2>
+        <button type="button" class="modal-close" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-field form-field-inline">
+          <label for="use-template-app-name">应用名称</label>
+          <input type="text" id="use-template-app-name" class="input-readonly" readonly />
+        </div>
+        <div class="form-field">
+          <span class="form-field-label">数据处理方式</span>
+          <ul class="use-template-cover-list">
+            <li>
+              <label class="use-template-cover-item">
+                <input type="checkbox" checked disabled />
+                <span>覆盖当前商品数据</span>
+              </label>
+            </li>
+            <li>
+              <label class="use-template-cover-item">
+                <input type="checkbox" checked disabled />
+                <span>前台分类</span>
+              </label>
+            </li>
+            <li>
+              <label class="use-template-cover-item">
+                <input type="checkbox" checked disabled />
+                <span>商品标签</span>
+              </label>
+            </li>
+            <li>
+              <label class="use-template-cover-item">
+                <input type="checkbox" checked disabled />
+                <span>活动</span>
+              </label>
+            </li>
+          </ul>
+        </div>
+        <p class="use-template-off-shelf-warn" id="use-template-off-shelf-warn" hidden></p>
+        <p class="tip use-template-join-tip">确认后将加入到我的应用中。</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost modal-cancel">取消</button>
+        <button type="button" class="btn btn-primary" id="btn-submit-use-template">确认使用</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 模板详情 -->
+  <div id="modal-template-detail" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>详情</h2>
+        <button type="button" class="modal-close" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-field">
+          <label>模板名称</label>
+          <input type="text" id="template-detail-name" class="input-readonly" readonly />
+        </div>
+        <div class="form-field">
+          <label>包含页面</label>
+          <div class="template-detail-pages" id="template-detail-pages"></div>
+        </div>
+        <div class="form-field">
+          <label>商品数据</label>
+          <div id="template-detail-product"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost modal-cancel">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 新建/编辑营销弹窗 -->
+  <div id="modal-popup-form" class="modal">
+    <div class="modal-content modal-popup-editor">
+      <div class="modal-header modal-popup-header">
+        <h2 id="popup-form-title">新建弹窗</h2>
+        <button type="button" class="modal-close" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body popup-form-layout">
+        <div class="popup-form-main">
+          <div class="popup-form-item">
+            <label class="popup-form-item-label" for="popup-name"><span class="popup-required">*</span>弹窗名称</label>
+            <div class="popup-form-item-control">
+              <input type="text" id="popup-name" class="popup-field-control" placeholder="请输入弹窗名称" maxlength="50" />
+            </div>
+          </div>
+          <div class="popup-form-item">
+            <label class="popup-form-item-label"><span class="popup-required">*</span>投放时间</label>
+            <div class="popup-form-item-control">
+              <div class="popup-datetime-range">
+                <input type="datetime-local" id="popup-time-start" class="popup-field-control" />
+                <span class="popup-datetime-sep">至</span>
+                <input type="datetime-local" id="popup-time-end" class="popup-field-control" />
+              </div>
+            </div>
+          </div>
+          <div class="popup-form-item popup-form-item-top">
+            <label class="popup-form-item-label"><span class="popup-required">*</span>投放页面</label>
+            <div class="popup-form-item-control">
+              <div class="popup-form-box">
+                <div class="popup-option-chips popup-option-chips-grid" id="popup-delivery-pages">
+                  <label class="popup-option-chip"><input type="radio" name="popup-delivery-page" value="home" /><span>首页</span></label>
+                  <label class="popup-option-chip"><input type="radio" name="popup-delivery-page" value="category" /><span>分类页</span></label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="popup-form-item">
+            <label class="popup-form-item-label">跳转行为</label>
+            <div class="popup-form-item-control">
+              <div class="popup-radio-inline popup-jump-behavior">
+                <label><input type="radio" name="popup-jump-behavior" value="activity" checked /> 活动页</label>
+                <label><input type="radio" name="popup-jump-behavior" value="product" /> 商品详情</label>
+              </div>
+            </div>
+          </div>
+          <div class="popup-form-item" id="popup-jump-target-wrap">
+            <label class="popup-form-item-label" for="popup-jump-target">跳转页面</label>
+            <div class="popup-form-item-control">
+              <select id="popup-jump-target" class="popup-field-control"></select>
+              <div id="popup-product-search" class="popup-product-search" hidden>
+                <div class="popup-product-search-input-wrap">
+                  <input type="text" id="popup-product-search-input" class="popup-field-control" placeholder="搜索商品名称或 SPU..." autocomplete="off" />
+                  <div id="popup-product-search-results" class="popup-product-search-results" hidden></div>
+                </div>
+                <div id="popup-product-selected" class="popup-product-selected" hidden>
+                  <span id="popup-product-selected-name"></span>
+                  <button type="button" class="popup-product-clear" id="popup-product-clear">&times;</button>
+                </div>
+                <input type="hidden" id="popup-product-value" />
+              </div>
+            </div>
+          </div>
+          <div class="popup-form-item popup-form-item-top">
+            <label class="popup-form-item-label">触发时机</label>
+            <div class="popup-form-item-control">
+              <div class="popup-radio-inline">
+                <label class="popup-radio-with-input">
+                  <input type="radio" name="popup-trigger" value="enter" checked />
+                  进入页面 <input type="number" id="popup-trigger-delay" class="popup-inline-number" min="1" max="60" value="3" /> 秒
+                </label>
+                <label><input type="radio" name="popup-trigger" value="behavior" /> 用户行为</label>
+              </div>
+              <div class="popup-form-box popup-form-box-sub" id="popup-trigger-behavior-wrap" hidden>
+                <select id="popup-trigger-behavior" class="popup-field-control popup-field-control-sm">
+                  <option value="add_cart">加购</option>
+                  <option value="browse">浏览</option>
+                </select>
+                <span id="popup-browse-seconds-wrap" class="popup-sub-inline" hidden>
+                  浏览 <input type="number" id="popup-browse-seconds" class="popup-inline-number" min="1" max="300" value="10" /> 秒
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="popup-form-item">
+            <label class="popup-form-item-label">展示频次</label>
+            <div class="popup-form-item-control">
+              <div class="popup-toggle-group" id="popup-frequency-group" data-type="single">
+                <button type="button" class="popup-toggle-btn" data-value="every">每次</button>
+                <button type="button" class="popup-toggle-btn active" data-value="daily">每天</button>
+                <button type="button" class="popup-toggle-btn" data-value="weekly">每周</button>
+                <button type="button" class="popup-toggle-btn" data-value="first">仅首次</button>
+                <button type="button" class="popup-toggle-btn" data-value="custom">自定义</button>
+              </div>
+              <div class="popup-form-box popup-form-box-sub" id="popup-frequency-custom-wrap" style="display:none;">
+                <span>间隔</span>
+                <input type="number" id="popup-frequency-custom-value" class="popup-inline-number" min="1" max="999" value="60" />
+                <span>分钟再次弹窗</span>
+              </div>
+            </div>
+          </div>
+          <div class="popup-form-item">
+            <label class="popup-form-item-label">目标用户</label>
+            <div class="popup-form-item-control">
+              <div class="popup-toggle-group" id="popup-target-group" data-type="single">
+                <button type="button" class="popup-toggle-btn active" data-value="all">全部用户</button>
+                <button type="button" class="popup-toggle-btn" data-value="new">新用户</button>
+                <button type="button" class="popup-toggle-btn" data-value="old">老用户</button>
+                <button type="button" class="popup-toggle-btn" data-value="specific">特定用户</button>
+              </div>
+              <div id="popup-target-user-search" class="popup-user-search" hidden>
+                <div class="popup-user-search-input-wrap">
+                  <input type="text" id="popup-user-search-input" class="popup-field-control" placeholder="搜索用户名称或手机号..." autocomplete="off" />
+                  <div id="popup-user-search-results" class="popup-user-search-results" hidden></div>
+                </div>
+                <div id="popup-user-selected-list" class="popup-user-selected-list"></div>
+                <input type="hidden" id="popup-target-ids" />
+              </div>
+            </div>
+          </div>
+          <div class="popup-form-item popup-form-item-top">
+            <label class="popup-form-item-label">是否延时关闭</label>
+            <div class="popup-form-item-control">
+              <div class="popup-form-box">
+                <div class="popup-toggle-group" id="popup-close-group" data-type="single">
+                  <button type="button" class="popup-toggle-btn" data-key="delay" data-value="no">否</button>
+                  <button type="button" class="popup-toggle-btn" data-key="delay" data-value="yes">是</button>
+                </div>
+                <div class="popup-form-box popup-form-box-sub" id="popup-close-countdown-wrap" hidden>
+                  <span>倒计时</span>
+                  <input type="number" id="popup-close-seconds" class="popup-inline-number" min="3" max="30" value="5" /> 秒
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="popup-form-item popup-form-item-top">
+            <label class="popup-form-item-label"><span class="popup-required">*</span>弹窗素材</label>
+            <div class="popup-form-item-control">
+              <div class="popup-segmented" role="tablist">
+                <label class="popup-segmented-item"><input type="radio" name="popup-image-source" value="upload" checked /><span>上传图片</span></label>
+                <label class="popup-segmented-item"><input type="radio" name="popup-image-source" value="library" /><span>素材库</span></label>
+              </div>
+              <div id="popup-upload-wrap" class="popup-image-panel">
+                <div class="popup-image-upload" id="popup-image-upload-zone">
+                  <input type="file" id="popup-image-file" accept="image/*" hidden />
+                  <div class="popup-image-upload-inner" id="popup-image-placeholder">
+                    <svg class="popup-upload-icon" width="28" height="28" viewBox="0 0 32 32" aria-hidden="true">
+                      <path d="M16 4v16M10 10l6-6 6 6M6 26h20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span class="popup-upload-title">点击或拖拽上传</span>
+                    <span class="popup-upload-hint">建议 600×800，JPG / PNG</span>
+                  </div>
+                  <img id="popup-image-preview" class="popup-image-preview" alt="已上传素材" hidden />
+                  <button type="button" class="popup-image-reupload" id="btn-popup-reupload" hidden>重新上传</button>
+                </div>
+              </div>
+              <div id="popup-library-wrap" class="popup-image-panel" hidden>
+                <button type="button" class="btn btn-ghost popup-library-btn" id="btn-open-material-library">从素材库选择</button>
+                <div class="popup-selected-material" id="popup-selected-material" hidden>
+                  <div class="popup-selected-material-thumb" id="popup-library-preview"></div>
+                  <div class="popup-selected-material-info">
+                    <span class="popup-selected-material-name" id="popup-library-name"></span>
+                    <button type="button" class="btn btn-sm btn-ghost" id="btn-popup-change-material">更换素材</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <aside class="popup-form-preview-panel" id="popup-preview-panel">
+          <div class="popup-preview-stage">
+            <div class="popup-preview-phone-wrap">
+              <div class="popup-preview-phone">
+                <div class="popup-preview-phone-notch"></div>
+                <div class="popup-preview-phone-bar">
+                  <span class="popup-preview-time">9:41</span>
+                  <span class="popup-preview-phone-page-name" id="popup-live-page-name">首页</span>
+                </div>
+                <div class="popup-preview-phone-content" id="popup-preview-page-content">
+                  <div class="popup-preview-skeleton popup-preview-skeleton-banner"></div>
+                  <div class="popup-preview-skeleton-row popup-preview-skeleton-row-4">
+                    <div class="popup-preview-skeleton popup-preview-skeleton-icon"></div>
+                    <div class="popup-preview-skeleton popup-preview-skeleton-icon"></div>
+                    <div class="popup-preview-skeleton popup-preview-skeleton-icon"></div>
+                    <div class="popup-preview-skeleton popup-preview-skeleton-icon"></div>
+                  </div>
+                  <div class="popup-preview-skeleton popup-preview-skeleton-block"></div>
+                  <div class="popup-preview-skeleton-row">
+                    <div class="popup-preview-skeleton popup-preview-skeleton-card"></div>
+                    <div class="popup-preview-skeleton popup-preview-skeleton-card"></div>
+                  </div>
+                </div>
+                <div class="popup-preview-overlay" id="popup-live-overlay">
+                  <div class="popup-preview-modal" id="popup-live-modal">
+                    <button type="button" class="popup-preview-close" id="popup-live-close-btn" aria-label="关闭">&times;</button>
+                    <span class="popup-preview-countdown" id="popup-live-countdown" hidden></span>
+                    <div class="popup-preview-image-wrap" id="popup-live-image-wrap">
+                      <div class="popup-preview-image-placeholder" id="popup-live-image-placeholder">
+                        <span>弹窗素材</span>
+                        <small>上传或选择后预览</small>
+                      </div>
+                      <img id="popup-live-image" class="popup-preview-image" alt="弹窗素材预览" hidden />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="popup-preview-page-tabs" id="popup-preview-page-tabs">
+              <button type="button" class="popup-preview-page-tab active" data-page="home">首页</button>
+              <button type="button" class="popup-preview-page-tab" data-page="category">分类</button>
+              <button type="button" class="popup-preview-page-tab" data-page="product">商品</button>
+              <button type="button" class="popup-preview-page-tab" data-page="activity">活动</button>
+              <button type="button" class="popup-preview-page-tab" data-page="mine">我的</button>
+            </div>
+          </div>
+        </aside>
+      </div>
+      <div class="modal-footer modal-popup-footer">
+        <div class="modal-popup-footer-actions">
+          <button type="button" class="btn btn-ghost" id="btn-popup-toggle-preview">关闭预览</button>
+          <button type="button" class="btn btn-ghost modal-cancel">取消</button>
+          <button type="button" class="btn btn-ghost" id="btn-submit-popup">保存草稿</button>
+          <button type="button" class="btn btn-primary" id="btn-submit-popup-publish">保存并启用</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 营销弹窗详情 -->
+  <div id="modal-popup-detail" class="modal">
+    <div class="modal-content modal-lg">
+      <div class="modal-header">
+        <h2>弹窗详情</h2>
+        <button type="button" class="modal-close" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body" id="popup-detail-body"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost modal-cancel">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 素材库选择 -->
+  <div id="modal-material-library" class="modal">
+    <div class="modal-content modal-lg">
+      <div class="modal-header">
+        <h2>素材库</h2>
+        <button type="button" class="modal-close" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="tip">选择一张图片作为弹窗素材</p>
+        <div class="material-library-grid" id="material-library-grid"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost modal-cancel">取消</button>
+        <button type="button" class="btn btn-primary" id="btn-confirm-material" disabled>确定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 应用发布确认（二次确认） -->
+  <div id="modal-publish-app-step1" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>确认发布</h2>
+        <button type="button" class="modal-close" aria-label="关闭">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="tip">确定将该应用设为「已发布」吗？其他已发布应用会变为「草稿」。</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost modal-cancel" id="btn-cancel-publish-app-step1">取消</button>
+        <button type="button" class="btn btn-primary" id="btn-confirm-publish-app-step1">确定发布</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
