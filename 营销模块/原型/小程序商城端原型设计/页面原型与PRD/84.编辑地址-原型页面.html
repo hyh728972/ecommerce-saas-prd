@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>编辑地址 - 苏银豆商城</title>
+<link rel="stylesheet" href="../assets/common.css">
+<style>
+  /* WeChat import */
+  .wechat-import-section {
+    background: var(--card-bg);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-md);
+    overflow: hidden;
+  }
+  .wechat-import-btn {
+    display: block;
+    width: 100%;
+    padding: var(--space-lg) 12px;
+    font-size: var(--font-base);
+    color: var(--wechat-green);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    box-sizing: border-box;
+  }
+  .wechat-import-btn:active { opacity: 0.7; }
+
+  /* Paste recognition */
+  .paste-section {
+    background: var(--card-bg);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-md);
+    overflow: hidden;
+  }
+  .paste-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-md) 12px 6px;
+  }
+  .paste-header .paste-label {
+    font-size: var(--font-sm);
+    color: var(--primary-start);
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+  }
+  .paste-header .paste-label svg { width: 14px; height: 14px; }
+  .paste-header .paste-hint { font-size: var(--font-sm); color: var(--text-muted); }
+  .paste-textarea {
+    display: block;
+    width: 100%;
+    border: none;
+    outline: none;
+    font-size: var(--font-sm);
+    color: var(--text-color);
+    background: transparent;
+    resize: none;
+    min-height: 50px;
+    max-height: 80px;
+    padding: 0 var(--space-md) var(--space-md);
+    line-height: 1.5;
+    box-sizing: border-box;
+  }
+  .paste-textarea::placeholder { color: var(--text-light); }
+
+  .form-group {
+    background: var(--card-bg);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-md);
+    overflow: hidden;
+  }
+  .form-row {
+    display: flex;
+    align-items: center;
+    padding: var(--space-lg) 12px;
+    border-bottom: 1px solid var(--bg-color);
+  }
+  .form-row:last-child { border-bottom: none; }
+  .form-row label {
+    width: 70px;
+    font-size: var(--font-base);
+    color: var(--text-color);
+    flex-shrink: 0;
+  }
+  .form-row input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: var(--font-base);
+    color: var(--text-color);
+    background: transparent;
+  }
+  .form-row input::placeholder { color: var(--text-muted); }
+  .form-row .area-value {
+    flex: 1;
+    font-size: var(--font-base);
+    color: var(--text-muted);
+  }
+  .form-row .area-value.filled { color: var(--text-color); }
+  .form-row .area-arrow {
+    width: 14px; height: 14px; color: var(--text-light); flex-shrink: 0;
+  }
+  .form-row textarea {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: var(--font-base);
+    color: var(--text-color);
+    background: transparent;
+    resize: none;
+    min-height: 60px;
+    line-height: 1.5;
+  }
+  .form-row textarea::placeholder { color: var(--text-muted); }
+
+  .form-actions {
+    display: flex;
+    gap: var(--space-md);
+    padding: var(--space-xl) 12px;
+  }
+  .form-actions .btn {
+    flex: 1;
+    padding: var(--space-md);
+    border-radius: var(--radius-xl);
+    font-size: var(--font-md);
+    text-align: center;
+    cursor: pointer;
+    border: none;
+  }
+  .form-actions .btn-cancel {
+    background: var(--bg-color);
+    color: var(--text-secondary);
+  }
+  .form-actions .btn-save {
+    background: linear-gradient(135deg, var(--primary-start), var(--price-color));
+    color: var(--card-bg);
+    font-weight: 600;
+  }
+
+  /* Area picker drawer (3-col: province/city/district) */
+  .area-picker-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 500;
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .area-picker-overlay.show { display: flex; }
+  .area-picker {
+    width: 100%;
+    max-width: 375px;
+    background: var(--card-bg);
+    border-radius: var(--radius-lg) 16px 0 0;
+    overflow: hidden;
+    animation: drawerUp .25s ease;
+  }
+  @keyframes drawerUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  .area-picker-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-lg) 16px;
+    border-bottom: 1px solid var(--border-divider);
+  }
+  .area-picker-header .picker-cancel {
+    font-size: var(--font-base); color: var(--text-tertiary); cursor: pointer; border: none; background: none;
+  }
+  .area-picker-header .picker-title {
+    font-size: var(--font-md); font-weight: 600; color: var(--text-color);
+  }
+  .area-picker-header .picker-confirm {
+    font-size: var(--font-base); color: var(--primary-start); font-weight: 600; cursor: pointer; border: none; background: none;
+  }
+  .area-picker-columns {
+    display: flex;
+    height: 220px;
+    padding: 0 var(--space-sm);
+  }
+  .area-picker-col {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .area-picker-col::-webkit-scrollbar { width: 0; }
+  .area-picker-col-item {
+    padding: var(--space-md) 8px;
+    font-size: var(--font-sm);
+    color: var(--text-secondary);
+    text-align: center;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-radius: var(--radius-sm);
+  }
+  .area-picker-col-item:active { background: var(--bg-color); }
+  .area-picker-col-item.active {
+    color: var(--primary-start);
+    font-weight: 600;
+    background: var(--selected-bg);
+  }
+
+  /* Street picker drawer (single column) */
+  .street-picker-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 500;
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .street-picker-overlay.show { display: flex; }
+  .street-picker {
+    width: 100%;
+    max-width: 375px;
+    background: var(--card-bg);
+    border-radius: var(--radius-lg) 16px 0 0;
+    overflow: hidden;
+    animation: drawerUp .25s ease;
+  }
+  .street-picker-list {
+    max-height: 260px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: var(--space-sm) 12px 20px;
+  }
+  .street-picker-list::-webkit-scrollbar { width: 0; }
+  .street-picker-item {
+    padding: var(--space-md) 8px;
+    font-size: var(--font-base);
+    color: var(--text-color);
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+  }
+  .street-picker-item:active { background: var(--bg-color); }
+  .street-picker-item.active {
+    color: var(--primary-start);
+    font-weight: 600;
+    background: var(--selected-bg);
+  }
+
+  /* Modal */
+  .modal-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    width: 300px;
+    background: var(--card-bg);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+  .modal-title { font-size: var(--font-md); font-weight: 600; text-align: center; padding: var(--space-xl) 16px 10px; color: var(--text-color); }
+  .modal-content { font-size: var(--font-base); color: var(--text-secondary); text-align: center; padding: 0 var(--space-lg) var(--space-xl); }
+  .modal-actions { display: flex; border-top: 1px solid var(--border-color); }
+  .modal-actions .modal-btn {
+    flex: 1; padding: var(--space-lg); font-size: var(--font-md); text-align: center; cursor: pointer; border: none; background: transparent;
+  }
+  .modal-actions .modal-btn.cancel { color: var(--text-secondary); border-right: 1px solid var(--border-color); }
+  .modal-actions .modal-btn.confirm { color: var(--primary-start); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="phone-frame">
+
+  <div class="sub-nav">
+    <div class="status-bar dark">
+      <span class="time">09:41</span>
+      <div class="icons">
+        <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+      </div>
+    </div>
+    <div class="nav-bar">
+      <div class="back-btn" onclick="history.back()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <span class="nav-title" id="pageTitle">新增收货地址</span>
+      <div class="capsule-btn"><img src="../assets/icons/小程序按钮.svg" alt=""></div>
+    </div>
+  </div>
+
+  <div class="page-scroll" style="padding-bottom: 20px;">
+
+    <div style="padding: var(--space-md);">
+      <!-- WeChat Import -->
+      <div class="wechat-import-section">
+        <button class="wechat-import-btn" id="wechatImportBtn">导入微信地址</button>
+      </div>
+
+      <!-- Paste Recognition -->
+      <div class="paste-section">
+        <div class="paste-header">
+          <span class="paste-label">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+            粘贴地址识别
+          </span>
+          <span class="paste-hint">粘贴完整地址自动填充</span>
+        </div>
+        <textarea class="paste-textarea" id="pasteArea" placeholder="粘贴完整地址，如：张三 13812345678 江苏省南京市鼓楼区汉中路100号"></textarea>
+      </div>
+
+      <div class="form-group">
+        <div class="form-row">
+          <label>收货人</label>
+          <input type="text" id="inputName" placeholder="请输入收货人姓名">
+        </div>
+        <div class="form-row">
+          <label>手机号</label>
+          <input type="tel" id="inputPhone" placeholder="请输入手机号码">
+        </div>
+        <div class="form-row" id="areaRow" style="cursor:pointer;">
+          <label>所在地区</label>
+          <span class="area-value" id="areaDisplay">请选择省/市/区</span>
+          <svg class="area-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+          <input type="hidden" id="inputArea">
+        </div>
+        <div class="form-row" id="streetRow" style="cursor:pointer;">
+          <label>街道</label>
+          <span class="area-value" id="streetDisplay">请选择街道</span>
+          <svg class="area-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+          <input type="hidden" id="inputStreet">
+        </div>
+        <div class="form-row">
+          <label>详细地址</label>
+          <textarea id="inputDetail" placeholder="请输入详细地址（门牌号等）"></textarea>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-cancel" onclick="history.back()">取消</button>
+        <button class="btn btn-save" id="saveBtn">保存</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Area Picker Drawer (3-col: Province/City/District) -->
+  <div class="area-picker-overlay" id="areaPickerOverlay">
+    <div class="area-picker">
+      <div class="area-picker-header">
+        <button class="picker-cancel" id="pickerCancel">取消</button>
+        <span class="picker-title">选择地区</span>
+        <button class="picker-confirm" id="pickerConfirm">确定</button>
+      </div>
+      <div class="area-picker-columns">
+        <div class="area-picker-col" id="pickerProvince"></div>
+        <div class="area-picker-col" id="pickerCity"></div>
+        <div class="area-picker-col" id="pickerDistrict"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Street Picker Drawer (single column) -->
+  <div class="street-picker-overlay" id="streetPickerOverlay">
+    <div class="street-picker">
+      <div class="area-picker-header">
+        <button class="picker-cancel" id="streetPickerCancel">取消</button>
+        <span class="picker-title">选择街道</span>
+        <button class="picker-confirm" id="streetPickerConfirm">确定</button>
+      </div>
+      <div class="street-picker-list" id="streetPickerList"></div>
+    </div>
+  </div>
+
+  <!-- WeChat Import Modal -->
+  <div class="modal-overlay" id="wechatModal">
+    <div class="modal">
+      <div class="modal-title">导入微信地址</div>
+      <div class="modal-content">将使用微信收货地址自动填充表单</div>
+      <div class="modal-actions">
+        <button class="modal-btn cancel" id="wechatCancel">取消</button>
+        <button class="modal-btn confirm" id="wechatConfirm" style="color:var(--wechat-green);">允许</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+<script src="../assets/auth.js"></script>
+<script src="../assets/auth-guard.js"></script>
+<script src="../assets/common.js"></script>
+<script>
+(function() {
+  var editData = localStorage.getItem('edit_address');
+  localStorage.removeItem('edit_address');
+
+  var editingId = null;
+  if (editData) {
+    try {
+      var d = JSON.parse(editData);
+      editingId = d.id;
+      document.getElementById('pageTitle').textContent = '编辑收货地址';
+      document.getElementById('inputName').value = d.name || '';
+      document.getElementById('inputPhone').value = d.phone || '';
+      if (d.area) {
+        document.getElementById('inputArea').value = d.area;
+        setAreaDisplay(d.area);
+      }
+      if (d.street) {
+        document.getElementById('inputStreet').value = d.street;
+        setStreetDisplay(d.street);
+      }
+      document.getElementById('inputDetail').value = d.detail || '';
+    } catch(e) {}
+  }
+
+  // ===== Area Data (Province -> City -> District -> [Streets]) =====
+  var AREA_DATA = {
+    '北京市': {
+      '北京市': {
+        '东城区': ['东华门街道','景山街道','交道口街道','安定门街道','北新桥街道','东四街道','朝阳门街道','建国门街道','东直门街道','和平里街道','前门街道','崇文门外街道','东花市街道','龙潭街道','体育馆路街道','天坛街道'],
+        '西城区': ['西长安街街道','新街口街道','什刹海街道','金融街街道','月坛街道','德胜街道','展览路街道','广安门内街道','牛街街道','白纸坊街道','广安门外街道','椿树街道','陶然亭街道','天桥街道','大栅栏街道'],
+        '朝阳区': ['建外街道','朝外街道','呼家楼街道','三里屯街道','望京街道','潘家园街道','劲松街道','双井街道','建德门街道','安贞街道','和平街街道','香河园街道','亚运村街道','小关街道','酒仙桥街道','麦子店街道'],
+        '海淀区': ['海淀街道','中关村街道','学院路街道','清河街道','青龙桥街道','上地街道','万寿路街道','羊坊店街道','甘家口街道','八里庄街道','紫竹院街道','北下关街道','北太平庄街道','西三旗街道','花园路街道'],
+        '丰台区': ['丰台街道','西罗园街道','方庄街道','太平桥街道','东铁匠营街道','右安门街道','长辛店街道','大红门街道','南苑街道','东高地街道','卢沟桥街道','花乡街道','马家堡街道','新村街道','看丹街道'],
+        '通州区': ['北苑街道','中仓街道','新华街道','玉桥街道','梨园镇','宋庄镇','张家湾镇','潞城镇','台湖镇','马驹桥镇','西集镇','漷县镇','永乐店镇','于家务回族乡']
+      }
+    },
+    '上海市': {
+      '上海市': {
+        '黄浦区': ['南京东路街道','外滩街道','半淞园路街道','小东门街道','豫园街道','老西门街道','瑞金二路街道','淮海中路街道','打浦桥街道'],
+        '徐汇区': ['湖南路街道','天平路街道','斜土路街道','枫林路街道','徐家汇街道','漕河泾街道','长桥街道','凌云路街道','龙华街道','田林街道','虹梅路街道','康健新村街道'],
+        '浦东新区': ['潍坊新村街道','陆家嘴街道','周家渡街道','塘桥街道','花木街道','洋泾街道','沪东新村街道','金杨新村街道','上钢新村街道','南码头路街道','张江镇','北蔡镇','唐镇','曹路镇','金桥镇','高桥镇','高东镇','合庆镇','三林镇','惠南镇'],
+        '静安区': ['江宁路街道','石门二路街道','南京西路街道','静安寺街道','曹家渡街道','天目西路街道','北站街道','宝山路街道','芷江西路街道','共和新路街道','大宁路街道','彭浦新村街道','临汾路街道'],
+        '闵行区': ['江川路街道','古美路街道','新虹街道','莘庄镇','颛桥镇','七宝镇','华漕镇','虹桥镇','梅陇镇','吴泾镇','马桥镇','浦江镇']
+      }
+    },
+    '广东省': {
+      '广州市': {
+        '天河区': ['天河南街道','林和街道','沙东街道','兴华街道','棠下街道','石牌街道','珠吉街道','前进街道','车陂街道','黄村街道','长兴街道','凤凰街道','龙洞街道','新塘街道','元岗街道','猎德街道'],
+        '海珠区': ['赤岗街道','新港街道','滨江街道','素社街道','海幢街道','凤阳街道','官洲街道','琶洲街道','南石头街道','昌岗街道','江南中街道','南华西街道','沙园街道','瑞宝街道','江海街道','华洲街道'],
+        '越秀区': ['洪桥街道','北京街道','六榕街道','流花街道','光塔街道','东山街道','农林街道','黄花岗街道','大东街道','大塘街道','珠光街道','矿泉街道','登峰街道','建设街道','华乐街道','梅花村街道'],
+        '番禺区': ['市桥街道','沙头街道','东环街道','桥南街道','大龙街道','钟村街道','石壁街道','大石街道','洛浦街道','小谷围街道','南村镇','新造镇','化龙镇','石楼镇','沙湾镇']
+      },
+      '深圳市': {
+        '福田区': ['南园街道','园岭街道','华富街道','莲花街道','香蜜湖街道','福保街道','梅林街道','沙头街道','福田街道','华强北街道'],
+        '南山区': ['南头街道','南山街道','招商街道','蛇口街道','粤海街道','桃源街道','西丽街道','沙河街道','前海街道'],
+        '宝安区': ['新安街道','西乡街道','福永街道','沙井街道','松岗街道','石岩街道','航城街道','燕罗街道','新桥街道'],
+        '龙岗区': ['龙城街道','龙岗街道','坂田街道','布吉街道','横岗街道','平湖街道','南湾街道','宝龙街道','园山街道','吉华街道']
+      }
+    },
+    '江苏省': {
+      '南京市': {
+        '玄武区': ['梅园新村街道','新街口街道','玄武门街道','锁金村街道','红山街道','孝陵卫街道','玄武湖街道','天山路街道'],
+        '秦淮区': ['秦虹街道','夫子庙街道','红花街道','双塘街道','中华门街道','朝天宫街道','光华路街道','月牙湖街道','大光路街道','洪武路街道'],
+        '鼓楼区': ['宁海路街道','华侨路街道','湖南路街道','中央门街道','挹江门街道','江东街道','凤凰街道','阅江楼街道','建宁路街道','宝塔桥街道','小市街道','幕府山街道','热河南路街道'],
+        '建邺区': ['莫愁湖街道','沙洲街道','双闸街道','江心洲街道','南苑街道','兴隆街道'],
+        '栖霞区': ['尧化街道','迈皋桥街道','燕子矶街道','马群街道','龙潭街道','仙林街道','八卦洲街道','西岗街道'],
+        '雨花台区': ['雨花街道','赛虹桥街道','铁心桥街道','板桥街道','西善桥街道','梅山街道','古雄街道'],
+        '江宁区': ['东山街道','秣陵街道','汤山街道','淳化街道','禄口街道','江宁街道','谷里街道','湖熟街道','麒麟街道','横溪街道']
+      },
+      '苏州市': {
+        '姑苏区': ['平江街道','金阊街道','沧浪街道','吴门桥街道','双塔街道','虎丘街道','苏锦街道','白洋湾街道','拙政园街道'],
+        '工业园区': ['娄葑街道','斜塘街道','唯亭街道','胜浦街道','金鸡湖街道'],
+        '吴中区': ['越溪街道','郭巷街道','横泾街道','木渎街道','甪直镇','光福镇','东山镇','金庭镇','临湖镇'],
+        '吴江区': ['松陵街道','江陵街道','横扇街道','平望镇','盛泽镇','震泽镇','桃源镇','七都镇','同里镇']
+      },
+      '无锡市': {
+        '梁溪区': ['崇安寺街道','通江街道','南禅寺街道','清名桥街道','迎龙桥街道','广瑞路街道','上马墩街道','江海街道','广益街道','瞻江街道','黄巷街道','山北街道','惠山街道','北大街街道'],
+        '滨湖区': ['河埒街道','荣巷街道','蠡园街道','蠡湖街道','太湖街道','雪浪街道','华庄街道','马山街道','胡埭镇'],
+        '锡山区': ['东亭街道','安镇街道','东北塘街道','锡北镇','鹅湖镇','羊尖镇','云林街道','厚桥街道'],
+        '新吴区': ['旺庄街道','硕放街道','江溪街道','鸿山街道','梅村街道','新安街道']
+      }
+    },
+    '浙江省': {
+      '杭州市': {
+        '上城区': ['清波街道','湖滨街道','小营街道','望江街道','南星街道','紫阳街道','采荷街道','凯旋街道','闸弄口街道','四季青街道','彭埠街道','笕桥街道','丁兰街道','九堡街道'],
+        '西湖区': ['北山街道','灵隐街道','翠苑街道','文新街道','古荡街道','留下街道','转塘街道','蒋村街道','三墩镇','双浦镇'],
+        '拱墅区': ['米市巷街道','湖墅街道','小河街道','和睦街道','拱宸桥街道','上塘街道','祥符街道','半山街道','康桥街道','大关街道','东新街道','石桥街道'],
+        '滨江区': ['西兴街道','长河街道','浦沿街道'],
+        '余杭区': ['临平街道','南苑街道','东湖街道','星桥街道','仁和街道','良渚街道','瓶窑镇','径山镇','黄湖镇','鸬鸟镇','百丈镇']
+      },
+      '宁波市': {
+        '海曙区': ['月湖街道','南门街道','西门街道','鼓楼街道','白云街道','望春街道','段塘街道','江厦街道','石碶街道'],
+        '鄞州区': ['中河街道','百丈街道','东柳街道','明楼街道','白鹤街道','首南街道','钟公庙街道','下应街道','潘火街道','邱隘镇','五乡镇','云龙镇','姜山镇'],
+        '江北区': ['中马街道','白沙街道','孔浦街道','文教街道','甬江街道','庄桥街道','洪塘街道','前江街道','慈城镇']
+      }
+    },
+    '四川省': {
+      '成都市': {
+        '锦江区': ['春熙路街道','书院街街道','合江亭街道','水井坊街道','牛市口街道','东光街道','狮子山街道','成龙路街道','柳江街道','三圣街道'],
+        '武侯区': ['浆洗街街道','望江路街道','玉林街道','火车南站街道','双楠街道','晋阳街道','红牌楼街道','簇锦街道','机投桥街道','金花桥街道','簇桥街道','华兴街道','芳草街街道','肖家河街道','石羊街道','桂溪街道'],
+        '青羊区': ['太升路街道','草市街街道','西御河街道','少城街道','府南街道','草堂街道','光华街道','金沙街道','黄田坝街道','苏坡街道','文家街道'],
+        '成华区': ['猛追湾街道','双桥子街道','建设路街道','府青路街道','二仙桥街道','跳蹬河街道','新鸿路街道','双水碾街道','万年场街道','保和街道','青龙街道','白莲池街道','龙潭街道']
+      }
+    },
+    '湖北省': {
+      '武汉市': {
+        '武昌区': ['积玉桥街道','杨园街道','徐家棚街道','粮道街街道','中华路街道','黄鹤楼街道','紫阳街道','白沙洲街道','首义路街道','中南路街道','水果湖街道','珞珈山街道','石洞街道','南湖街道'],
+        '江汉区': ['花楼街道','民族街道','水塔街道','北湖街道','前进街道','新华街道','万松街道','唐家墩街道','常青街道','汉兴街道'],
+        '洪山区': ['珞南街道','关山街道','狮子山街道','梨园街道','和平街道','洪山街道','青菱街道','卓刀泉街道','天兴乡','张家湾街道','建设乡'],
+        '江岸区': ['大智街道','一元街道','车站街道','四唯街道','永清街道','劳动街道','球场街道','台北街道','新村街道','丹水池街道','后湖街道','谌家矶街道','塔子湖街道','百步亭街道']
+      }
+    },
+    '湖南省': {
+      '长沙市': {
+        '芙蓉区': ['文艺路街道','朝阳街街道','韭菜园街道','五里牌街道','火星街道','马王堆街道','东屯渡街道','湘湖街道','定王台街道','东岸街道','马坡岭街道','东湖街道'],
+        '天心区': ['坡子街街道','城南路街道','裕南街街道','金盆岭街道','新开铺街道','青园街道','桂花坪街道','大托铺街道','黑石铺街道','先锋街道','南托街道','暮云街道'],
+        '岳麓区': ['望月湖街道','岳麓街道','桔子洲街道','银盆岭街道','观沙岭街道','望城坡街道','西湖街道','咸嘉湖街道','望岳街道','梅溪湖街道','天顶街道','坪塘街道','洋湖街道','含浦街道','学士街道','莲花镇','雨敞坪镇']
+      }
+    },
+    '山东省': {
+      '济南市': {
+        '历下区': ['大明湖街道','趵突泉街道','泉城路街道','千佛山街道','和平路街道','解放路街道','文化东路街道','建筑新村街道','燕山街道','甸柳新村街道','姚家街道','智远街道','龙洞街道'],
+        '市中区': ['大观园街道','杆石桥街道','四里村街道','魏家庄街道','二七新村街道','七里山街道','六里山街道','舜玉路街道','舜耕街道','泺源街道','王官庄街道','白马山街道','七贤街道','十六里河街道','兴隆街道','党家街道','陡沟街道'],
+        '历城区': ['山大路街道','洪家楼街道','东风街道','全福街道','华山街道','荷花路街道','王舍人街道','鲍山街道','郭店街道','唐冶街道','港沟街道','遥墙街道','临港街道','彩石街道']
+      },
+      '青岛市': {
+        '市南区': ['香港中路街道','八大峡街道','台西街道','云南路街道','中山路街道','江苏路街道','八大关街道','湛山街道','金门路街道','珠海路街道'],
+        '市北区': ['辽宁路街道','延安路街道','台东街道','敦化路街道','辽源路街道','合肥路街道','浮山新区街道','阜新路街道','海伦路街道','四方街道','兴隆路街道','水清沟街道','洛阳路街道','河西街道','双山街道','开平路街道']
+      }
+    }
+  };
+
+  // ===== Area Picker (3-col) =====
+  var pickerProvince = document.getElementById('pickerProvince');
+  var pickerCity = document.getElementById('pickerCity');
+  var pickerDistrict = document.getElementById('pickerDistrict');
+  var pickerOverlay = document.getElementById('areaPickerOverlay');
+  var selProv = '', selCity = '', selDist = '';
+
+  function renderCol(container, items, selected, onSelect) {
+    var html = '';
+    items.forEach(function(item) {
+      html += '<div class="area-picker-col-item' + (item === selected ? ' active' : '') + '">' + item + '</div>';
+    });
+    container.innerHTML = html;
+    container.querySelectorAll('.area-picker-col-item').forEach(function(el) {
+      el.addEventListener('click', function() { onSelect(this.textContent); });
+    });
+    var act = container.querySelector('.active');
+    if (act) act.scrollIntoView({ block: 'center' });
+  }
+
+  function updateProvince() {
+    renderCol(pickerProvince, Object.keys(AREA_DATA), selProv, function(v) {
+      selProv = v; selCity = ''; selDist = '';
+      updateProvince(); updateCity(); updateDistrict();
+    });
+  }
+  function updateCity() {
+    if (!selProv || !AREA_DATA[selProv]) { pickerCity.innerHTML = ''; return; }
+    renderCol(pickerCity, Object.keys(AREA_DATA[selProv]), selCity, function(v) {
+      selCity = v; selDist = '';
+      updateCity(); updateDistrict();
+    });
+  }
+  function updateDistrict() {
+    if (!selProv || !selCity || !AREA_DATA[selProv][selCity]) { pickerDistrict.innerHTML = ''; return; }
+    renderCol(pickerDistrict, Object.keys(AREA_DATA[selProv][selCity]), selDist, function(v) {
+      selDist = v; updateDistrict();
+    });
+  }
+
+  function openAreaPicker() {
+    var current = document.getElementById('inputArea').value;
+    selProv = ''; selCity = ''; selDist = '';
+    if (current) {
+      for (var p in AREA_DATA) {
+        for (var c in AREA_DATA[p]) {
+          for (var d in AREA_DATA[p][c]) {
+            if ((p + c + d) === current) { selProv = p; selCity = c; selDist = d; }
+          }
+        }
+      }
+    }
+    updateProvince(); updateCity(); updateDistrict();
+    pickerOverlay.classList.add('show');
+  }
+
+  document.getElementById('areaRow').addEventListener('click', openAreaPicker);
+  document.getElementById('pickerCancel').addEventListener('click', function() { pickerOverlay.classList.remove('show'); });
+  document.getElementById('pickerConfirm').addEventListener('click', function() {
+    if (!selProv) return;
+    var text = selProv + (selCity || '') + (selDist || '');
+    document.getElementById('inputArea').value = text;
+    setAreaDisplay(text);
+    // Clear street when area changes
+    document.getElementById('inputStreet').value = '';
+    setStreetDisplay('');
+    pickerOverlay.classList.remove('show');
+  });
+  pickerOverlay.addEventListener('click', function(e) { if (e.target === pickerOverlay) pickerOverlay.classList.remove('show'); });
+
+  function setAreaDisplay(text) {
+    var d = document.getElementById('areaDisplay');
+    if (text) { d.textContent = text; d.classList.add('filled'); }
+    else { d.textContent = '请选择省/市/区'; d.classList.remove('filled'); }
+  }
+
+  // ===== Street Picker (single column) =====
+  var streetPickerOverlay = document.getElementById('streetPickerOverlay');
+  var streetPickerList = document.getElementById('streetPickerList');
+  var selStreet = '';
+
+  function getStreets() {
+    if (!selProv || !selCity || !selDist) return [];
+    // Read from current form values in case picker was already confirmed
+    var area = document.getElementById('inputArea').value;
+    for (var p in AREA_DATA) {
+      for (var c in AREA_DATA[p]) {
+        for (var d in AREA_DATA[p][c]) {
+          if ((p + c + d) === area) return Object.keys(AREA_DATA[p][c][d]);
+        }
+      }
+    }
+    return [];
+  }
+
+  function openStreetPicker() {
+    var streets = getStreets();
+    if (streets.length === 0) { alert('请先选择所在地区'); return; }
+    selStreet = document.getElementById('inputStreet').value || '';
+    var html = '';
+    streets.forEach(function(s) {
+      html += '<div class="street-picker-item' + (s === selStreet ? ' active' : '') + '">' + s + '</div>';
+    });
+    streetPickerList.innerHTML = html;
+    streetPickerList.querySelectorAll('.street-picker-item').forEach(function(el) {
+      el.addEventListener('click', function() {
+        streetPickerList.querySelectorAll('.street-picker-item').forEach(function(item) { item.classList.remove('active'); });
+        this.classList.add('active');
+        selStreet = this.textContent;
+      });
+    });
+    var act = streetPickerList.querySelector('.active');
+    if (act) act.scrollIntoView({ block: 'center' });
+    streetPickerOverlay.classList.add('show');
+  }
+
+  document.getElementById('streetRow').addEventListener('click', openStreetPicker);
+  document.getElementById('streetPickerCancel').addEventListener('click', function() { streetPickerOverlay.classList.remove('show'); });
+  document.getElementById('streetPickerConfirm').addEventListener('click', function() {
+    document.getElementById('inputStreet').value = selStreet;
+    setStreetDisplay(selStreet);
+    streetPickerOverlay.classList.remove('show');
+  });
+  streetPickerOverlay.addEventListener('click', function(e) { if (e.target === streetPickerOverlay) streetPickerOverlay.classList.remove('show'); });
+
+  function setStreetDisplay(text) {
+    var d = document.getElementById('streetDisplay');
+    if (text) { d.textContent = text; d.classList.add('filled'); }
+    else { d.textContent = '请选择街道'; d.classList.remove('filled'); }
+  }
+
+  // ===== WeChat Import =====
+  document.getElementById('wechatImportBtn').addEventListener('click', function() { document.getElementById('wechatModal').classList.add('show'); });
+  document.getElementById('wechatCancel').addEventListener('click', function() { document.getElementById('wechatModal').classList.remove('show'); });
+  document.getElementById('wechatConfirm').addEventListener('click', function() {
+    document.getElementById('wechatModal').classList.remove('show');
+    document.getElementById('inputName').value = '张三';
+    document.getElementById('inputPhone').value = '13812345678';
+    document.getElementById('inputArea').value = '江苏省南京市鼓楼区';
+    setAreaDisplay('江苏省南京市鼓楼区');
+    document.getElementById('inputStreet').value = '华侨路街道';
+    setStreetDisplay('华侨路街道');
+    document.getElementById('inputDetail').value = '汉中路100号江苏银行大厦18楼';
+  });
+  document.getElementById('wechatModal').addEventListener('click', function(e) { if (e.target === this) this.classList.remove('show'); });
+
+  // ===== Paste Recognition =====
+  var pasteArea = document.getElementById('pasteArea');
+
+  function parseAddress(text) {
+    var result = { name: '', phone: '', area: '', street: '', detail: '' };
+    if (!text || !text.trim()) return result;
+    var s = text.trim();
+    var phoneMatch = s.match(/1[3-9]\d{9}/);
+    if (phoneMatch) { result.phone = phoneMatch[0]; s = s.replace(phoneMatch[0], ' '); }
+    var areaMatch = s.match(/([一-龥]{2,6}(?:省|市|自治区|特别行政区))([一-龥]{2,6}(?:市|区|县|盟|州|旗))?([一-龥]{2,6}(?:区|县|市|镇|乡|街道))?/);
+    if (areaMatch) { result.area = (areaMatch[1]||'') + (areaMatch[2]||'') + (areaMatch[3]||''); s = s.replace(areaMatch[0], ' '); }
+    var streetMatch = s.match(/([一-龥]{2,6}(?:街道|镇|乡|路|大道|大街))/);
+    if (streetMatch) { result.street = streetMatch[1]; s = s.replace(streetMatch[0], ' '); }
+    var parts = s.split(/[\s,，;；、|]+/).filter(function(p) { return p.length > 0; });
+    var detailParts = [], nameParts = [];
+    parts.forEach(function(p) {
+      if (/[路街道号栋楼室单元巷弄堂]|(\d{1,5}[号栋楼室])/.test(p) || p.length > 8) detailParts.push(p);
+      else if (p.length <= 5 && !/\d{4,}/.test(p)) nameParts.push(p);
+      else detailParts.push(p);
+    });
+    if (nameParts.length > 0) result.name = nameParts[0];
+    if (detailParts.length > 0) result.detail = detailParts.join('');
+    return result;
+  }
+
+  function fillFormFromParse(parsed) {
+    if (!parsed.name && !parsed.phone && !parsed.area && !parsed.detail) return;
+    if (parsed.name) document.getElementById('inputName').value = parsed.name;
+    if (parsed.phone) document.getElementById('inputPhone').value = parsed.phone;
+    if (parsed.area) { document.getElementById('inputArea').value = parsed.area; setAreaDisplay(parsed.area); }
+    if (parsed.street) { document.getElementById('inputStreet').value = parsed.street; setStreetDisplay(parsed.street); }
+    if (parsed.detail) document.getElementById('inputDetail').value = parsed.detail;
+  }
+
+  pasteArea.addEventListener('paste', function() {
+    setTimeout(function() { var t = pasteArea.value; if (t.trim()) { fillFormFromParse(parseAddress(t)); pasteArea.value = ''; } }, 100);
+  });
+  var pasteTimer = null;
+  pasteArea.addEventListener('input', function() {
+    clearTimeout(pasteTimer);
+    pasteTimer = setTimeout(function() { var t = pasteArea.value; if (t.trim().length > 10) fillFormFromParse(parseAddress(t)); }, 800);
+  });
+
+  // ===== Save =====
+  document.getElementById('saveBtn').addEventListener('click', function() {
+    var name = document.getElementById('inputName').value.trim();
+    var phone = document.getElementById('inputPhone').value.trim();
+    var area = document.getElementById('inputArea').value.trim();
+    var street = document.getElementById('inputStreet').value.trim();
+    var detail = document.getElementById('inputDetail').value.trim();
+    if (!name || !phone || !area || !detail) { alert('请填写完整信息'); return; }
+    var saved = { name: name, phone: phone, area: area, detail: detail };
+    if (street) saved.street = street;
+    if (editingId) {
+      saved.id = editingId;
+    } else {
+      saved.isNew = true;
+    }
+    localStorage.setItem('saved_address', JSON.stringify(saved));
+    history.back();
+  });
+})();
+</script>
+<script src="../assets/theme-switcher.js"></script>
+</body>
+</html>

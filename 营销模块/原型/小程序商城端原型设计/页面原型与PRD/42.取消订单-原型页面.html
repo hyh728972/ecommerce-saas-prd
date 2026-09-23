@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>取消订单 - 苏银豆商城</title>
+<link rel="stylesheet" href="../assets/common.css">
+<style>
+  /* Fix: page-scroll 的 min-height:100vh 会撑高 phone-frame，导致 absolute 的底部栏被顶出视口。
+     锁定 phone-frame 为一屏、让 page-scroll 吃掉中间空间，底部栏即可正常贴底。 */
+  .phone-frame {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .page-scroll {
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* Reason section */
+  .reason-section {
+    background: var(--card-bg);
+    margin: var(--space-md);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+  }
+  .section-title {
+    font-size: var(--font-md);
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: var(--space-lg);
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+  .section-title svg { width: 18px; height: 18px; color: var(--primary-start); }
+
+  /* Reason options */
+  .reason-options {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+  .reason-item {
+    display: flex;
+    align-items: center;
+    padding: var(--space-lg) 12px;
+    background: var(--bg-input);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.2s;
+  }
+  .reason-item:active { background: var(--border-divider); }
+  .reason-item.selected {
+    background: var(--selected-bg);
+    border-color: var(--primary-start);
+  }
+  .reason-radio {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--text-disabled);
+    margin-right: var(--space-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .reason-item.selected .reason-radio {
+    border-color: var(--primary-start);
+    background: var(--primary-start);
+  }
+  .reason-item.selected .reason-radio::after {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background: var(--card-bg);
+    border-radius: 50%;
+  }
+  .reason-text {
+    font-size: var(--font-base);
+    color: var(--text-color);
+    flex: 1;
+  }
+
+  /* Other reason input */
+  .other-reason-input {
+    margin-top: var(--space-md);
+    display: none;
+  }
+  .other-reason-input.show { display: block; }
+  .other-reason-input textarea {
+    width: 100%;
+    height: 80px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: var(--space-md);
+    font-size: var(--font-base);
+    color: var(--text-color);
+    resize: none;
+    outline: none;
+  }
+  .other-reason-input textarea:focus {
+    border-color: var(--primary-start);
+  }
+  .other-reason-input textarea::placeholder {
+    color: var(--text-muted);
+  }
+
+  /* Order summary */
+  .order-summary {
+    background: var(--card-bg);
+    margin: 0 var(--space-md) var(--space-md);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+  }
+  .order-card {
+    display: flex;
+    gap: var(--space-md);
+  }
+  .order-img {
+    width: 80px;
+    height: 80px;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    flex-shrink: 0;
+    background: var(--bg-input);
+  }
+  .order-img img { width: 100%; height: 100%; object-fit: cover; }
+  .order-info { flex: 1; min-width: 0; }
+  .order-name {
+    font-size: var(--font-sm);
+    color: var(--text-color);
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: var(--space-xs);
+  }
+  .order-spec {
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+    margin-bottom: var(--space-sm);
+  }
+  .order-price {
+    font-size: var(--font-base);
+    color: var(--price-color);
+    font-weight: 600;
+  }
+
+  .order-meta {
+    margin-top: var(--space-md);
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--bg-color);
+  }
+  .meta-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: var(--font-sm);
+    padding: var(--space-xs) 0;
+  }
+  .meta-item .label { color: var(--text-tertiary); }
+  .meta-item .value { color: var(--text-color); }
+  .meta-item .value.highlight { color: var(--price-color); font-weight: 600; }
+
+  /* Tips */
+  .tips-box {
+    background: var(--selected-bg);
+    margin: 0 var(--space-md) var(--space-md);
+    border-radius: var(--radius-sm);
+    padding: var(--space-md);
+  }
+  .tips-title {
+    font-size: var(--font-sm);
+    font-weight: 600;
+    color: var(--primary-start);
+    margin-bottom: var(--space-sm);
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+  }
+  .tips-title svg { width: 14px; height: 14px; }
+  .tips-list {
+    font-size: var(--font-sm);
+    color: var(--text-secondary);
+    line-height: 1.8;
+  }
+
+  /* Bottom bar */
+  .bottom-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--card-bg);
+    padding: var(--space-md) 16px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    gap: var(--space-md);
+    z-index: 200;
+  }
+  .btn-cancel {
+    flex: 1;
+    height: 44px;
+    border: 1px solid var(--text-disabled);
+    border-radius: var(--radius-xl);
+    background: var(--card-bg);
+    color: var(--text-secondary);
+    font-size: var(--font-md);
+    cursor: pointer;
+  }
+  .btn-cancel:active { background: var(--bg-color); }
+  .btn-confirm {
+    flex: 2;
+    height: 44px;
+    border: none;
+    border-radius: var(--radius-xl);
+    background: linear-gradient(135deg, var(--primary-start), var(--price-color));
+    color: var(--card-bg);
+    font-size: var(--font-md);
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .btn-confirm:active { opacity: 0.85; }
+  .btn-confirm:disabled {
+    background: var(--text-light);
+    cursor: not-allowed;
+  }
+
+  /* Warning modal */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    display: none;
+  }
+  .modal-overlay.show { display: block; }
+  .modal-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--card-bg);
+    border-radius: var(--radius-md);
+    padding: var(--space-xl);
+    width: 280px;
+    text-align: center;
+  }
+  .modal-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--warning-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto var(--space-lg);
+  }
+  .modal-icon svg { width: 28px; height: 28px; color: var(--warning-color); }
+  .modal-title {
+    font-size: var(--font-md);
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: var(--space-sm);
+  }
+  .modal-desc {
+    font-size: var(--font-sm);
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: var(--space-xl);
+  }
+  .modal-btns {
+    display: flex;
+    gap: var(--space-md);
+  }
+  .modal-btn {
+    flex: 1;
+    height: 40px;
+    border-radius: var(--radius-xl);
+    font-size: var(--font-base);
+    cursor: pointer;
+  }
+  .modal-btn.secondary {
+    border: 1px solid var(--text-disabled);
+    background: var(--card-bg);
+    color: var(--text-secondary);
+  }
+  .modal-btn.primary {
+    border: none;
+    background: linear-gradient(135deg, var(--primary-start), var(--price-color));
+    color: var(--card-bg);
+  }
+</style>
+</head>
+<body>
+<div class="phone-frame">
+
+  <!-- Sub-page Navigation -->
+  <div class="sub-nav">
+    <div class="status-bar dark">
+      <span class="time">09:41</span>
+      <div class="icons">
+        <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+      </div>
+    </div>
+    <div class="nav-bar">
+      <div class="back-btn" onclick="history.back()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <span class="nav-title">取消订单</span>
+      <div class="capsule-btn"><img src="../assets/icons/小程序按钮.svg" alt=""></div>
+    </div>
+  </div>
+
+  <!-- Scrollable Content -->
+  <div class="page-scroll" style="padding-bottom: 80px;">
+
+    <!-- Order Summary -->
+    <div class="order-summary">
+      <div class="section-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 10h20"/></svg>
+        订单信息
+      </div>
+      <div class="order-card">
+        <div class="order-img">
+          <img src="../assets/unsplash/1602143407151-7111542de6e8.jpg" alt="">
+        </div>
+        <div class="order-info">
+          <div class="order-name">日本进口保温杯 不锈钢真空便携水杯500ml</div>
+          <div class="order-spec">白色 500ml</div>
+          <div class="order-price">&yen;68.00 x1</div>
+        </div>
+      </div>
+      <div class="order-meta">
+        <div class="meta-item">
+          <span class="label">订单编号</span>
+          <span class="value">SY2026040888001</span>
+        </div>
+        <div class="meta-item">
+          <span class="label">下单时间</span>
+          <span class="value">2026-04-08 14:35:20</span>
+        </div>
+        <div class="meta-item">
+          <span class="label">订单金额</span>
+          <span class="value highlight">&yen;68.00</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cancel Reason -->
+    <div class="reason-section">
+      <div class="section-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        取消原因
+      </div>
+      <div class="reason-options" id="reasonOptions">
+        <div class="reason-item" data-reason="not_want">
+          <div class="reason-radio"></div>
+          <span class="reason-text">不想要了</span>
+        </div>
+        <div class="reason-item" data-reason="wrong_info">
+          <div class="reason-radio"></div>
+          <span class="reason-text">信息填写错误</span>
+        </div>
+        <div class="reason-item" data-reason="price_change">
+          <div class="reason-radio"></div>
+          <span class="reason-text">商品降价了</span>
+        </div>
+        <div class="reason-item" data-reason="timeout">
+          <div class="reason-radio"></div>
+          <span class="reason-text">等待时间过长</span>
+        </div>
+        <div class="reason-item" data-reason="other">
+          <div class="reason-radio"></div>
+          <span class="reason-text">其他原因</span>
+        </div>
+      </div>
+      <div class="other-reason-input" id="otherReasonInput">
+        <textarea placeholder="请输入具体原因（选填）" maxlength="100"></textarea>
+      </div>
+    </div>
+
+    <!-- Tips -->
+    <div class="tips-box">
+      <div class="tips-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        温馨提示
+      </div>
+      <div class="tips-list">
+        • 订单取消后不可恢复<br>
+        • 如有疑问可联系客服咨询
+      </div>
+    </div>
+
+    <!-- Bottom Bar -->
+  <div class="bottom-bar">
+    <button class="btn-cancel" onclick="history.back()">暂不取消</button>
+    <button class="btn-confirm" id="confirmBtn" disabled>确认取消</button>
+  </div>
+
+  <!-- Warning Modal -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-content">
+      <div class="modal-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      </div>
+      <div class="modal-title">确认取消订单？</div>
+      <div class="modal-desc">订单取消后将无法恢复。</div>
+      <div class="modal-btns">
+        <button class="modal-btn secondary" onclick="closeModal()">再想想</button>
+        <button class="modal-btn primary" onclick="submitCancel()">确认取消</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+<script src="../assets/common.js"></script>
+<script>
+(function() {
+  // 取消订单仅限待付款订单（无退款流程）
+  var reasonOptions = document.getElementById('reasonOptions');
+  var otherReasonInput = document.getElementById('otherReasonInput');
+  var confirmBtn = document.getElementById('confirmBtn');
+  var modalOverlay = document.getElementById('modalOverlay');
+
+  var selectedReason = '';
+
+  // Reason selection
+  reasonOptions.querySelectorAll('.reason-item').forEach(function(item) {
+    item.addEventListener('click', function() {
+      reasonOptions.querySelectorAll('.reason-item').forEach(function(i) {
+        i.classList.remove('selected');
+      });
+      this.classList.add('selected');
+      selectedReason = this.dataset.reason;
+
+      // Show other reason input
+      if (selectedReason === 'other') {
+        otherReasonInput.classList.add('show');
+      } else {
+        otherReasonInput.classList.remove('show');
+      }
+
+      updateSubmitBtn();
+    });
+  });
+
+  function updateSubmitBtn() {
+    confirmBtn.disabled = !selectedReason;
+  }
+
+  // Submit
+  confirmBtn.addEventListener('click', function() {
+    if (this.disabled) return;
+    modalOverlay.classList.add('show');
+  });
+
+  function closeModal() {
+    modalOverlay.classList.remove('show');
+  }
+
+  function submitCancel() {
+    modalOverlay.classList.remove('show');
+    alert('订单已取消');
+    location.href = '40.我的订单-原型页面.html';
+  }
+
+  window.closeModal = closeModal;
+  window.submitCancel = submitCancel;
+})();
+</script>
+<script src="../assets/theme-switcher.js"></script>
+</body>
+</html>

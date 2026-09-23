@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>卡券发放管理 - 商城运营平台</title>
+<style>
+:root {
+  --bg-app:#f4f3f0; --bg-sidebar:#1e1e22; --bg-surface:#ffffff; --bg-hover:#f7f6f4; --bg-input:#f9f8f7;
+  --border:#e6e4e0; --border-light:#f0eeeb;
+  --text-primary:#1a1a1c; --text-secondary:#6b6b70; --text-muted:#99999d; --text-sidebar:#c4c4c9;
+  --accent:#2d2d33; --accent-soft:#f0eeeb;
+  --blue:#2563eb; --blue-bg:#f5f8ff; --blue-border:#d4e0fc;
+  --red:#da3e3a; --red-bg:#fef4f3; --red-border:#fcd9d7;
+  --green:#16a34a; --green-bg:#f4fdf6; --green-border:#c6f0d4;
+  --orange:#d97706; --orange-bg:#fffbf0; --orange-border:#fde8c4;
+  --purple:#7c3aed; --purple-bg:#faf8ff; --purple-border:#e4dcfc;
+  --gray:#6b7280; --gray-bg:#f8f8f7; --gray-border:#e8e6e3;
+  --radius-sm:4px; --radius:8px; --radius-lg:12px;
+  --shadow:0 1px 3px rgba(0,0,0,.06); --shadow-lg:0 4px 16px rgba(0,0,0,.10);
+  --transition:160ms ease;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:"Microsoft YaHei",sans-serif;background:var(--bg-app);color:var(--text-primary);display:flex;min-height:100vh;-webkit-font-smoothing:antialiased;}
+.sidebar{width:232px;min-width:232px;background:var(--bg-sidebar);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;z-index:10;}
+.sidebar-brand{padding:20px 20px 28px;border-bottom:1px solid rgba(255,255,255,.06);}
+.sidebar-brand .logo{font-size:17px;font-weight:600;color:#fff;letter-spacing:-.02em;display:flex;align-items:center;gap:10px;}
+.sidebar-brand .sub{font-size:11px;color:var(--text-sidebar);margin-top:2px;}
+.sidebar-nav{flex:1;padding:12px 10px;display:flex;flex-direction:column;gap:2px;}
+.nav-section-label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.25);padding:14px 10px 6px;display:flex;align-items:center;gap:4px;cursor:pointer;user-select:none;}
+.nav-section-label:hover{color:rgba(255,255,255,.45);}
+.section-arrow{font-size:8px;transition:transform .2s ease;flex-shrink:0;}
+.nav-section.collapsed .section-arrow{transform:rotate(-90deg);}
+.nav-section.collapsed .nav-section-items{display:none;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:6px;color:var(--text-sidebar);font-size:13.5px;cursor:pointer;transition:all var(--transition);text-decoration:none;letter-spacing:.01em;}
+.nav-item:hover{background:rgba(255,255,255,.05);color:#fff;}
+.nav-item.active{background:rgba(255,255,255,.10);color:#fff;font-weight:500;}
+.nav-icon{width:18px;height:18px;opacity:.55;flex-shrink:0;}
+.nav-item.active .nav-icon{opacity:1;}
+.nav-item .badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:600;padding:1px 7px;border-radius:10px;min-width:20px;text-align:center;line-height:18px;}
+.main{flex:1;display:flex;flex-direction:column;min-width:0;}
+.topbar{height:52px;min-height:52px;background:var(--bg-surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 28px;gap:16px;z-index:5;}
+.topbar .breadcrumb{font-size:12.5px;color:var(--text-muted);letter-spacing:.01em;}
+.topbar .breadcrumb span{color:var(--text-primary);font-weight:500;}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:16px;}
+.user-avatar{width:30px;height:30px;border-radius:50%;background:#e6e4e0;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);}
+.content{flex:1;display:flex;flex-direction:column;padding:24px 28px;padding-bottom:70px;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;gap:16px;}
+.page-header h1{font-size:22px;font-weight:600;letter-spacing:-.02em;}
+.page-header p{font-size:13px;color:var(--text-muted);margin-top:2px;}
+.page-header-actions{display:flex;gap:8px;align-items:center;flex-shrink:0;}
+.tab-bar{display:flex;gap:0;margin-bottom:20px;border-bottom:2px solid var(--border);}
+.tab-item{padding:10px 20px;font-size:13.5px;font-weight:500;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all var(--transition);user-select:none;}
+.tab-item:hover{color:var(--text-primary);}
+.tab-item.active{color:var(--text-primary);border-bottom-color:var(--accent);}
+.tab-item .tab-count{font-size:11px;color:var(--text-muted);margin-left:6px;background:var(--bg-input);padding:1px 8px;border-radius:10px;}
+.tab-item.active .tab-count{background:var(--accent-soft);color:var(--text-primary);}
+.table-panel{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-lg);display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;}
+.filter-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:12px 16px;background:var(--bg-surface);}
+.table-panel>.filter-bar{margin-bottom:0;border:none;border-bottom:1px solid var(--border);border-radius:var(--radius-lg) var(--radius-lg) 0 0;}
+.filter-bar input,.filter-bar select{height:36px;padding:0 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;background:var(--bg-surface);color:var(--text-primary);outline:none;transition:border-color var(--transition);}
+.filter-bar input[type="text"]{width:220px;}
+.filter-bar input::placeholder{color:var(--text-muted);}
+.filter-bar select{min-width:130px;}
+.filter-bar > input:focus,.filter-bar > select:focus{border-color:var(--accent);}
+.filter-bar .filter-extra{margin-left:auto;display:flex;gap:8px;align-items:center;}
+.stats-row{display:flex;gap:14px;margin-bottom:20px;}
+.stat-card{flex:1;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;display:flex;align-items:center;gap:14px;min-width:0;}
+.stat-icon{width:42px;height:42px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.stat-icon.blue{background:var(--blue-bg);color:var(--blue);}
+.stat-icon.green{background:var(--green-bg);color:var(--green);}
+.stat-icon.orange{background:var(--orange-bg);color:var(--orange);}
+.stat-icon.gray{background:var(--gray-bg);color:var(--gray);}
+.stat-value{font-size:22px;font-weight:600;letter-spacing:-.02em;line-height:1.2;font-family:"Microsoft YaHei",sans-serif;}
+.stat-label{font-size:12px;color:var(--text-muted);margin-top:1px;}
+.btn-filter{height:36px;padding:0 16px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);font-size:13px;font-family:inherit;cursor:pointer;font-weight:500;transition:opacity var(--transition);}
+.btn-filter:hover{opacity:.88;}
+.btn-reset{height:36px;padding:0 14px;background:transparent;color:var(--text-secondary);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;cursor:pointer;transition:all var(--transition);}
+.btn-reset:hover{border-color:var(--text-muted);color:var(--text-primary);}
+.btn{display:inline-flex;align-items:center;padding:5px 12px;border-radius:var(--radius-sm);font-size:12px;font-family:inherit;cursor:pointer;border:1px solid transparent;transition:all var(--transition);white-space:nowrap;font-weight:500;gap:5px;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{opacity:.88;}
+.btn-outline{border-color:var(--border);color:var(--text-primary);background:var(--bg-surface);}
+.btn-outline:hover{border-color:var(--text-muted);background:var(--bg-hover);}
+.export-dropdown{position:relative;}
+.export-dropdown .action-menu{min-width:180px;right:0;left:auto;}
+.export-btn{display:inline-flex;align-items:center;padding:5px 12px;border-radius:var(--radius-sm);font-size:12px;font-family:inherit;cursor:pointer;border:1px solid var(--border);background:var(--bg-surface);color:var(--text-primary);transition:all var(--transition);white-space:nowrap;font-weight:500;gap:5px;}
+.export-btn:hover{border-color:var(--text-muted);background:var(--bg-hover);}
+.export-btn svg{width:14px;height:14px;}
+.btn-sm{padding:4px 10px;font-size:11.5px;}
+.btn-orange{background:var(--orange);color:#fff;}
+.btn-orange:hover{opacity:.88;}
+.table-wrap{flex:1;display:flex;flex-direction:column;min-height:0;}
+.table-scroll{overflow-x:auto;flex:1;}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:1200px;}
+thead th{background:#fafaf9;text-align:left;padding:12px 14px;font-weight:500;font-size:12px;color:var(--text-muted);letter-spacing:.02em;border-bottom:1px solid var(--border);white-space:nowrap;}
+thead th:first-child,tbody td:first-child{padding-left:20px;}
+tbody td{padding:13px 14px;border-bottom:1px solid var(--border-light);vertical-align:middle;}
+tbody tr{transition:background var(--transition);}
+tbody tr.card-row:hover{background:var(--bg-hover);}
+tbody tr.batch-header-row:hover{background:transparent;}
+tbody tr.batch-header-row td{padding:0;border-bottom:none;background:transparent;}
+tbody tr.batch-block-last td{border-bottom:1px solid var(--border);}
+.batch-header-row:not(:first-child) .batch-header-bar{border-top:6px solid var(--bg-app);}
+.batch-header-bar{display:flex;align-items:center;gap:0;flex-wrap:nowrap;padding:10px 20px;background:#f5f5f4;border-bottom:1px solid var(--border);font-size:12.5px;}
+.batch-header-bar .bh-item{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;flex:0 0 auto;padding-right:16px;min-width:0;box-sizing:border-box;}
+.batch-header-bar .bh-item .bh-value{overflow:hidden;text-overflow:ellipsis;min-width:0;}
+.batch-header-bar .bh-col-batch{width:170px;flex-basis:170px;}
+.batch-header-bar .bh-col-time{width:200px;flex-basis:200px;}
+.batch-header-bar .bh-col-template{width:280px;flex-basis:280px;}
+.batch-header-bar .bh-col-count{width:80px;flex-basis:80px;text-align:center;}
+.batch-header-bar .bh-col-source{width:110px;flex-basis:110px;}
+.batch-header-bar .bh-col-mall{width:150px;flex-basis:150px;}
+.batch-header-bar .bh-col-method{width:120px;flex-basis:120px;}
+.batch-header-bar .bh-col-rate{width:140px;flex-basis:140px;}
+.batch-header-bar .bh-col-status{width:90px;flex-basis:90px;}
+.batch-header-bar .bh-label{color:var(--text-muted);font-size:12px;flex-shrink:0;}
+.batch-header-bar .bh-value{color:var(--text-primary);font-weight:500;}
+.batch-header-bar .bh-check{display:inline-flex;align-items:center;flex:0 0 16px;width:16px;margin-right:8px;}
+.batch-header-bar .bh-expand{display:inline-flex;align-items:center;flex:0 0 12px;width:12px;margin-right:12px;}
+.batch-header-bar.collapsible{cursor:pointer;}
+.batch-header-bar.collapsible:hover{background:#eeede9;}
+.expand-arrow{display:inline-flex;align-items:center;justify-content:center;transition:transform var(--transition);color:var(--text-muted);}
+.expand-arrow.expanded{transform:rotate(90deg);}
+.batch-header-row.batch-block-last .batch-header-bar{border-bottom:1px solid var(--border);}
+.batch-header-row td.batch-actions-cell{padding:10px 14px;background:#f5f5f4;vertical-align:middle;border-bottom:1px solid var(--border);}
+.batch-header-row:not(:first-child) td.batch-actions-cell{border-top:6px solid var(--bg-app);}
+.batch-header-row:not(.batch-block-last) td.batch-actions-cell{border-bottom:none;}
+.card-row td{vertical-align:top;padding-top:12px;padding-bottom:12px;}
+.card-row td:first-child{background:#fafaf9;border-right:1px solid var(--border-light);}
+.placeholder-cell{color:var(--text-muted);font-size:12px;}
+.checkbox{width:16px;height:16px;accent-color:var(--accent);cursor:pointer;flex-shrink:0;}
+.mono{font-family:"Microsoft YaHei",sans-serif;font-size:11.5px;}
+.code-cell{font-family:"Microsoft YaHei",sans-serif;font-size:12px;color:var(--text-primary);}
+.pwd-cell{font-family:"Microsoft YaHei",sans-serif;font-size:11.5px;color:var(--text-muted);}
+.pwd-cell.na{color:var(--text-muted);font-style:italic;}
+.status-tag{display:inline-flex;align-items:center;padding:2px 10px;border-radius:100px;font-size:11.5px;font-weight:500;letter-spacing:.01em;white-space:nowrap;border:1px solid transparent;}
+.status-active{background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border);}
+.status-done{background:var(--green-bg);color:var(--green);border-color:var(--green-border);}
+.status-frozen{background:var(--gray-bg);color:var(--gray);border-color:var(--gray-border);}
+.status-stopped{background:var(--red-bg);color:var(--red);border-color:var(--red-border);}
+.status-inactive{background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border);}
+.status-unredeemed{background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border);}
+.status-redeemed{background:var(--green-bg);color:var(--green);border-color:var(--green-border);}
+.status-used{background:var(--green-bg);color:var(--green);border-color:var(--green-border);}
+.status-expired{background:var(--gray-bg);color:var(--gray);border-color:var(--gray-border);}
+.status-revoked{background:var(--red-bg);color:var(--red);border-color:var(--red-border);}
+.actions{display:flex;align-items:center;gap:8px;white-space:nowrap;flex-wrap:wrap;}
+.actions .action-link{color:var(--blue);font-size:12.5px;cursor:pointer;}
+.batch-actions-cell .actions .action-link{font-size:12.5px;}
+.actions .action-link:hover{text-decoration:underline;}
+.actions .action-link.danger{color:var(--red);}
+.page-footer-fixed{position:fixed;bottom:0;left:232px;right:0;display:flex;align-items:center;justify-content:space-between;padding:12px 28px;background:#fafaf9;border-top:1px solid var(--border);z-index:100;box-shadow:0 -2px 8px rgba(0,0,0,.06);}
+.page-footer-left{display:flex;align-items:center;gap:12px;}
+.page-footer-right{display:flex;align-items:center;}
+.pagination{display:flex;align-items:center;gap:4px;}
+.pagination .page-btn{min-width:32px;width:32px;height:32px;padding:0;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-surface);cursor:pointer;font-size:12px;color:var(--text-primary);transition:all var(--transition);}
+.pagination .page-btn:hover{border-color:var(--text-muted);}
+.pagination .page-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.pagination .page-btn.disabled{opacity:.35;pointer-events:none;}
+.pagination .page-info{font-size:12px;color:var(--text-muted);margin:0 8px;}
+.action-menu{display:none;position:absolute;right:0;top:calc(100% + 4px);background:#fff;border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow-lg);min-width:140px;z-index:20;}
+.action-menu.open{display:block;}
+.action-menu button{display:block;width:100%;text-align:left;padding:8px 12px;border:none;background:none;font-size:12.5px;cursor:pointer;font-family:inherit;}
+.action-menu button:hover{background:var(--bg-hover);}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:300;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--bg-surface);border-radius:var(--radius-lg);width:100%;max-width:520px;box-shadow:var(--shadow-lg);}
+.modal-lg{max-width:720px;}
+.modal-body .detail-section{margin-bottom:20px;}
+.modal-body .detail-section-title{font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:10px;padding-left:10px;border-left:3px solid var(--accent);}
+.modal-body .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 24px;}
+.modal-body .detail-row{display:flex;padding:7px 0;border-bottom:1px solid var(--border-light);}
+.modal-body .detail-label{width:96px;font-size:12px;color:var(--text-muted);flex-shrink:0;}
+.modal-body .detail-value{font-size:13px;color:var(--text-primary);flex:1;word-break:break-all;}
+.modal-body .detail-value.mono{font-family:"Microsoft YaHei",sans-serif;}
+.modal-body .mini-stats{display:flex;gap:12px;margin-bottom:12px;}
+.modal-body .mini-stat{flex:1;background:var(--bg-input);border-radius:var(--radius);padding:10px 14px;}
+.modal-body .mini-stat .ms-val{font-size:18px;font-weight:600;font-family:"Microsoft YaHei",sans-serif;color:var(--text-primary);}
+.modal-body .mini-stat .ms-label{font-size:11px;color:var(--text-muted);margin-top:2px;}
+.modal-body .sub-table-wrap{overflow-x:auto;max-width:100%;}
+.modal-body .sub-table{width:100%;min-width:0;border-collapse:collapse;font-size:11px;white-space:nowrap;table-layout:fixed;}
+.modal-body .sub-table thead th{background:#fafaf9;text-align:left;padding:6px 10px;font-weight:500;font-size:10.5px;color:var(--text-muted);border-bottom:1px solid var(--border);}
+.modal-body .sub-table tbody td{padding:6px 10px;border-bottom:1px solid var(--border-light);}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);}
+.modal-header h3{font-size:15px;font-weight:600;}
+.modal-close{background:none;border:none;font-size:16px;color:var(--text-muted);cursor:pointer;padding:4px;}
+.modal-body{padding:20px;}
+.modal-body .form-group{margin-bottom:14px;}
+.modal-body .form-group:last-child{margin-bottom:0;}
+.modal-body label{display:block;font-size:12px;color:var(--text-muted);margin-bottom:6px;}
+.modal-body textarea{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;resize:vertical;outline:none;}
+.modal-body textarea:focus{border-color:var(--accent);}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;padding:14px 20px;border-top:1px solid var(--border);}
+.toast-container{position:fixed;top:24px;right:24px;z-index:200;display:flex;flex-direction:column;gap:8px;}
+.toast{background:var(--bg-sidebar);color:#fff;padding:12px 18px;border-radius:var(--radius);font-size:13px;box-shadow:var(--shadow-lg);}
+.toast.success{border-left:3px solid var(--green);}
+.toast.info{border-left:3px solid var(--blue);}
+.toast.warning{border-left:3px solid var(--orange);}
+/* 空白卡密：卡号/密码靠左，生成时间/状态/操作靠右，中间弹性留白；列宽×1.5 */
+#panelBlank table{min-width:0;table-layout:fixed;width:100%;}
+#panelBlank thead th:nth-child(1),
+#panelBlank tbody td:nth-child(1){width:60px;}
+#panelBlank thead th:nth-child(2),
+#panelBlank tbody td:nth-child(2){width:285px;}
+#panelBlank thead th:nth-child(3),
+#panelBlank tbody td:nth-child(3){width:180px;}
+#panelBlank thead th:nth-child(4),
+#panelBlank tbody td:nth-child(4){width:auto;}
+#panelBlank thead th:nth-child(5),
+#panelBlank tbody td:nth-child(5){width:210px;}
+#panelBlank thead th:nth-child(6),
+#panelBlank tbody td:nth-child(6){width:135px;}
+#panelBlank thead th:nth-child(7),
+#panelBlank tbody td:nth-child(7){width:240px;}
+</style>
+</head>
+<body>
+
+<aside class="sidebar" id="app-sidebar" data-nav-active="coupon-issue"></aside>
+<script src="../assets/common-sidebar.js"></script>
+
+<div class="main">
+  <div class="topbar">
+    <div class="breadcrumb">积分卡券 / <span>卡券发放管理</span></div>
+    <div class="topbar-right">
+      <span style="font-size:12px;color:var(--text-muted);">运营专员 道馨</span>
+      <div class="user-avatar">道</div>
+    </div>
+  </div>
+  <div class="content">
+    <div class="page-header">
+      <div>
+        <h1>卡券发放管理</h1>
+        <p>按发放批次管理所有卡券（含选人直充、生成卡密、使用已有卡密），批次行展开可查看每张卡/每人的发放明细</p>
+      </div>
+      <div class="page-header-actions">
+        <div class="export-dropdown">
+          <button class="export-btn" onclick="toggleExportMenu(event)">全量导出 ▾</button>
+          <div class="action-menu" id="exportMenu">
+            <button type="button" onclick="exportAllData()">全量导出</button>
+            <button type="button" onclick="exportFilteredData()">导出筛选结果</button>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="showGenerateModal()">+ 生成空白卡密</button>
+      </div>
+    </div>
+
+    <div class="tab-bar">
+      <div class="tab-item active" id="tabActivated" onclick="switchTab('activated')">激活卡券<span class="tab-count" id="tabActivatedCount">0</span></div>
+      <div class="tab-item" id="tabBlank" onclick="switchTab('blank')">空白卡券<span class="tab-count" id="tabBlankCount">0</span></div>
+    </div>
+
+    <!-- ====== Tab1: 激活卡券（批次行+卡号行树形） ====== -->
+    <div class="stats-row" id="panelActivated">
+      <div class="stat-card"><div class="stat-icon blue"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg></div><div><div class="stat-value" id="statBatches">0</div><div class="stat-label">卡券批次总数</div></div></div>
+      <div class="stat-card"><div class="stat-icon green"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg></div><div><div class="stat-value" id="statIssued">0</div><div class="stat-label">已发放卡券(张)</div></div></div>
+      <div class="stat-card"><div class="stat-icon orange"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div><div><div class="stat-value" id="statUsed">0</div><div class="stat-label">已核销(张)</div></div></div>
+      <div class="stat-card"><div class="stat-icon gray"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div><div class="stat-value" id="statRate">0%</div><div class="stat-label">核销率</div></div></div>
+    </div>
+    <div class="table-panel" id="panelActivatedTable">
+      <div class="filter-bar">
+        <input type="text" id="fKeyword" placeholder="搜索批次号 / 卡券模板" oninput="filterActivated()">
+        <select id="fType" onchange="filterActivated()">
+          <option value="">全部类型</option>
+          <option value="coupon">优惠券</option>
+          <option value="fullminus">满减券</option>
+          <option value="discount">折扣券</option>
+          <option value="ticket">商品次卡</option>
+          <option value="gift">礼品卡</option>
+          <option value="points">积分卡</option>
+        </select>
+        <select id="fSource" onchange="filterActivated()">
+          <option value="">全部来源</option>
+          <option value="platform">平台代发</option>
+          <option value="brand">品牌发放</option>
+        </select>
+        <select id="fMethod" onchange="filterActivated()">
+          <option value="">全部发放方式</option>
+          <option value="direct">选人直充</option>
+          <option value="cardkey">生成卡密</option>
+          <option value="existing-cardkey">使用已有卡密</option>
+        </select>
+        <select id="fMall" onchange="filterActivated()">
+          <option value="">全部目标商城</option>
+          <option value="苏银商城">苏银商城</option>
+          <option value="泡泡玛特官方商城">泡泡玛特官方商城</option>
+          <option value="锦程员工福利商城">锦程员工福利商城</option>
+          <option value="美尚内购商城">美尚内购商城</option>
+          <option value="锦程积分商城">锦程积分商城</option>
+          <option value="泡泡玛特企业购">泡泡玛特企业购</option>
+          <option value="蜀味员工专区">蜀味员工专区</option>
+          <option value="汇通内购平台">汇通内购平台</option>
+        </select>
+        <select id="fStatus" onchange="filterActivated()">
+          <option value="">全部批次状态</option>
+          <option value="active">发放中</option>
+          <option value="frozen">已冻结</option>
+          <option value="done">已发完</option>
+          <option value="stopped">已作废</option>
+        </select>
+        <select id="fCardStatus" onchange="filterActivated()">
+          <option value="">全部卡券状态</option>
+          <option value="unredeemed">未兑换</option>
+          <option value="redeemed">已兑换</option>
+          <option value="used">已核销</option>
+          <option value="expired">已过期</option>
+          <option value="frozen">已冻结</option>
+          <option value="revoked">已作废</option>
+        </select>
+        <input type="text" id="fUser" placeholder="兑换用户" oninput="filterActivated()" style="width:140px;">
+        <button class="btn-filter" onclick="filterActivated()">查询</button>
+        <button class="btn-reset" onclick="resetActivatedFilter()">重置</button>
+        <div class="filter-extra">
+          <button class="btn btn-outline btn-sm" id="btnExpandAll" onclick="expandAllBatches()">全部展开 ▾</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:30px"></th>
+                <th style="min-width:170px">卡号 / 发放编号</th>
+                <th style="width:110px">密码</th>
+                <th style="width:220px">卡券名称</th>
+                <th style="width:100px">来源</th>
+                <th style="width:110px">品牌商城</th>
+                <th style="width:100px">用户</th>
+                <th style="width:140px">兑换时间</th>
+                <th style="width:140px">核销时间</th>
+                <th style="width:80px">状态</th>
+                <th style="width:150px">操作</th>
+              </tr>
+            </thead>
+            <tbody id="activatedBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== Tab2: 空白卡券（扁平列表） ====== -->
+    <div class="table-panel" id="panelBlank" style="display:none;">
+      <div class="filter-bar">
+        <input type="text" id="searchBlankFrom" placeholder="起始卡号" style="width:170px;font-family:"Microsoft YaHei",sans-serif;" oninput="filterBlank()">
+        <span style="color:var(--text-muted);">—</span>
+        <input type="text" id="searchBlankTo" placeholder="截止卡号" style="width:170px;font-family:"Microsoft YaHei",sans-serif;" oninput="filterBlank()">
+        <button class="btn-filter" onclick="filterBlank()">查询</button>
+        <button class="btn-reset" onclick="resetBlankFilter()">重置</button>
+      </div>
+      <div class="table-wrap">
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th><input type="checkbox" class="checkbox" id="selectAllBlank" onchange="toggleSelectAllBlank(this.checked)"></th>
+                <th>卡号</th>
+                <th>密码</th>
+                <th aria-hidden="true"></th>
+                <th>生成时间</th>
+                <th>状态</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="blankBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-footer-fixed" id="pageFooter">
+    <div class="page-footer-left">
+      <button class="btn btn-outline btn-sm" id="batchActivateBtn" style="display:none;" onclick="batchActivate()">批量激活</button>
+      <button class="btn btn-outline btn-sm" id="batchFreezeBtn" onclick="batchFreeze()">批量冻结</button>
+      <button class="btn btn-outline btn-sm" id="batchRevokeBtn" onclick="batchRevoke()">批量作废</button>
+      <button class="btn btn-outline btn-sm" onclick="exportSelected()">导出勾选</button>
+      <div style="font-size:12px;color:var(--text-muted);" id="selectedInfo">已选 0 项</div>
+    </div>
+    <div class="page-footer-right">
+      <div style="font-size:12px;color:var(--text-muted);margin-right:16px;" id="footerInfo">共 0 个发放批次 · 共计 0 张卡券</div>
+      <div class="pagination" id="pagination"></div>
+      <div style="display:flex;align-items:center;gap:8px;margin-left:16px;">
+        <span style="font-size:12px;color:var(--text-muted);">每页</span>
+        <select id="pageSizeSelect" onchange="changePageSize()" style="height:28px;padding:0 8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:inherit;background:var(--bg-surface);color:var(--text-primary);cursor:pointer;">
+          <option value="10">10条</option>
+          <option value="20" selected>20条</option>
+          <option value="50">50条</option>
+          <option value="100">100条</option>
+        </select>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;margin-left:16px;">
+        <span style="font-size:12px;color:var(--text-muted);">跳转至</span>
+        <input type="number" id="jumpPageInput" min="1" max="1" value="1" style="width:56px;height:28px;padding:0 8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:inherit;background:var(--bg-surface);color:var(--text-primary);text-align:center;" onkeydown="if(event.key==='Enter')jumpToPage()"/>
+        <span style="font-size:12px;color:var(--text-muted);">页</span>
+        <button onclick="jumpToPage()" style="height:28px;padding:0 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:inherit;background:var(--bg-surface);color:var(--text-primary);cursor:pointer;">跳转</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 生成空白卡密 Modal -->
+<div class="modal-overlay" id="generateModal">
+  <div class="modal">
+    <div class="modal-header"><h3>生成空白卡密</h3><button class="modal-close" onclick="closeGenerateModal()">✕</button></div>
+    <div class="modal-body">
+      <div style="padding:12px;background:var(--blue-bg);border:1px solid var(--blue-border);border-radius:var(--radius-sm);margin-bottom:16px;font-size:12px;color:var(--blue);line-height:1.6;">
+        <strong>说明：</strong>生成的卡密仅包含卡号和密码，<strong>不关联</strong>卡券模板、面值、品牌商城。<br>
+        需通过 <strong>平台代发 → 使用已有卡密</strong> 激活后，补充面值/模板/积分信息方可使用。
+      </div>
+      <div class="form-group">
+        <label>生成数量 *</label>
+        <input type="number" id="generateCount" placeholder="请输入生成数量" min="1" max="10000" value="100">
+        <div class="form-hint">单次最多生成 10,000 张</div>
+      </div>
+      <div class="form-group">
+        <label>批次备注（可选）</label>
+        <input type="text" id="generateNote" placeholder="如：2026年Q3实体卡批次" maxlength="100">
+        <div class="form-hint">用于标识批次，方便后续管理</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeGenerateModal()">取消</button>
+      <button class="btn btn-primary" onclick="confirmGenerate()">确认生成</button>
+    </div>
+  </div>
+</div>
+
+<!-- 冻结 Modal -->
+<div class="modal-overlay" id="freezeModal">
+  <div class="modal">
+    <div class="modal-header"><h3>冻结卡券批次</h3><button class="modal-close" onclick="closeFreezeModal()">✕</button></div>
+    <div class="modal-body">
+      <div style="background:var(--orange-bg);border:1px solid var(--orange-border);border-radius:var(--radius-sm);padding:12px;margin-bottom:14px;font-size:12px;color:var(--orange);line-height:1.6;">
+        冻结后该批次卡券将无法继续兑换/核销（含已兑换未使用）；冻结为作废的前置步骤。
+      </div>
+      <div class="form-group">
+        <label>批次号</label>
+        <input type="text" id="freezeBatch" readonly style="font-family:"Microsoft YaHei",sans-serif;background:var(--bg-input);">
+      </div>
+      <div class="form-group">
+        <label>卡券名称</label>
+        <input type="text" id="freezeName" readonly style="background:var(--bg-input);">
+      </div>
+      <div class="form-group">
+        <label>冻结原因（必填）</label>
+        <textarea id="freezeReason" placeholder="如：活动调整、库存核对、客诉处理" rows="4"></textarea>
+        <div class="form-hint">冻结原因将记录在操作日志中，后续可查看</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeFreezeModal()">取消</button>
+      <button class="btn btn-orange" onclick="confirmFreeze()">确认冻结</button>
+    </div>
+  </div>
+</div>
+
+<!-- 作废 Modal -->
+<div class="modal-overlay" id="revokeModal">
+  <div class="modal">
+    <div class="modal-header"><h3>作废卡券批次</h3><button class="modal-close" onclick="closeRevokeModal()">✕</button></div>
+    <div class="modal-body">
+      <div style="background:var(--red-bg);border:1px solid var(--red-border);border-radius:var(--radius-sm);padding:12px;margin-bottom:14px;font-size:12px;color:var(--red);line-height:1.6;">
+        作废后未使用的卡券将彻底作废（含已兑换未使用），对应积分返还至品牌商城积分池；已核销部分无法作废。作废前需先冻结。
+      </div>
+      <div class="form-group">
+        <label>批次号</label>
+        <input type="text" id="revokeBatch" readonly style="font-family:"Microsoft YaHei",sans-serif;background:var(--bg-input);">
+      </div>
+      <div class="form-group">
+        <label>卡券名称</label>
+        <input type="text" id="revokeName" readonly style="background:var(--bg-input);">
+      </div>
+      <div class="form-group">
+        <label>作废原因（必填）</label>
+        <textarea id="revokeReason" placeholder="如：活动配置错误、发放对象有误" rows="4"></textarea>
+        <div class="form-hint">作废原因将记录在操作日志中，后续可查看</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeRevokeModal()">取消</button>
+      <button class="btn" style="background:var(--red);color:#fff;" onclick="confirmRevoke()">确认作废</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="detailModal">
+  <div class="modal modal-lg">
+    <div class="modal-header"><h3 id="detailTitle">卡券详情</h3><button class="modal-close" onclick="closeDetailModal()">✕</button></div>
+    <div class="modal-body" id="detailBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeDetailModal()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+var BATCH_STATUS = {
+  active:{label:'发放中',cls:'status-active'},
+  frozen:{label:'已冻结',cls:'status-frozen'},
+  done:{label:'已发完',cls:'status-done'},
+  stopped:{label:'已作废',cls:'status-stopped'}
+};
+var CARD_STATUS = {
+  inactive:{label:'未激活',cls:'status-inactive'},
+  unredeemed:{label:'未兑换',cls:'status-unredeemed'},
+  redeemed:{label:'已兑换',cls:'status-redeemed'},
+  used:{label:'已核销',cls:'status-used'},
+  expired:{label:'已过期',cls:'status-expired'},
+  frozen:{label:'已冻结',cls:'status-frozen'},
+  revoked:{label:'已作废',cls:'status-revoked'}
+};
+var SOURCE_MAP = {brand:{label:'品牌发放',cls:'source-brand'},platform:{label:'平台代发',cls:'source-platform'}};
+var METHOD_MAP = {direct:'选人直充',cardkey:'生成卡密','existing-cardkey':'使用已有卡密'};
+
+function genPassword(){
+  var digits='0123456789',letters='ABCDEFGHIJKLMNOPQRSTUVWXYZ',all=digits+letters,p='',i;
+  // 至少含数字和字母，总长 18 位
+  p+=digits[Math.floor(Math.random()*digits.length)];
+  p+=letters[Math.floor(Math.random()*letters.length)];
+  for(i=2;i<18;i++)p+=all[Math.floor(Math.random()*all.length)];
+  return p.split('').sort(function(){return Math.random()-0.5;}).join('');
+}
+function pad6(n){n=String(n);while(n.length<6)n='0'+n;return n;}
+function showToast(type,msg){var c=document.getElementById('toastContainer'),t=document.createElement('div');t.className='toast '+type;t.textContent=msg;c.appendChild(t);setTimeout(function(){t.remove();},3000);}
+
+// ===== 批次数据（10个） =====
+var BATCHES = [
+  {batchNo:'C20260702001',name:'员工生日福利卡',template:'专属积分卡',type:'points',typeLabel:'积分卡',face:'100积分/张',source:'brand',mall:'汇通内购平台',method:'direct',issued:1,used:0,status:'active',time:'2026-07-02 14:30',exchangePoints:100},
+  {batchNo:'C20260701001',name:'入职礼积分卡',template:'标准积分卡',type:'points',typeLabel:'积分卡',face:'100积分/张',source:'platform',mall:'苏银商城',method:'direct',issued:50,used:18,status:'active',time:'2026-07-01 10:00',exchangePoints:100},
+  {batchNo:'C20260627001',name:'618大促满减券',template:'满200减50券',type:'fullminus',typeLabel:'满减券',face:'满200减50元',source:'platform',mall:'苏银商城',method:'direct',issued:100,used:30,status:'active',time:'2026-06-27 10:15',exchangePoints:45},
+  {batchNo:'C20260625001',name:'VIP专享折扣券',template:'手机专属8折券',type:'discount',typeLabel:'折扣券',face:'8折(最高¥50)',source:'brand',mall:'苏银商城',method:'cardkey',issued:200,used:45,status:'frozen',time:'2026-06-25 14:00',exchangePoints:80},
+  {batchNo:'C20260624001',template:'观影3次次卡',type:'ticket',typeLabel:'商品次卡',face:'观影3次',source:'platform',mall:'泡泡玛特官方商城',method:'cardkey',issued:30,used:30,status:'done',time:'2026-06-24 10:30',exchangePoints:90,useLimit:3},
+  {batchNo:'C20260621001',template:'满100减20券',type:'fullminus',typeLabel:'满减券',face:'满100减20元',source:'platform',mall:'美尚内购商城',method:'direct',issued:200,used:80,status:'done',time:'2026-06-21 10:00',exchangePoints:18},
+  {batchNo:'C20260618001',template:'满200减50券',type:'fullminus',typeLabel:'满减券',face:'满200减50元',source:'platform',mall:'苏银商城',method:'existing-cardkey',issued:80,used:12,status:'active',time:'2026-06-18 10:00',exchangePoints:45},
+  {batchNo:'C20260615001',template:'5元购物券',type:'coupon',typeLabel:'优惠券',face:'¥5元',source:'platform',mall:'泡泡玛特官方商城',method:'existing-cardkey',issued:50,used:8,status:'active',time:'2026-06-15 09:30',exchangePoints:5},
+  {batchNo:'C20260612001',template:'手机专属8折券',type:'discount',typeLabel:'折扣券',face:'8折(最高¥50)',source:'brand',mall:'锦程员工福利商城',method:'cardkey',issued:40,used:20,status:'active',time:'2026-06-12 11:00',exchangePoints:80},
+  {batchNo:'C20260610001',template:'蛋糕叔叔兑换券',type:'ticket',typeLabel:'商品次卡',face:'可兑换5次',source:'platform',mall:'苏银商城',method:'existing-cardkey',issued:30,used:5,status:'active',time:'2026-06-10 10:00',exchangePoints:100,useLimit:5},
+  {batchNo:'C20260715001',name:'蛋糕叔叔礼品卡活动',template:'蛋糕叔叔礼品卡',type:'gift',typeLabel:'礼品卡',face:'面值¥200',source:'platform',mall:'苏银商城',method:'cardkey',issued:150,used:22,status:'active',time:'2026-07-15 10:00',exchangePoints:200,giftAmount:200}
+];
+
+// 为每个批次生成子卡号数据
+var ALL_CARDS = [];
+(function(){
+  var surnames = ['张','李','王','赵','陈','刘','黄','周','吴','徐'];
+  var cardId = 0;
+  BATCHES.forEach(function(b){
+    var prefix = b.method === 'direct' ? 'CPN' : 'C';
+    for(var i=1;i<=b.issued;i++){
+      cardId++;
+      var cardNo = prefix + b.batchNo.slice(1) + pad6(i);
+      var password = b.method === 'direct' ? null : genPassword();
+      var status, redeemUser=null, redeemTime=null, usedTime=null, useTimes=[];
+      if(i <= b.used){
+        status = 'used';
+        var su = surnames[(i-1)%surnames.length];
+        var sn = ['三','四','五','六','七','八','九','十','十一','十二'][(i-1)%12];
+        redeemUser = su + sn;
+        var m = String(Math.floor(Math.random()*2)+6).padStart(2,'0'), d = String(Math.floor(Math.random()*20)+1).padStart(2,'0');
+        redeemTime = '2026-'+m+'-'+d+' '+String(Math.floor(Math.random()*12)+8).padStart(2,'0')+':'+String(Math.floor(Math.random()*60)).padStart(2,'0')+':'+String(Math.floor(Math.random()*60)).padStart(2,'0');
+        if(b.useLimit){
+          var uc = Math.floor(Math.random()*b.useLimit)+1;
+          for(var u=0;u<uc;u++){
+            var um = String(Math.floor(Math.random()*2)+7).padStart(2,'0'), ud = String(Math.floor(Math.random()*20)+1).padStart(2,'0');
+            useTimes.push({time:'2026-'+um+'-'+ud+' '+String(Math.floor(Math.random()*12)+8).padStart(2,'0')+':'+String(Math.floor(Math.random()*60)).padStart(2,'0')+':'+String(Math.floor(Math.random()*60)).padStart(2,'0'),deduct:Math.floor(Math.random()*30)+10});
+          }
+          usedTime = useTimes[0].time;
+        } else if(b.type==='gift'){
+          // 礼品卡：余额制，随机生成 1~4 笔消费，deduct 累计 ≤ 面值
+          var gc = Math.floor(Math.random()*4)+1, gTotal = 0;
+          for(var g=0;g<gc;g++){
+            var remainAmt = b.giftAmount - gTotal;
+            if(remainAmt < 5) break;
+            var gd = Math.min(remainAmt, Math.floor(Math.random()*60)+30);
+            gTotal += gd;
+            var gum = String(Math.floor(Math.random()*2)+7).padStart(2,'0'), gud = String(Math.floor(Math.random()*20)+1).padStart(2,'0');
+            useTimes.push({time:'2026-'+gum+'-'+gud+' '+String(Math.floor(Math.random()*12)+8).padStart(2,'0')+':'+String(Math.floor(Math.random()*60)).padStart(2,'0')+':'+String(Math.floor(Math.random()*60)).padStart(2,'0'),deduct:gd});
+          }
+          usedTime = useTimes.length ? useTimes[0].time : null;
+        } else {
+          var um = String(Math.floor(Math.random()*2)+7).padStart(2,'0'), ud = String(Math.floor(Math.random()*20)+1).padStart(2,'0');
+          usedTime = '2026-'+um+'-'+ud+' '+String(Math.floor(Math.random()*12)+8).padStart(2,'0')+':'+String(Math.floor(Math.random()*60)).padStart(2,'0')+':'+String(Math.floor(Math.random()*60)).padStart(2,'0');
+        }
+      } else {
+        status = Math.random()>0.3 ? 'unredeemed' : 'redeemed';
+        if(status==='redeemed'){
+          var su = surnames[(i-1)%surnames.length];
+          var sn = ['三','四','五','六','七','八','九','十','十一','十二'][(i-1)%12];
+          redeemUser = su + sn;
+          var m = String(Math.floor(Math.random()*2)+6).padStart(2,'0'), d = String(Math.floor(Math.random()*20)+1).padStart(2,'0');
+          redeemTime = '2026-'+m+'-'+d+' '+String(Math.floor(Math.random()*12)+8).padStart(2,'0')+':'+String(Math.floor(Math.random()*60)).padStart(2,'0')+':'+String(Math.floor(Math.random()*60)).padStart(2,'0');
+        }
+      }
+      ALL_CARDS.push({
+        id:cardId, cardNo:cardNo, password:password, batchNo:b.batchNo,
+        status:status, redeemUser:redeemUser, redeemTime:redeemTime, usedTime:usedTime,
+        useTimes:useTimes, useLimit:b.useLimit||null, giftAmount:b.giftAmount||null, exchangePoints:b.exchangePoints,
+        mall:b.mall, template:b.template, method:b.method, name:b.name||null
+      });
+    }
+  });
+})();
+
+// 空白卡密
+var BLANK_KEYS = (function(){
+  var codes=[],idx=0;
+  var batches=[{date:'20260630',count:200},{date:'20260628',count:150},{date:'20260625',count:100}];
+  batches.forEach(function(b){
+    for(var i=1;i<=b.count;i++){idx++;codes.push({id:idx,cardNo:'BC'+b.date+pad6(i),password:genPassword(),status:'inactive',date:b.date.slice(0,4)+'-'+b.date.slice(4,6)+'-'+b.date.slice(6,8)+' 10:00'});}
+  });
+  return codes;
+})();
+
+var currentTab='activated', expandedBatches={}, allExpanded=false;
+var freezeTarget=null, revokeTarget=null;
+var activatedPage=1, blankPage=1;
+
+// ===== Tab =====
+function switchTab(tab){
+  currentTab=tab;
+  document.getElementById('tabActivated').classList.toggle('active',tab==='activated');
+  document.getElementById('tabBlank').classList.toggle('active',tab==='blank');
+  document.getElementById('panelActivated').style.display=tab==='activated'?'':'none';
+  document.getElementById('panelActivatedTable').style.display=tab==='activated'?'':'none';
+  document.getElementById('panelBlank').style.display=tab==='blank'?'':'none';
+  updateTabCounts();
+  if(tab==='activated')renderActivated();else renderBlank();
+  // 切换底部操作栏按钮与统计信息
+  document.getElementById('batchActivateBtn').style.display=tab==='blank'?'':'none';
+  document.getElementById('batchFreezeBtn').style.display=tab==='activated'?'':'none';
+  document.getElementById('batchRevokeBtn').style.display='';
+  document.getElementById('selectedInfo').textContent='已选 0 项';
+  document.getElementById('pageFooter').style.display='flex';
+}
+function updateTabCounts(){
+  document.getElementById('tabActivatedCount').textContent=BATCHES.length;
+  document.getElementById('tabBlankCount').textContent=BLANK_KEYS.length;
+}
+
+// ===== 筛选 =====
+function getFilteredBatches(){
+  var kw=(document.getElementById('fKeyword').value||'').trim().toLowerCase();
+  var tp=document.getElementById('fType').value;
+  var src=document.getElementById('fSource').value;
+  var method=document.getElementById('fMethod').value;
+  var mall=document.getElementById('fMall').value;
+  var st=document.getElementById('fStatus').value;
+  var cs=document.getElementById('fCardStatus').value;
+  var user=(document.getElementById('fUser').value||'').trim();
+  return BATCHES.filter(function(b){
+    if(tp&&b.type!==tp)return false;
+    if(src&&b.source!==src)return false;
+    if(method&&b.method!==method)return false;
+    if(mall&&b.mall!==mall)return false;
+    if(st&&b.status!==st)return false;
+    if(kw&&b.batchNo.toLowerCase().indexOf(kw)<0&&b.template.toLowerCase().indexOf(kw)<0)return false;
+    if(cs&&!ALL_CARDS.some(function(c){return c.batchNo===b.batchNo&&c.status===cs;}))return false;
+    if(user&&!ALL_CARDS.some(function(c){return c.batchNo===b.batchNo&&c.redeemUser&&c.redeemUser.indexOf(user)>=0;}))return false;
+    return true;
+  });
+}
+function filterActivated(){activatedPage=1;renderActivated();}
+function resetActivatedFilter(){
+  ['fKeyword','fType','fSource','fMethod','fMall','fStatus','fCardStatus','fUser'].forEach(function(id){document.getElementById(id).value='';});
+  activatedPage=1;
+  renderActivated();
+}
+function getFilteredBlank(){
+  var from=(document.getElementById('searchBlankFrom').value||'').trim().toUpperCase();
+  var to=(document.getElementById('searchBlankTo').value||'').trim().toUpperCase();
+  if(!from&&!to)return BLANK_KEYS;
+  return BLANK_KEYS.filter(function(i){var cn=i.cardNo.toUpperCase();if(from&&cn<from)return false;if(to&&cn>to)return false;return true;});
+}
+function filterBlank(){blankPage=1;renderBlank();}
+function resetBlankFilter(){
+  document.getElementById('searchBlankFrom').value='';
+  document.getElementById('searchBlankTo').value='';
+  blankPage=1;
+  renderBlank();
+}
+
+// ===== 全部展开/收起 =====
+function expandAllBatches(){
+  allExpanded=!allExpanded;
+  expandedBatches={};
+  if(allExpanded){
+    BATCHES.forEach(function(b){expandedBatches[b.batchNo]=true;});
+  }
+  var btn=document.getElementById('btnExpandAll');
+  btn.textContent=allExpanded?'全部收起 ▴':'全部展开 ▾';
+  renderActivated();
+}
+
+// ===== 渲染激活卡密（批次行+卡号行） =====
+function renderActivated(){
+  var allList=getFilteredBatches();
+  // 更新统计卡片（按全部筛选结果）
+  var totalBatches=allList.length;
+  var totalIssued=allList.reduce(function(s,b){return s+b.issued;},0);
+  var totalUsed=allList.reduce(function(s,b){return s+b.used;},0);
+  var rate=totalIssued>0?Math.round(totalUsed/totalIssued*100)+'%':'0%';
+  document.getElementById('statBatches').textContent=totalBatches;
+  document.getElementById('statIssued').textContent=totalIssued;
+  document.getElementById('statUsed').textContent=totalUsed;
+  document.getElementById('statRate').textContent=rate;
+
+  var size=getPageSize();
+  var pages=Math.max(1,Math.ceil(totalBatches/size)||1);
+  if(activatedPage>pages)activatedPage=pages;
+  if(activatedPage<1)activatedPage=1;
+  var list=allList.slice((activatedPage-1)*size,activatedPage*size);
+
+  var html='';
+  if(!allList.length){
+    html='<tr><td colspan="11" style="text-align:center;padding:40px;color:var(--text-muted);">暂无符合条件的发放批次</td></tr>';
+  }else{
+    list.forEach(function(b,idx){
+      var isExp=!!expandedBatches[b.batchNo];
+      var si=SOURCE_MAP[b.source],smi=BATCH_STATUS[b.status];
+      var rate=b.issued?Math.round(b.used/b.issued*100):0;
+      var methodLabel=METHOD_MAP[b.method]||b.method;
+      var rowCls='batch-header-row'+(isExp?'':' batch-block-last');
+      var batchActionsHtml='<div class="actions"><span class="action-link" onclick="showBatchDetail(\''+b.batchNo+'\',event)">详情</span>';
+      if(b.status==='active'||b.status==='done'){
+        batchActionsHtml+='<span class="action-link" onclick="freezeBatch(\''+b.batchNo+'\',event)">冻结</span>';
+      }
+      if(b.status==='frozen'){
+        batchActionsHtml+='<span class="action-link" style="color:var(--green);" onclick="unfreezeBatch(\''+b.batchNo+'\',event)">解冻</span>';
+      }
+      if(b.status==='frozen'){
+        batchActionsHtml+='<span class="action-link" style="color:var(--red);" onclick="revokeBatch(\''+b.batchNo+'\',event)">作废</span>';
+      }
+      if(b.status==='done'){
+        batchActionsHtml+='';
+      }
+      batchActionsHtml+='</div>';
+
+      // 批次行（主）
+      html+='<tr class="'+rowCls+'" data-batch="'+b.batchNo+'">'+
+        '<td colspan="10">'+
+          '<div class="batch-header-bar collapsible" onclick="toggleBatch(\''+b.batchNo+'\',event)">'+
+            '<span class="bh-check" onclick="event.stopPropagation()"><input type="checkbox" class="checkbox"></span>'+
+            '<span class="bh-expand">'+expandArrowHtml(isExp)+'</span>'+
+            '<span class="bh-item bh-col-batch"><span class="bh-label">批次号</span><span class="bh-value bh-code-line"><span class="mono">'+b.batchNo+'</span></span></span>'+
+            '<span class="bh-item bh-col-time"><span class="bh-label">生成时间</span><span class="bh-value mono" style="font-size:12px;font-weight:400;">'+b.time.substring(0,16)+'</span></span>'+
+            '<span class="bh-item bh-col-template"><span class="bh-label">业务内容</span><span class="bh-value">'+b.template+'</span><span class="bh-value" style="font-weight:400;color:var(--text-muted);font-size:11.5px;margin-left:4px;">'+b.face+'</span></span>'+
+            '<span class="bh-item bh-col-count"><span class="bh-value" style="font-weight:600;">'+b.issued+'</span><span class="bh-label" style="margin-left:2px;">张</span></span>'+
+            '<span class="bh-item bh-col-source"><span class="bh-label">来源</span><span class="bh-value">'+si.label+'</span></span>'+
+            '<span class="bh-item bh-col-mall"><span class="bh-label">目标商城</span><span class="bh-value">'+b.mall+'</span></span>'+
+            '<span class="bh-item bh-col-method"><span class="bh-label">发放方式</span><span class="bh-value">'+methodLabel+'</span></span>'+
+            '<span class="bh-item bh-col-rate"><span class="bh-label">核销</span><span class="bh-value"><span style="color:var(--green);">'+b.used+'</span>/'+b.issued+'<span class="bh-label" style="margin-left:4px;">'+rate+'%</span></span></span>'+
+            '<span class="bh-item bh-col-status"><span class="status-tag '+smi.cls+'" style="font-size:11px;">'+smi.label+'</span></span>'+
+          '</div></td>'+
+        '<td class="batch-actions-cell">'+batchActionsHtml+'</td></tr>';
+
+      // 卡号行（子）
+      if(isExp){
+        var cardsInBatch=ALL_CARDS.filter(function(c){return c.batchNo===b.batchNo;});
+        var csFilter=document.getElementById('fCardStatus').value;
+        if(csFilter)cardsInBatch=cardsInBatch.filter(function(c){return c.status===csFilter;});
+        cardsInBatch.forEach(function(c){
+          var cs=CARD_STATUS[c.status]||{label:'-',cls:''};
+          var pwdDisplay=c.password?'<span class="pwd-cell">••••'+c.password.slice(-4)+'</span>':'<span class="pwd-cell na">—</span>';
+          var cardActions='<div class="actions">';
+          cardActions+='<span class="action-link" onclick="showCardDetail('+c.id+',event)">详情</span>';
+          if(c.status==='unredeemed'||c.status==='redeemed'){
+            cardActions+='<span class="action-link" style="color:var(--orange);font-size:11.5px;" onclick="freezeSingleCard('+c.id+',event)">冻结</span>';
+          }
+          if(c.status==='frozen'){
+            cardActions+='<span class="action-link" style="color:var(--green);font-size:11.5px;" onclick="unfreezeSingleCard('+c.id+',event)">解冻</span>';
+            cardActions+='<span class="action-link" style="color:var(--red);font-size:11.5px;" onclick="revokeSingleCard('+c.id+',event)">作废</span>';
+          }
+          cardActions+='</div>';
+          html+='<tr class="card-row'+(idx===list.length-1?' batch-block-last':'')+'" data-parent="'+b.batchNo+'">'+
+            '<td style="background:#fafaf9;border-right:1px solid var(--border-light);"><input type="checkbox" class="checkbox" onclick="event.stopPropagation()"></td>'+
+            '<td><span class="code-cell">'+c.cardNo+'</span></td>'+
+            '<td>'+pwdDisplay+'</td>'+
+            '<td><span style="font-size:12.5px;">'+(c.name?c.name+'<span style="color:var(--text-muted);font-size:11.5px;">（'+c.template+'）</span>':c.template)+'</span></td>'+
+            '<td><span style="font-size:12px;">'+si.label+'</span></td>'+
+            '<td><span style="font-size:12px;">'+c.mall+'</span></td>'+
+            '<td><span style="font-size:12px;">'+(c.redeemUser&&typeof c.redeemUser==='string'?c.redeemUser:'<span class="placeholder-cell">—</span>')+'</span></td>'+
+            '<td><span style="font-size:12px;color:var(--text-muted);">'+(c.redeemTime?c.redeemTime.substring(0,16):'<span class="placeholder-cell">—</span>')+'</span></td>'+
+            '<td><span style="font-size:12px;color:var(--text-muted);">'+ticketUseCell(c)+'</span></td>'+
+            '<td><span class="status-tag '+cs.cls+'" style="font-size:11px;">'+cs.label+'</span></td>'+
+            '<td>'+cardActions+'</td>'+
+          '</tr>';
+        });
+      }
+    });
+  }
+  document.getElementById('activatedBody').innerHTML=html;
+  document.getElementById('footerInfo').textContent='共 '+totalBatches+' 个发放批次 · 共计 '+totalIssued+' 张卡券';
+  renderPagination(totalBatches,activatedPage);
+  updateExpandBtn();
+}
+
+function expandArrowHtml(expanded){
+  return '<span class="expand-arrow'+(expanded?' expanded':'')+'"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>';
+}
+
+function toggleBatch(batchNo,e){
+  if(e&&e.target.closest('.bh-check'))return;
+  if(expandedBatches[batchNo])delete expandedBatches[batchNo];
+  else expandedBatches[batchNo]=true;
+  allExpanded=false;
+  renderActivated();
+}
+
+function updateExpandBtn(){
+  var btn=document.getElementById('btnExpandAll');
+  if(!btn)return;
+  var collapsible=BATCHES.filter(function(b){return b.issued>0;});
+  if(!collapsible.length){btn.textContent='全部展开 ▾';allExpanded=false;return;}
+  if(allExpanded&&collapsible.every(function(b){return expandedBatches[b.batchNo];})){
+    btn.textContent='全部收起 ▴';
+  }else if(expandedBatches.size===0){
+    btn.textContent='全部展开 ▾';
+    allExpanded=false;
+  }else{
+    btn.textContent='全部展开 ▾';
+    allExpanded=false;
+  }
+}
+
+// ===== 空白卡密 =====
+function renderBlank(){
+  var filtered=getFilteredBlank();
+  var total=filtered.length;
+  var size=getPageSize();
+  var pages=Math.max(1,Math.ceil(total/size)||1);
+  if(blankPage>pages)blankPage=pages;
+  if(blankPage<1)blankPage=1;
+  var pageItems=filtered.slice((blankPage-1)*size,blankPage*size);
+  var html='';
+  if(!total){
+    html='<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted);">暂无匹配的空白卡密</td></tr>';
+  }else{
+    pageItems.forEach(function(i){
+      html+='<tr>'+
+        '<td><input type="checkbox" class="checkbox" onchange="updateBlankSelected()"></td>'+
+        '<td><span class="code-cell">'+i.cardNo+'</span></td>'+
+        '<td><span class="pwd-cell">••••'+i.password.slice(-4)+'</span></td>'+
+        '<td aria-hidden="true"></td>'+
+        '<td><span class="mono" style="font-size:12px;color:var(--text-secondary);">'+(i.date?i.date.substring(0,16):'—')+'</span></td>'+
+        '<td><span class="status-tag status-inactive">未激活</span></td>'+
+        '<td><div class="actions"><span class="action-link" onclick="viewBlankDetail('+i.id+')">详情</span><span class="action-link" style="color:var(--green);" onclick="showToast(\'info\',\'跳转至平台代发激活\')">激活</span><span class="action-link danger" onclick="showToast(\'success\',\'空白卡密已作废\')">作废</span></div></td>'+
+      '</tr>';
+    });
+  }
+  document.getElementById('blankBody').innerHTML=html;
+  document.getElementById('footerInfo').textContent='共 '+total+' 张空白卡券';
+  renderPagination(total,blankPage);
+  var selectAll=document.getElementById('selectAllBlank');
+  if(selectAll)selectAll.checked=false;
+}
+function toggleSelectAllBlank(checked){
+  document.querySelectorAll('#blankBody .checkbox').forEach(function(c){c.checked=checked;});
+}
+function updateBlankSelected(){}
+
+// ===== 批次操作 =====
+function freezeBatch(batchNo,e){
+  if(e)e.stopPropagation();
+  var b=BATCHES.find(function(x){return x.batchNo===batchNo;});if(!b)return;
+  freezeTarget={type:'batch',batchNo:batchNo};
+  document.getElementById('freezeBatch').value=batchNo;
+  document.getElementById('freezeName').value=b.template+'（'+b.face+'）';
+  document.getElementById('freezeReason').value='';
+  document.getElementById('freezeModal').classList.add('open');
+}
+function unfreezeBatch(batchNo,e){
+  if(e)e.stopPropagation();
+  var b=BATCHES.find(function(x){return x.batchNo===batchNo;});
+  if(!b||b.status!=='frozen'){showToast('warning','仅已冻结批次可解冻');return;}
+  b.status='active';renderActivated();
+  showToast('success','批次 '+batchNo+' 已解冻，恢复兑换/核销');
+}
+function revokeBatch(batchNo,e){
+  if(e)e.stopPropagation();
+  var b=BATCHES.find(function(x){return x.batchNo===batchNo;});if(!b)return;
+  if(b.status!=='frozen'){showToast('warning','请先冻结该批次再发起作废');return;}
+  revokeTarget={type:'batch',batchNo:batchNo,issued:b.issued,used:b.used,exchangePoints:b.exchangePoints};
+  document.getElementById('revokeBatch').value=batchNo;
+  document.getElementById('revokeName').value=b.template+'（'+b.face+'）';
+  document.getElementById('revokeReason').value='';
+  document.getElementById('revokeModal').classList.add('open');
+}
+function confirmFreeze(){
+  var r=document.getElementById('freezeReason').value.trim();
+  if(!r){showToast('warning','请填写冻结原因');return;}
+  if(freezeTarget&&freezeTarget.type==='batch'){
+    var b=BATCHES.find(function(x){return x.batchNo===freezeTarget.batchNo;});
+    if(b)b.status='frozen';
+  }
+  closeFreezeModal();renderActivated();
+  showToast('success','批次 '+freezeTarget.batchNo+' 已冻结，未核销卡券暂停兑换/核销');
+}
+function confirmRevoke(){
+  var r=document.getElementById('revokeReason').value.trim();
+  if(!r){showToast('warning','请填写作废原因');return;}
+  var returnPoints=0;
+  if(revokeTarget&&revokeTarget.type==='batch'){
+    var b=BATCHES.find(function(x){return x.batchNo===revokeTarget.batchNo;});
+    if(b){b.status='stopped';returnPoints=(revokeTarget.issued-revokeTarget.used)*revokeTarget.exchangePoints;}
+  }
+  closeRevokeModal();renderActivated();
+  showToast('success','批次 '+revokeTarget.batchNo+' 已作废，已返还 '+returnPoints+' 积分至品牌商城积分池');
+}
+function closeFreezeModal(){document.getElementById('freezeModal').classList.remove('open');freezeTarget=null;}
+function closeRevokeModal(){document.getElementById('revokeModal').classList.remove('open');revokeTarget=null;}
+
+// ===== 单卡操作 =====
+function freezeSingleCard(id,e){
+  if(e)e.stopPropagation();
+  var c=ALL_CARDS.find(function(x){return x.id===id;});
+  if(!c||(c.status!=='unredeemed'&&c.status!=='redeemed')){showToast('info','仅未兑换/已兑换未核销的卡可冻结');return;}
+  c.status='frozen';renderActivated();
+  showToast('success','卡 '+c.cardNo+' 已冻结');
+}
+function unfreezeSingleCard(id,e){
+  if(e)e.stopPropagation();
+  var c=ALL_CARDS.find(function(x){return x.id===id;});
+  if(!c||c.status!=='frozen'){showToast('info','仅已冻结卡可解冻');return;}
+  c.status='unredeemed';renderActivated();
+  showToast('success','卡 '+c.cardNo+' 已解冻');
+}
+function revokeSingleCard(id,e){
+  if(e)e.stopPropagation();
+  var c=ALL_CARDS.find(function(x){return x.id===id;});
+  if(!c||c.status!=='frozen'){showToast('info','请先冻结再作废');return;}
+  c.status='revoked';renderActivated();
+  showToast('success','卡 '+c.cardNo+' 已作废，已返还 '+c.exchangePoints+' 积分');
+}
+
+// ===== 卡密详情 =====
+function dr(label,value,cls){return '<div class="detail-row"><span class="detail-label">'+label+'</span><span class="detail-value '+(cls||'')+'">'+value+'</span></div>';}
+function ms(val,label){return '<div class="mini-stat"><div class="ms-val">'+val+'</div><div class="ms-label">'+label+'</div></div>';}
+
+// ===== 批次详情弹窗（参照29卡券批次详情） =====
+function showBatchDetail(batchNo,e){
+  if(e)e.stopPropagation();
+  var b=BATCHES.find(function(x){return x.batchNo===batchNo;});if(!b)return;
+  var ti={label:b.typeLabel,cls:'type-'+b.type},si=SOURCE_MAP[b.source],smi=BATCH_STATUS[b.status];
+  var rate=b.issued?Math.round(b.used/b.issued*100):0;
+  var remain=b.issued-b.used;
+  var cost=(b.issued*b.exchangePoints).toLocaleString()+' 积分';
+  var deduct=calcBatchDeduct(b);
+  var html='';
+  html+='<div class="detail-section"><div class="detail-section-title">批次基础信息</div><div class="detail-grid">'+
+    dr('发放批次号',b.batchNo,'mono')+dr('卡券编号','CP-'+b.batchNo.slice(1),'mono')+
+    dr('卡券名称',b.name?b.name+'<span style="color:var(--text-muted);font-size:11.5px;margin-left:4px;">（'+b.template+'）</span>':b.template)+dr('卡券类型','<span class="type-tag '+ti.cls+'">'+ti.label+'</span>')+
+    dr('面值/内容',b.face)+dr('来源','<span class="source-tag '+si.cls+'">'+si.label+'</span>')+
+    dr('目标商城',b.mall)+dr('发放方式','<span class="method-tag">'+METHOD_MAP[b.method]+'</span>')+
+    dr('有效期','发放后30天 · 兑换后不限')+dr('状态','<span class="status-tag '+smi.cls+'">'+smi.label+'</span>')+
+    dr('生成时间',b.time)+dr('操作人','平台-道馨')+
+    dr('积分消耗',cost)+dr('实际抵扣金额',deduct)+'</div></div>';
+  if(b.status==='frozen'){
+    html+='<div class="detail-section"><div class="detail-section-title">冻结/作废记录</div>'+
+      dr('冻结原因',b.freezeReason||'活动规则调整')+dr('冻结时间','2026-07-05 15:20','mono')+
+    '</div>';
+  }
+  if(b.type==='points'){
+    html+='<div class="detail-section"><div class="detail-section-title">核销统计</div>'+
+      '<div style="background:var(--bg-input);border-radius:var(--radius);padding:14px 16px;font-size:12.5px;color:var(--text-secondary);line-height:1.7;">积分卡兑换后直接计入用户积分账户，无「核销量/发放量」统计。<br>如需查看积分到账明细，请前往「积分发放记录」。</div></div>';
+  }else{
+    var ticketNote=b.type==='ticket'?'<div style="font-size:11.5px;color:var(--text-secondary);background:var(--bg-input);border-radius:var(--radius-sm);padding:8px 12px;margin-top:8px;line-height:1.6;">注：次卡首次使用即算该卡券核销（首次到店核销时计入"已核销"），剩余次数可在核销记录中查看。</div>'
+      :(b.type==='gift'?'<div style="font-size:11.5px;color:var(--text-secondary);background:var(--bg-input);border-radius:var(--radius-sm);padding:8px 12px;margin-top:8px;line-height:1.6;">注：礼品卡为余额制，首次消费即算该卡券核销，余额可跨订单多次扣减，逐笔记录在核销记录中。</div>':'');
+    html+='<div class="detail-section"><div class="detail-section-title">核销统计</div><div class="mini-stats">'+
+      ms(b.issued,'已发放(张)')+ms(b.used,'已核销(张)')+ms(remain,'未核销(张)')+ms(rate+'%','核销率')+
+    '</div>'+ticketNote+'</div>';
+  }
+  if(b.method==='cardkey'||b.method==='existing-cardkey'){
+    html+='<div class="detail-section"><div class="detail-section-title">卡密明细（示例）</div>'+
+      '<div class="sub-table-wrap"><table class="sub-table"><thead><tr><th>卡号</th><th>状态</th><th>兑换用户</th><th>兑换时间</th><th>核销时间</th></tr></thead><tbody>';
+    var cards=ALL_CARDS.filter(function(c){return c.batchNo===b.batchNo;}).slice(0,3);
+    cards.forEach(function(c,i){
+      var cs=CARD_STATUS[c.status]||{label:'-',cls:''};
+      html+='<tr><td style="font-family:"Microsoft YaHei",sans-serif;font-size:11.5px;color:var(--text-secondary);">'+c.cardNo+'</td><td><span class="status-tag '+cs.cls+'" style="font-size:10px;">'+cs.label+'</span></td><td>'+(c.redeemUser||'—')+'</td><td style="font-size:11px;color:var(--text-muted);">'+(c.redeemTime?c.redeemTime.substring(0,16):'—')+'</td><td style="font-size:11px;color:var(--text-muted);">'+(c.usedTime?c.usedTime.substring(0,16):'—')+'</td></tr>';
+    });
+    html+='</tbody></table></div><div style="font-size:11px;color:var(--text-muted);margin-top:8px;">仅展示前 3 条，完整卡密请展开批次行查看</div></div>';
+  }
+  document.getElementById('detailTitle').textContent='卡券批次详情';
+  document.getElementById('detailBody').innerHTML=html;
+  document.getElementById('detailModal').classList.add('open');
+}
+
+function ticketUseCell(c){
+  if(c.useLimit){
+    var uc=(c.useTimes||[]).length;
+    if(uc>0){
+      return '<span class="action-link" onclick="event.stopPropagation();showCardDetail('+c.id+',event)" title="点击查看每次核销记录" style="color:var(--green);">'+uc+'/'+c.useLimit+' 次</span>';
+    }
+    return '<span style="color:var(--text-muted);">0/'+c.useLimit+' 次</span>';
+  }
+  if(c.giftAmount){
+    var gc=(c.useTimes||[]).length;
+    if(gc>0){
+      return '<span class="action-link" onclick="event.stopPropagation();showCardDetail('+c.id+',event)" title="点击查看消费扣减记录" style="color:var(--green);">'+gc+' 笔消费</span>';
+    }
+    return '<span class="placeholder-cell">—</span>';
+  }
+  return c.usedTime?c.usedTime.substring(0,16):'<span class="placeholder-cell">—</span>';
+}
+
+// ===== 卡券详情弹窗（参考28） =====
+function showCardDetail(id,e){
+  if(e)e.stopPropagation();
+  var c=ALL_CARDS.find(function(x){return x.id===id;});if(!c)return;
+  var cs=CARD_STATUS[c.status]||{label:'-',cls:''};
+  var b=BATCHES.find(function(x){return x.batchNo===c.batchNo;});
+  var si=b?SOURCE_MAP[b.source]:{label:'-',cls:''};
+  var methodLabel=c.method==='direct'?'选人直充（无卡密）':'已激活卡券';
+  var pwdDisplay=c.password?c.password:'-';
+  var deduct=calcCardDeduct(c,b);
+  var html='<div class="detail-section"><div class="detail-section-title">卡券信息</div><div class="detail-grid">'+
+    dr('卡号',c.cardNo,'mono')+dr('密码',pwdDisplay,'mono')+
+    dr('卡密类型',methodLabel)+dr('状态','<span class="status-tag '+cs.cls+'">'+cs.label+'</span>')+
+    dr('卡券名称',c.name?c.name+'<span style="color:var(--text-muted);font-size:11.5px;margin-left:4px;">（'+c.template+'）</span>':c.template)+dr('面值',b?b.face:'-')+
+    dr('兑换积分',(c.exchangePoints||0)+' 积分/张','mono')+dr('来源','<span class="source-tag '+si.cls+'">'+si.label+'</span>')+
+    dr('目标商城',c.mall)+dr('发放批次号','<span style="color:var(--blue);font-family:"Microsoft YaHei",sans-serif;">'+c.batchNo+'</span>')+
+    dr('有效期','至 2026-12-31')+dr('激活时间',b?b.time:'-')+
+    '</div></div>';
+  if(c.redeemUser){
+    html+='<div class="detail-section"><div class="detail-section-title">使用信息</div><div class="detail-grid">'+
+      dr('兑换用户',c.redeemUser)+dr('兑换时间',c.redeemTime?c.redeemTime.substring(0,16):'—','mono');
+    if(c.useLimit){
+      var uc=(c.useTimes||[]).length;
+      html+=dr('核销次数',uc+'/'+c.useLimit+' 次');
+    }else if(c.giftAmount){
+      var gUsed=0;(c.useTimes||[]).forEach(function(u){gUsed+=(u&&u.deduct)||0;});
+      html+=dr('面值','¥'+c.giftAmount)+dr('已消费','¥'+gUsed)+dr('剩余余额','¥'+(c.giftAmount-gUsed));
+    }else{
+      html+=dr('核销时间',c.usedTime?c.usedTime.substring(0,16):'—','mono');
+    }
+    html+=dr('实际抵扣金额',deduct)+'</div></div>';
+  }
+  if(c.useTimes&&c.useTimes.length){
+    var sum=0;c.useTimes.forEach(function(u){sum+=(u&&u.deduct)||0;});
+    var isGift=!!c.giftAmount;
+    var recTitle=isGift?'礼品卡核销记录':'次卡核销记录';
+    var recSummary=isGift
+      ?'已消费 '+c.useTimes.length+' 笔，累计抵扣 ¥'+sum+' / 面值 ¥'+c.giftAmount+'，剩余 ¥'+(c.giftAmount-sum)
+      :'已核销 '+c.useTimes.length+'/'+c.useLimit+' 次，累计抵扣 ¥'+sum;
+    html+='<div class="detail-section"><div class="detail-section-title">'+recTitle+'</div>'+
+      '<div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px;">'+recSummary+'</div>'+
+      '<div class="sub-table-wrap"><table class="sub-table"><colgroup>'+(isGift?'<col style="width:52px"><col><col style="width:90px"><col style="width:90px">':'<col style="width:52px"><col><col style="width:108px">')+'</colgroup><thead><tr>';
+    html+=isGift?'<th>序号</th><th>时间</th><th>抵扣</th><th>余额</th>':'<th>序号</th><th>时间</th><th>抵扣</th>';
+    html+='</tr></thead><tbody>';
+    var running=0;
+    c.useTimes.forEach(function(u,idx){
+      running+=(u&&u.deduct)||0;
+      var seqLabel=idx+1;
+      var row='<tr><td style="color:var(--text-muted);">'+seqLabel+'</td><td style="font-family:"Microsoft YaHei",sans-serif;font-size:11.5px;">'+(u.time?u.time.substring(0,16):'—')+'</td><td style="color:var(--green);font-weight:500;">¥'+(u.deduct||0)+'</td>';
+      html+=row+(isGift?'<td style="color:var(--text-secondary);">¥'+(c.giftAmount-running)+'</td>':'')+'</tr>';
+    });
+    html+='</tbody><tfoot><tr><td colspan="2" style="text-align:right;color:var(--text-secondary);">累计抵扣</td><td style="color:var(--green);font-weight:600;">¥'+sum+'</td>'+(isGift?'<td></td>':'')+'</tr></tfoot></table></div></div>';
+  }
+  document.getElementById('detailTitle').textContent='卡券详情';
+  document.getElementById('detailBody').innerHTML=html;
+  document.getElementById('detailModal').classList.add('open');
+}
+function calcCardDeduct(c,b){
+  if(c.status!=='used')return '-';
+  if(c.useTimes&&c.useTimes.length){
+    var sum=0;c.useTimes.forEach(function(u){sum+=(u&&u.deduct)||0;});
+    return sum>0?'¥'+sum.toLocaleString():'-';
+  }
+  var f=b?b.face:'';
+  if(f.indexOf('满200减50')>=0)return '¥50';
+  if(f.indexOf('满100减20')>=0)return '¥20';
+  if(f.indexOf('满100减30')>=0)return '¥30';
+  if(f.indexOf('满50减10')>=0)return '¥10';
+  if(f.indexOf('8折')>=0)return '¥50';
+  if(f.indexOf('5元')>=0||f.indexOf('¥5')>=0)return '¥5';
+  if(f.indexOf('10元')>=0||f.indexOf('¥10')>=0)return '¥10';
+  if(f.indexOf('15元')>=0||f.indexOf('¥15')>=0)return '¥15';
+  return '-';
+}
+function calcBatchDeduct(b){  if(!b||b.used<=0)return '-';
+  var unit=0;
+  var f=b.face||'';
+  if(f.indexOf('满200减50')>=0)unit=50;
+  else if(f.indexOf('满100减30')>=0)unit=30;
+  else if(f.indexOf('满100减20')>=0)unit=20;
+  else if(f.indexOf('满50减10')>=0)unit=10;
+  else if(f.indexOf('8折')>=0)unit=50;
+  else if(f.indexOf('5元')>=0||f.indexOf('¥5')>=0)unit=5;
+  else if(f.indexOf('10元')>=0||f.indexOf('¥10')>=0)unit=10;
+  else if(f.indexOf('15元')>=0||f.indexOf('¥15')>=0)unit=15;
+  else return '-';
+  return '¥'+(b.used*unit).toLocaleString();
+}
+function viewBlankDetail(id){
+  var i=BLANK_KEYS.find(function(x){return x.id===id;});if(!i)return;
+  var html='<div class="detail-section"><div class="detail-section-title">空白卡券信息</div><div class="detail-grid">'+
+    dr('卡号',i.cardNo,'mono')+dr('密码',i.password,'mono')+
+    dr('卡券类型','空白卡券（未激活）')+dr('状态','<span class="status-tag status-inactive">未激活</span>')+
+    dr('模板/面值','<span style="color:var(--text-muted);">— 尚未激活</span>')+dr('来源','<span style="color:var(--text-muted);">—</span>')+
+    dr('目标商城','<span style="color:var(--text-muted);">—</span>')+dr('有效期','<span style="color:var(--text-muted);">—</span>')+
+    dr('生成时间',i.date?i.date.substring(0,16):'—')+dr('激活方式','平台代发 → 使用已有卡密')+
+    '</div></div>';
+  html+='<div class="detail-section"><div class="detail-section-title">激活流程</div>'+
+    '<div style="background:var(--blue-bg);border:1px solid var(--blue-border);border-radius:var(--radius-sm);padding:12px;font-size:12.5px;color:var(--blue);line-height:1.7;">该卡券为预生成的空白卡密，<strong>不关联</strong>卡券模板、面值、品牌商城。<br>需通过 <strong>平台代发 → 使用已有卡密</strong> 激活后，补充面值/模板/积分信息方可使用。</div></div>';
+  document.getElementById('detailTitle').textContent='空白卡券详情';
+  document.getElementById('detailBody').innerHTML=html;
+  document.getElementById('detailModal').classList.add('open');
+}
+function closeDetailModal(){document.getElementById('detailModal').classList.remove('open');}
+
+// ===== 批量操作 =====
+function batchFreeze(){
+  showToast('info','演示：批量冻结勾选的批次');
+}
+function batchRevoke(){
+  showToast('info','演示：批量作废勾选的批次（需先冻结）');
+}
+function batchActivate(){
+  var checked=document.querySelectorAll('#blankBody .checkbox:checked');
+  if(!checked.length){showToast('warning','请先勾选要激活的空白卡密');return;}
+  showToast('info','演示：批量激活 '+checked.length+' 张空白卡密，跳转至平台代发');
+}
+function exportSelected(){
+  var checked=document.querySelectorAll('.checkbox:checked');
+  if(!checked.length){showToast('warning','请先勾选要导出的卡券');return;}
+  showToast('success','演示：导出勾选的 '+checked.length+' 项');
+}
+
+// ===== 生成空白卡密 =====
+function showGenerateModal(){document.getElementById('generateModal').classList.add('open');}
+function closeGenerateModal(){document.getElementById('generateModal').classList.remove('open');}
+function confirmGenerate(){
+  var count=parseInt(document.getElementById('generateCount').value)||0;
+  if(count<=0||count>10000){showToast('info','请输入有效的生成数量（1-10000）');return;}
+  var now=new Date(),dateStr=now.getFullYear()+String(now.getMonth()+1).padStart(2,'0')+String(now.getDate()).padStart(2,'0');
+  var startNo=BLANK_KEYS.length+1;
+  for(var i=0;i<count;i++){
+    var cardNo='BC'+dateStr+pad6(startNo+i);
+    BLANK_KEYS.push({id:BLANK_KEYS.length+1,cardNo:cardNo,password:genPassword(),status:'inactive',date:dateStr.slice(0,4)+'-'+dateStr.slice(4,6)+'-'+dateStr.slice(6,8)+' 10:00'});
+  }
+  closeGenerateModal();switchTab('blank');
+  showToast('success','已生成 '+count+' 张空白卡密');
+}
+
+// ===== 分页 =====
+function getPageSize(){return parseInt(document.getElementById('pageSizeSelect').value)||10;}
+function setCurrentPage(p){if(currentTab==='blank')blankPage=p;else activatedPage=p;}
+function renderPagination(total,page){
+  var size=getPageSize();
+  var pages=Math.max(1,Math.ceil(total/size)||1);
+  if(page>pages)page=pages;
+  if(page<1)page=1;
+  setCurrentPage(page);
+  var jump=document.getElementById('jumpPageInput');
+  jump.setAttribute('max',pages);
+  jump.value=page;
+  var html='<div class="page-btn'+(page<=1?' disabled':'')+'" onclick="goPage('+(page-1)+')">‹</div>';
+  var nums=[];
+  if(pages<=7){for(var i=1;i<=pages;i++)nums.push(i);}
+  else{
+    nums.push(1);
+    if(page>3)nums.push('…');
+    for(var j=Math.max(2,page-1);j<=Math.min(pages-1,page+1);j++)nums.push(j);
+    if(page<pages-2)nums.push('…');
+    nums.push(pages);
+  }
+  nums.forEach(function(n){
+    if(n==='…')html+='<span class="page-info">…</span>';
+    else html+='<div class="page-btn'+(n===page?' active':'')+'" onclick="goPage('+n+')">'+n+'</div>';
+  });
+  html+='<div class="page-btn'+(page>=pages?' disabled':'')+'" onclick="goPage('+(page+1)+')">›</div>';
+  document.getElementById('pagination').innerHTML=html;
+}
+function goPage(p){
+  var max=parseInt(document.getElementById('jumpPageInput').getAttribute('max'))||1;
+  if(p<1||p>max)return;
+  setCurrentPage(p);
+  if(currentTab==='blank')renderBlank();else renderActivated();
+}
+function changePageSize(){
+  setCurrentPage(1);
+  if(currentTab==='blank')renderBlank();else renderActivated();
+}
+function jumpToPage(){
+  var input=document.getElementById('jumpPageInput');
+  var page=parseInt(input.value)||1;
+  var max=parseInt(input.getAttribute('max'))||1;
+  if(page<1)page=1;
+  if(page>max)page=max;
+  goPage(page);
+}
+
+// ===== 导出 =====
+function toggleExportMenu(e){
+  e.stopPropagation();
+  var menu=document.getElementById('exportMenu');
+  document.querySelectorAll('.action-menu.open').forEach(function(m){if(m!==menu)m.classList.remove('open');});
+  menu.classList.toggle('open');
+}
+function exportAllData(){document.getElementById('exportMenu').classList.remove('open');showToast('success','演示：全量导出卡券发放数据');}
+function exportFilteredData(){document.getElementById('exportMenu').classList.remove('open');showToast('success','演示：导出当前筛选结果');}
+document.addEventListener('click',function(){document.querySelectorAll('.action-menu.open').forEach(function(m){m.classList.remove('open');});});
+
+// ===== 初始化 =====
+updateTabCounts();
+expandedBatches[BATCHES[0].batchNo] = true;
+// 指定卡号改为已兑换
+var c0 = ALL_CARDS.find(function(c){return c.cardNo === 'CPN20260702001000001';});
+if(c0){ c0.status = 'redeemed'; c0.redeemUser = '张三'; c0.redeemTime = '2026-07-10 10:30'; }
+renderActivated();
+</script>
+</body>
+</html>

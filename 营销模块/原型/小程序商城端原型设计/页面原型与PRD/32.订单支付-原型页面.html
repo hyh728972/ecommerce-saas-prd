@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>订单支付 - 苏银豆商城</title>
+<link rel="stylesheet" href="../assets/common.css">
+<style>
+  /* Fix: page-scroll 的 min-height:100vh 会撑高 phone-frame，导致 absolute 的底部栏被顶出视口。
+     锁定 phone-frame 为一屏、让 page-scroll 吃掉中间空间，底部栏即可正常贴底。 */
+  .phone-frame {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .page-scroll {
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* Order header */
+  .order-header {
+    background: var(--card-bg);
+    padding: var(--space-lg) 12px;
+    margin-bottom: var(--space-sm);
+  }
+  .order-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .order-header .order-no {
+    font-size: var(--font-sm);
+    color: var(--text-secondary);
+  }
+  .order-header .order-time {
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+  }
+  .order-header .countdown {
+    font-size: var(--font-sm);
+    color: var(--price-color);
+    margin-top: var(--space-sm);
+    font-weight: 500;
+  }
+
+  /* Address section - display only */
+  .address-section {
+    background: var(--card-bg);
+    padding: var(--space-lg) 12px;
+    margin-bottom: var(--space-sm);
+    position: relative;
+  }
+  .address-section::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: repeating-linear-gradient(90deg, var(--primary-start) 0, var(--primary-start) 8px, var(--price-color) 8px, var(--price-color) 16px, var(--warning-color) 16px, var(--warning-color) 24px);
+  }
+  .address-row {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-sm);
+  }
+  .address-row svg { width: 20px; height: 20px; color: var(--primary-start); flex-shrink: 0; margin-top: 2px; }
+  .address-info { flex: 1; }
+  .address-name-phone {
+    font-size: var(--font-md);
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: var(--space-xs);
+  }
+  .address-detail {
+    font-size: var(--font-sm);
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  /* Product items - display only */
+  .order-products {
+    background: var(--card-bg);
+    padding: var(--space-md);
+    margin-bottom: var(--space-sm);
+  }
+  .order-product-item {
+    display: flex;
+    gap: var(--space-md);
+    padding: var(--space-sm) 0;
+    border-bottom: 1px solid var(--bg-color);
+  }
+  .order-product-item:last-child { border-bottom: none; }
+  .order-product-item .prod-img {
+    width: 72px;
+    height: 72px;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    flex-shrink: 0;
+    background: var(--bg-input);
+  }
+  .order-product-item .prod-img img { width: 100%; height: 100%; object-fit: cover; }
+  .order-product-item .prod-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-width: 0;
+  }
+  .order-product-item .prod-name {
+    font-size: var(--font-sm);
+    color: var(--text-color);
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .order-product-item .prod-spec {
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+  }
+  .order-product-item .prod-price-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .order-product-item .prod-price {
+    color: var(--text-color);
+    font-size: var(--font-base);
+    font-weight: 600;
+  }
+  .order-product-item .prod-qty {
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+  }
+
+  /* Payment info - locked */
+  .payment-info-section {
+    background: var(--card-bg);
+    margin-bottom: var(--space-sm);
+  }
+  .payment-info-title {
+    padding: var(--space-md) 12px 0;
+    font-size: var(--font-base);
+    font-weight: 600;
+    color: var(--text-color);
+  }
+  .payment-info-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-md);
+    border-bottom: 1px solid var(--bg-color);
+  }
+  .payment-info-row:last-child { border-bottom: none; }
+  .payment-info-row .pi-label { font-size: var(--font-sm); color: var(--text-secondary); }
+  .payment-info-row .pi-value { font-size: var(--font-sm); color: var(--text-color); font-weight: 500; }
+  .payment-info-row .pi-value.beans { color: var(--warning-color); }
+  .payment-info-row .pi-value.cash { color: var(--price-color); }
+  .payment-info-row .pi-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: var(--space-sm);
+    flex-shrink: 0;
+  }
+  .payment-info-row .pi-icon svg { width: 14px; height: 14px; color: var(--card-bg); }
+  .payment-info-row .pi-icon.beans { background: linear-gradient(135deg, var(--warning-color), var(--primary-start)); }
+  .payment-info-row .pi-left { display: flex; align-items: center; }
+
+  /* Pay channel selection */
+  .pay-channel-section {
+    background: var(--card-bg);
+    margin-bottom: var(--space-sm);
+    padding: 0 var(--space-md) var(--space-sm);
+  }
+  .pay-channel-title {
+    padding: var(--space-md) 0 4px;
+    font-size: var(--font-base);
+    font-weight: 600;
+    color: var(--text-color);
+  }
+  .pay-channel-item {
+    display: flex;
+    align-items: center;
+    padding: var(--space-md) 0;
+    border-bottom: 1px solid var(--bg-color);
+    cursor: pointer;
+  }
+  .pay-channel-item:last-child { border-bottom: none; }
+  .pay-channel-item .ch-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: var(--space-sm);
+  }
+  .pay-channel-item .ch-icon svg { width: 18px; height: 18px; color: var(--card-bg); }
+  .pay-channel-item .ch-icon.wechat { background: var(--wechat-green); }
+  .pay-channel-item .ch-icon.alipay { background: var(--info-light); }
+  .pay-channel-item .ch-name { flex: 1; font-size: var(--font-sm); color: var(--text-color); }
+  .pay-channel-item .ch-radio {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid var(--text-disabled);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+  .pay-channel-item .ch-radio.checked {
+    background: var(--primary-start);
+    border-color: var(--primary-start);
+  }
+  .pay-channel-item .ch-radio.checked::after {
+    content: '';
+    width: 5px;
+    height: 9px;
+    border: 2px solid var(--card-bg);
+    border-top: none;
+    border-left: none;
+    transform: rotate(45deg) translateY(-1px);
+  }
+
+  /* Delivery info */
+  .delivery-row {
+    background: var(--card-bg);
+    padding: var(--space-md);
+    margin-bottom: var(--space-sm);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: var(--font-sm);
+    color: var(--text-secondary);
+  }
+
+  /* Price summary */
+  .price-summary {
+    background: var(--card-bg);
+    padding: var(--space-md);
+    margin-bottom: var(--space-sm);
+  }
+  .summary-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-xs) 0;
+    font-size: var(--font-sm);
+    color: var(--text-secondary);
+  }
+  .summary-row.total {
+    padding-top: var(--space-sm);
+    margin-top: var(--space-xs);
+    border-top: 1px solid var(--bg-color);
+    font-size: var(--font-md);
+    color: var(--text-color);
+    font-weight: 600;
+  }
+  .summary-row .total-price {
+    color: var(--price-color);
+    font-size: var(--font-lg);
+    font-weight: 700;
+  }
+  .summary-row .total-price .symbol { font-size: var(--font-sm); }
+
+  /* Submit bar */
+  .submit-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--card-bg);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    border-top: 1px solid var(--border-color);
+    z-index: 200;
+    padding: 0 var(--space-md) var(--space-sm);
+  }
+  .submit-bar .total-area {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-xs);
+  }
+  .submit-bar .total-label { font-size: var(--font-base); color: var(--text-color); }
+  .submit-bar .total-num { font-size: var(--font-xl); color: var(--price-color); font-weight: 700; }
+  .submit-bar .total-num .symbol { font-size: var(--font-sm); }
+  .submit-bar .btn-submit {
+    background: linear-gradient(135deg, var(--primary-start), var(--price-color));
+    color: var(--card-bg);
+    border: none;
+    padding: 0 var(--space-2xl);
+    height: 42px;
+    font-size: var(--font-md);
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: var(--radius-xl);
+  }
+  .submit-bar .btn-submit:active { opacity: 0.85; }
+
+  /* Pay popup - centered dialog */
+  .pay-popup-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 300;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  .pay-popup-overlay.show { display: flex; }
+  .pay-popup {
+    position: relative;
+    width: calc(100% - 48px);
+    max-width: 320px;
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    z-index: 301;
+    overflow: hidden;
+    animation: popupFadeIn 0.2s ease;
+  }
+  @keyframes popupFadeIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  .pay-step { display: none; }
+  .pay-step.active { display: block; }
+  .pay-popup-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-xl) 16px 0;
+    position: relative;
+  }
+  .pay-popup-header .popup-title {
+    font-size: var(--font-lg);
+    font-weight: 600;
+    color: var(--text-color);
+  }
+  .pay-popup-header .popup-close {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-tertiary);
+  }
+  .pay-popup-header .popup-close svg { width: 18px; height: 18px; }
+  .pay-popup-amount {
+    text-align: center;
+    padding: var(--space-xl) 16px 12px;
+  }
+  .pay-popup-amount .amount {
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--text-color);
+  }
+  .pay-popup-amount .amount .symbol { font-size: var(--font-xl); }
+  .pay-popup-channel {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    margin: var(--space-sm) 16px 0;
+    padding: var(--space-md) 14px;
+    background: var(--bg-input);
+    border-radius: var(--radius-md);
+  }
+  .pay-popup-channel .ch-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .pay-popup-channel .ch-icon svg { width: 20px; height: 20px; color: var(--card-bg); }
+  .pay-popup-channel .ch-name { flex: 1; font-size: var(--font-base); color: var(--text-color); font-weight: 500; }
+  .pay-popup-beans {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: var(--space-sm) 16px 0;
+    padding: var(--space-md) 14px;
+    background: var(--card-bg)9f5;
+    border-radius: var(--radius-sm);
+    font-size: var(--font-sm);
+    color: var(--text-secondary);
+  }
+  .pay-popup-beans .val { color: var(--primary-start); font-weight: 600; }
+  .pay-popup-btn {
+    display: block;
+    width: calc(100% - 32px);
+    margin: var(--space-xl) 16px 24px;
+    height: 44px;
+    background: var(--wechat-green);
+    color: var(--card-bg);
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: var(--font-md);
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .pay-popup-btn:active { opacity: 0.85; }
+
+  /* Step 2: password */
+  .pwd-header {
+    text-align: center;
+    padding: var(--space-xl) 16px 4px;
+    position: relative;
+  }
+  .pwd-header .pwd-back {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-tertiary);
+  }
+  .pwd-header .pwd-back svg { width: 18px; height: 18px; }
+  .pwd-header .pwd-title {
+    font-size: var(--font-lg);
+    font-weight: 600;
+    color: var(--text-color);
+  }
+  .pwd-body {
+    text-align: center;
+    padding: var(--space-lg) 16px 0;
+  }
+  .pwd-body .pwd-channel-name {
+    font-size: var(--font-base);
+    color: var(--text-color);
+    font-weight: 500;
+    margin-bottom: var(--space-md);
+  }
+  .pwd-body .pwd-amount {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-color);
+    margin-bottom: var(--space-xl);
+  }
+  .pwd-body .pwd-amount .symbol { font-size: var(--font-md); }
+  .pwd-grid {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-sm);
+    padding: 0 var(--space-xl);
+  }
+  .pwd-dot {
+    width: 40px;
+    height: 44px;
+    border: 1px solid var(--text-disabled);
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--card-bg);
+  }
+  .pwd-dot::after {
+    content: '';
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--text-color);
+    display: none;
+  }
+  .pwd-dot.filled::after { display: block; }
+  .pwd-grid-wrap { position: relative; }
+  .pwd-hidden-input {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    cursor: pointer;
+  }
+  .pwd-hint {
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+    margin-top: var(--space-lg);
+    padding-bottom: var(--space-xl);
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+<div class="phone-frame">
+
+  <!-- Sub-page Navigation -->
+  <div class="sub-nav">
+    <div class="status-bar dark">
+      <span class="time">09:41</span>
+      <div class="icons">
+        <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+      </div>
+    </div>
+    <div class="nav-bar">
+      <div class="back-btn" onclick="history.back()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <span class="nav-title">订单支付</span>
+      <div class="capsule-btn"><img src="../assets/icons/小程序按钮.svg" alt=""></div>
+    </div>
+  </div>
+
+  <!-- Scrollable Content -->
+  <div class="page-scroll" style="padding-bottom: 70px;">
+
+    <!-- Order Header -->
+    <div class="order-header">
+      <div class="order-header-row">
+        <span class="order-no">订单编号：SY2026040888001</span>
+        <span class="order-time">2026-04-08 14:23</span>
+      </div>
+      <div class="countdown">剩余支付时间 14:52</div>
+    </div>
+
+    <!-- Address - display only -->
+    <div class="address-section">
+      <div class="address-row">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <div class="address-info">
+          <div class="address-name-phone">张三  138****8888</div>
+          <div class="address-detail">北京市朝阳区建国路88号 悦享大厦A座12层</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Products - display only -->
+    <div class="order-products">
+      <div class="order-product-item">
+        <div class="prod-img"><img src="../assets/unsplash/1602143407151-7111542de6e8.jpg" alt=""></div>
+        <div class="prod-info">
+          <div class="prod-name">日本进口保温杯 不锈钢真空便携水杯500ml</div>
+          <div class="prod-spec">白色 500ml</div>
+          <div class="prod-price-row">
+            <span class="prod-price">&yen;68.00</span>
+            <span class="prod-qty">x1</span>
+          </div>
+        </div>
+      </div>
+      <div class="order-product-item">
+        <div class="prod-img"><img src="../assets/unsplash/1505740420928-5e560c06d30e.jpg" alt=""></div>
+        <div class="prod-info">
+          <div class="prod-name">无线蓝牙降噪耳机 迷你入耳式超长续航</div>
+          <div class="prod-spec">黑色 标准版</div>
+          <div class="prod-price-row">
+            <span class="prod-price">&yen;89.00</span>
+            <span class="prod-qty">x1</span>
+          </div>
+        </div>
+      </div>
+      <div class="order-product-item">
+        <div class="prod-img"><img src="../assets/unsplash/1521572163474-6864f9cf17ab.jpg" alt=""></div>
+        <div class="prod-info">
+          <div class="prod-name">纯棉短袖T恤男女款 夏季宽松百搭潮流</div>
+          <div class="prod-spec">白色 L码</div>
+          <div class="prod-price-row">
+            <span class="prod-price">&yen;39.90</span>
+            <span class="prod-qty">x1</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delivery -->
+    <div class="delivery-row">
+      <span>配送方式</span>
+      <span>快递 免邮</span>
+    </div>
+
+    <!-- Payment info - locked -->
+    <div class="payment-info-section">
+      <div class="payment-info-title">支付信息</div>
+      <div class="payment-info-row">
+        <div class="pi-left">
+          <div class="pi-icon beans">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <span class="pi-label">苏银豆抵扣</span>
+        </div>
+        <span class="pi-value beans">-¥100.00（10000苏银豆）</span>
+      </div>
+      <div class="payment-info-row">
+        <span class="pi-label">现金支付</span>
+        <span class="pi-value cash">¥96.90</span>
+      </div>
+    </div>
+
+    <!-- Pay Channel -->
+    <div class="pay-channel-section">
+      <div class="pay-channel-title">支付渠道</div>
+      <div class="pay-channel-item" data-channel="wechat" onclick="selectChannel(this)">
+        <div class="ch-icon wechat">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 01.213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.326.326 0 00.167-.054l1.903-1.114a.864.864 0 01.717-.098 10.16 10.16 0 002.837.403c.276 0 .543-.027.811-.05-.857-2.578.157-4.972 1.932-6.446 1.703-1.415 3.882-1.98 5.853-1.838-.576-3.583-4.196-6.348-8.596-6.348zM5.785 5.991c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 01-1.162 1.178A1.17 1.17 0 014.623 7.17c0-.651.52-1.18 1.162-1.18zm5.813 0c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 01-1.162 1.178 1.17 1.17 0 01-1.162-1.178c0-.651.52-1.18 1.162-1.18zm5.34 2.867c-1.797-.052-3.746.512-5.28 1.786-1.72 1.428-2.687 3.72-1.78 6.22.942 2.453 3.666 4.229 6.884 4.229.826 0 1.622-.12 2.361-.336a.722.722 0 01.598.082l1.584.926a.272.272 0 00.14.045c.133 0 .241-.11.241-.245 0-.06-.023-.12-.038-.177l-.327-1.233a.582.582 0 01-.023-.156.49.49 0 01.201-.398C23.024 18.48 24 16.82 24 14.98c0-3.21-2.931-5.952-7.062-6.122zM14.033 13.4c.535 0 .969.44.969.982a.976.976 0 01-.969.983.976.976 0 01-.969-.983c0-.542.434-.982.97-.982zm4.844 0c.535 0 .969.44.969.982a.976.976 0 01-.969.983.976.976 0 01-.969-.983c0-.542.434-.982.97-.982z"/></svg>
+        </div>
+        <div class="ch-name">微信支付</div>
+        <div class="ch-radio checked"></div>
+      </div>
+      <div class="pay-channel-item" data-channel="alipay" onclick="selectChannel(this)">
+        <div class="ch-icon alipay">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.422 15.358c-3.32-1.326-6.092-3.014-6.092-3.014s1.439-3.667 1.853-5.943H13.01V4.79h5.16V3.478h-5.16V.296h-2.384s-.036.017-.036.048v3.134H5.454V4.79h5.136v1.612H6.16v1.21h9.136c-.318 1.448-1.06 3.498-1.06 3.498s-3.714-1.614-6.282-1.96c-3.918-.528-6.092 1.612-6.282 3.926-.226 2.758 2.206 4.744 5.236 4.744 3.03 0 5.53-1.714 7.528-4.132 3.176 1.678 9.322 3.94 9.322 3.94s-.336-.436-2.338-.77zM8.002 16.688c-3.254 0-4.494-1.954-4.33-3.726.132-1.414 1.424-3.196 4.078-3.196 2.344 0 4.908 1.068 6.894 2.356-1.74 2.358-3.876 4.566-6.642 4.566z"/></svg>
+        </div>
+        <div class="ch-name">支付宝</div>
+        <div class="ch-radio"></div>
+      </div>
+    </div>
+
+    <!-- Price Summary -->
+    <div class="price-summary">
+      <div class="summary-row"><span>商品金额</span><span>&yen;196.90</span></div>
+      <div class="summary-row"><span>运费</span><span>&yen;0.00</span></div>
+      <div class="summary-row"><span>苏银豆抵扣</span><span style="color:var(--primary-start);">-&yen;100.00（10000苏银豆）</span></div>
+      <div class="summary-row"><span>现金支付</span><span>&yen;96.90</span></div>
+      <div class="summary-row total"><span>实付金额</span><span class="total-price"><span class="symbol">&yen;</span>96.90</span></div>
+    </div>
+
+  </div><!-- end page-scroll -->
+
+  <!-- Submit Bar -->
+  <div class="submit-bar">
+    <div class="total-area">
+      <span class="total-label">需支付：</span>
+      <span class="total-num" id="bottomTotal"><span class="symbol">&yen;</span>96.90</span>
+    </div>
+    <button class="btn-submit" onclick="handleSubmit()">立即支付</button>
+  </div>
+
+  <!-- Pay Popup -->
+  <div class="pay-popup-overlay" id="payPopupOverlay">
+    <div class="pay-popup" onclick="event.stopPropagation()">
+
+      <!-- Step 1: confirm -->
+      <div class="pay-step active" id="payStep1">
+        <div class="pay-popup-header">
+          <span class="popup-title">收银台</span>
+          <div class="popup-close" onclick="closePayPopup()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </div>
+        </div>
+        <div class="pay-popup-amount">
+          <div class="amount" id="popupAmount"><span class="symbol">&yen;</span>96.90</div>
+        </div>
+        <div class="pay-popup-channel">
+          <div class="ch-icon" id="popupChIcon" style="background:var(--wechat-green);">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 01.213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.326.326 0 00.167-.054l1.903-1.114a.864.864 0 01.717-.098 10.16 10.16 0 002.837.403c.276 0 .543-.027.811-.05-.857-2.578.157-4.972 1.932-6.446 1.703-1.415 3.882-1.98 5.853-1.838-.576-3.583-4.196-6.348-8.596-6.348zM5.785 5.991c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 01-1.162 1.178A1.17 1.17 0 014.623 7.17c0-.651.52-1.18 1.162-1.18zm5.813 0c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 01-1.162 1.178 1.17 1.17 0 01-1.162-1.178c0-.651.52-1.18 1.162-1.18zm5.34 2.867c-1.797-.052-3.746.512-5.28 1.786-1.72 1.428-2.687 3.72-1.78 6.22.942 2.453 3.666 4.229 6.884 4.229.826 0 1.622-.12 2.361-.336a.722.722 0 01.598.082l1.584.926a.272.272 0 00.14.045c.133 0 .241-.11.241-.245 0-.06-.023-.12-.038-.177l-.327-1.233a.582.582 0 01-.023-.156.49.49 0 01.201-.398C23.024 18.48 24 16.82 24 14.98c0-3.21-2.931-5.952-7.062-6.122zM14.033 13.4c.535 0 .969.44.969.982a.976.976 0 01-.969.983.976.976 0 01-.969-.983c0-.542.434-.982.97-.982zm4.844 0c.535 0 .969.44.969.982a.976.976 0 01-.969.983.976.976 0 01-.969-.983c0-.542.434-.982.97-.982z"/></svg>
+          </div>
+          <span class="ch-name" id="popupChName">微信支付</span>
+        </div>
+        <div class="pay-popup-beans" id="popupBeans">
+          <span>苏银豆已抵扣</span>
+          <span class="val">-¥100.00（10000苏银豆）</span>
+        </div>
+        <button class="pay-popup-btn" onclick="showPwdStep()">确认支付</button>
+      </div>
+
+      <!-- Step 2: password -->
+      <div class="pay-step" id="payStep2">
+        <div class="pwd-header">
+          <div class="pwd-back" onclick="showConfirmStep()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </div>
+          <span class="pwd-title">请输入支付密码</span>
+        </div>
+        <div class="pwd-body">
+          <div class="pwd-channel-name" id="pwdChannelName">微信支付</div>
+          <div class="pwd-amount" id="pwdAmount"><span class="symbol">&yen;</span>96.90</div>
+          <div class="pwd-grid-wrap">
+            <input type="tel" maxlength="6" class="pwd-hidden-input" id="pwdInput" inputmode="numeric" autocomplete="off">
+            <div class="pwd-grid" id="pwdGrid">
+              <div class="pwd-dot"></div>
+              <div class="pwd-dot"></div>
+              <div class="pwd-dot"></div>
+              <div class="pwd-dot"></div>
+              <div class="pwd-dot"></div>
+              <div class="pwd-dot"></div>
+            </div>
+          </div>
+        </div>
+        <div class="pwd-hint">请输入6位支付密码</div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+<script src="../assets/auth.js"></script>
+<script src="../assets/auth-guard.js"></script>
+<script src="../assets/common.js"></script>
+<script>
+(function() {
+  var currentChannel = 'wechat';
+  var channelData = {
+    wechat: { name: '微信支付', color: 'var(--wechat-green)' },
+    alipay: { name: '支付宝', color: 'var(--info-light)' }
+  };
+
+  window.selectChannel = function(el) {
+    document.querySelectorAll('.pay-channel-item .ch-radio').forEach(function(r) { r.classList.remove('checked'); });
+    el.querySelector('.ch-radio').classList.add('checked');
+    currentChannel = el.dataset.channel;
+  };
+
+  // Countdown: 15min（对齐运营平台订单交易配置默认值，到 0 即订单关闭）
+  var remaining = 14 * 60 + 52;
+  var countdownEl = document.querySelector('.countdown');
+  var btnSubmit = document.querySelector('.btn-submit');
+
+  function updateCountdown() {
+    if (remaining <= 0) {
+      // Truly expired
+      countdownEl.textContent = '订单已关闭';
+      countdownEl.style.color = 'var(--text-tertiary)';
+      countdownEl.style.fontWeight = '500';
+      btnSubmit.disabled = true;
+      btnSubmit.style.opacity = '0.5';
+      return;
+    }
+    remaining--;
+    var m = Math.floor(remaining / 60);
+    var s = remaining % 60;
+    countdownEl.textContent = '剩余支付时间 ' + m + ':' + (s < 10 ? '0' : '') + s;
+  }
+  setInterval(updateCountdown, 1000);
+
+  // Submit
+  window.handleSubmit = function() {
+    var ch = channelData[currentChannel] || channelData.wechat;
+    document.getElementById('popupChIcon').style.background = ch.color;
+    document.getElementById('popupChName').textContent = ch.name;
+    document.getElementById('pwdChannelName').textContent = ch.name;
+
+    // Reset to step 1
+    document.getElementById('payStep1').classList.add('active');
+    document.getElementById('payStep2').classList.remove('active');
+    document.getElementById('pwdInput').value = '';
+    updatePwdDots();
+
+    document.getElementById('payPopupOverlay').classList.add('show');
+    document.getElementById('payPopupOverlay').onclick = function(e) {
+      if (e.target === this) closePayPopup();
+    };
+  };
+
+  window.closePayPopup = function() {
+    document.getElementById('payPopupOverlay').classList.remove('show');
+  };
+
+  window.showPwdStep = function() {
+    document.getElementById('payStep1').classList.remove('active');
+    document.getElementById('payStep2').classList.add('active');
+    document.getElementById('pwdInput').value = '';
+    updatePwdDots();
+    setTimeout(function() { document.getElementById('pwdInput').focus(); }, 100);
+  };
+
+  window.showConfirmStep = function() {
+    document.getElementById('payStep2').classList.remove('active');
+    document.getElementById('payStep1').classList.add('active');
+  };
+
+  function updatePwdDots() {
+    var val = document.getElementById('pwdInput').value;
+    var dots = document.querySelectorAll('.pwd-dot');
+    dots.forEach(function(dot, i) {
+      dot.classList.toggle('filled', i < val.length);
+    });
+  }
+
+  document.getElementById('pwdInput').addEventListener('input', function() {
+    this.value = this.value.replace(/\D/g, '').slice(0, 6);
+    updatePwdDots();
+    if (this.value.length === 6) {
+      setTimeout(function() { location.href = '33.支付成功-原型页面.html'; }, 300);
+    }
+  });
+})();
+</script>
+<script src="../assets/theme-switcher.js"></script>
+</body>
+</html>

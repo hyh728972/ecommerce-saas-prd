@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>在线客服 - 苏银豆商城</title>
+<link rel="stylesheet" href="../assets/common.css">
+<style>
+  /* Fix: chat-area 无 overflow 约束，长对话会把 phone-frame 撑过一屏，
+     absolute 输入条被顶出视口。锁定 phone-frame 为一屏、chat-area 内部滚动（与 JS 的 scrollTop 行为一致）。 */
+  .phone-frame {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Chat area */
+  .chat-area {
+    padding: var(--space-md);
+    padding-bottom: 140px;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    background: var(--bg-color);
+  }
+
+  /* Time divider */
+  .time-divider {
+    text-align: center;
+    margin: var(--space-lg) 0;
+  }
+  .time-divider span {
+    background: rgba(0,0,0,0.1);
+    color: var(--card-bg);
+    font-size: var(--font-sm);
+    padding: 3px var(--space-md);
+    border-radius: var(--radius-md);
+  }
+
+  /* Message bubble */
+  .message-row {
+    display: flex;
+    margin-bottom: var(--space-lg);
+  }
+  .message-row.user {
+    flex-direction: row-reverse;
+  }
+  .message-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: var(--card-bg);
+  }
+  .message-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .message-content {
+    max-width: 70%;
+    margin: 0 var(--space-md);
+  }
+  .message-bubble {
+    padding: var(--space-md) var(--space-lg);
+    border-radius: var(--radius-lg);
+    font-size: var(--font-base);
+    line-height: 1.6;
+    word-break: break-word;
+  }
+  .message-row.service .message-bubble {
+    background: var(--card-bg);
+    color: var(--text-color);
+    border-bottom-left-radius: 4px;
+  }
+  .message-row.user .message-bubble {
+    background: linear-gradient(135deg, var(--primary-start), var(--price-color));
+    color: var(--card-bg);
+    border-bottom-right-radius: 4px;
+  }
+
+  /* Quick questions */
+  .quick-questions {
+    padding: var(--space-md);
+    background: var(--card-bg);
+    border-top: 1px solid var(--border-color);
+  }
+  .quick-title {
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+    margin-bottom: var(--space-sm);
+  }
+  .quick-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+  }
+  .quick-item {
+    background: var(--selected-bg);
+    color: var(--primary-start);
+    font-size: var(--font-sm);
+    padding: var(--space-sm) 12px;
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    border: 1px solid var(--selected-bg);
+  }
+  .quick-item:active { background: var(--selected-bg); }
+
+  /* Input area */
+  .input-area {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--card-bg);
+    border-top: 1px solid var(--border-color);
+    padding: var(--space-md) 12px;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom));
+  }
+  .input-row {
+    display: flex;
+    align-items: flex-end;
+    gap: var(--space-md);
+  }
+  .input-wrapper {
+    flex: 1;
+    background: var(--bg-color);
+    border-radius: var(--radius-xl);
+    padding: var(--space-sm) 14px;
+    display: flex;
+    align-items: center;
+  }
+  .input-wrapper textarea {
+    flex: 1;
+    border: none;
+    outline: none;
+    resize: none;
+    font-size: var(--font-base);
+    background: transparent;
+    color: var(--text-color);
+    max-height: 80px;
+    line-height: 1.4;
+  }
+  .input-wrapper textarea::placeholder { color: var(--text-muted); }
+
+  .input-actions {
+    display: flex;
+    gap: var(--space-sm);
+    flex-shrink: 0;
+  }
+  .action-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--bg-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: none;
+  }
+  .action-btn:active { background: var(--border-color); }
+  .action-btn svg { width: 20px; height: 20px; color: var(--text-secondary); }
+  .action-btn.send {
+    background: linear-gradient(135deg, var(--primary-start), var(--price-color));
+  }
+  .action-btn.send svg { color: var(--card-bg); }
+  .action-btn.send:active { opacity: 0.85; }
+
+  /* Typing indicator */
+  .typing-indicator {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-md) 14px;
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    border-bottom-left-radius: 4px;
+    width: fit-content;
+  }
+  .typing-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--text-light);
+    border-radius: 50%;
+    animation: typing 1.2s infinite;
+  }
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes typing {
+    0%, 60%, 100% { transform: translateY(0); }
+    30% { transform: translateY(-4px); }
+  }
+</style>
+</head>
+<body>
+<div class="phone-frame">
+
+  <!-- Sub-page Navigation -->
+  <div class="sub-nav">
+    <div class="status-bar dark">
+      <span class="time">09:41</span>
+      <div class="icons">
+        <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+      </div>
+    </div>
+    <div class="nav-bar">
+      <div class="back-btn" onclick="history.back()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <span class="nav-title">在线客服</span>
+      <div class="capsule-btn"><img src="../assets/icons/小程序按钮.svg" alt=""></div>
+    </div>
+  </div>
+
+  <!-- Chat Area -->
+  <div class="chat-area" id="chatArea">
+    <div class="time-divider"><span>今天 09:30</span></div>
+  </div>
+
+  <!-- Quick Questions -->
+  <div class="quick-questions" id="quickQuestions">
+    <div class="quick-title">快捷问题</div>
+    <div class="quick-list">
+      <span class="quick-item">如何登录账号</span>
+      <span class="quick-item">积分怎么获取</span>
+      <span class="quick-item">退款多久到账</span>
+      <span class="quick-item">修改收货地址</span>
+      <span class="quick-item">联系人工客服</span>
+    </div>
+  </div>
+
+  <!-- Input Area -->
+  <div class="input-area">
+    <div class="input-row">
+      <div class="input-wrapper">
+        <textarea id="messageInput" placeholder="输入消息..." rows="1"></textarea>
+      </div>
+      <div class="input-actions">
+        <button class="action-btn" onclick="alert('发送图片')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        </button>
+        <button class="action-btn send" id="sendBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+<script src="../assets/common.js"></script>
+<script>
+(function() {
+  var chatArea = document.getElementById('chatArea');
+  var messageInput = document.getElementById('messageInput');
+  var sendBtn = document.getElementById('sendBtn');
+  var quickQuestions = document.getElementById('quickQuestions');
+
+  var autoReplies = {
+    '如何登录账号': '您好，登录非常简单：\n1. 点击"我的"页面\n2. 点击"登录"\n3. 输入手机号获取验证码\n4. 完成登录即可使用商城服务',
+    '积分怎么获取': '苏银豆获取方式如下：\n• 平台发放\n• 礼品卡绑定\n• 积分卡卡密兑换\n\n不提供签到、领券、做任务等获取方式；苏银豆可用于兑换好物或下单抵扣现金',
+    '退款多久到账': '退款到账时间：\n• 苏银豆抵扣部分：即时返还\n• 退款：1-3个工作日\n\n如有疑问可随时联系我们~',
+    '修改收货地址': '您可以通过以下方式修改收货地址：\n1. 进入"我的" → "收货地址"\n2. 点击要修改的地址\n3. 编辑后点击保存\n\n下单时也可以选择或新增地址哦！',
+    '联系人工客服': '您好，我是智能客服小银，很高兴为您服务！\n\n如需转接人工客服，请拨打：\n400-888-0866\n\n工作时间：周一至周日 9:00-21:00'
+  };
+
+  // Initial greeting
+  setTimeout(function() {
+    addMessage('service', '您好，我是智能客服小银，很高兴为您服务！请问有什么可以帮您的？');
+  }, 500);
+
+  function addMessage(type, text) {
+    var row = document.createElement('div');
+    row.className = 'message-row ' + type;
+
+    var avatar = document.createElement('div');
+    avatar.className = 'message-avatar';
+    avatar.innerHTML = type === 'service'
+      ? '<img src="../assets/unsplash/1535713875002-d1d0cf377fde.jpg" alt="">'
+      : '<img src="../assets/unsplash/1494790108377-be9c29b29330.jpg" alt="">';
+
+    var content = document.createElement('div');
+    content.className = 'message-content';
+
+    var bubble = document.createElement('div');
+    bubble.className = 'message-bubble';
+    bubble.textContent = text;
+
+    content.appendChild(bubble);
+    row.appendChild(avatar);
+    row.appendChild(content);
+    chatArea.appendChild(row);
+
+    // Scroll to bottom
+    chatArea.scrollTop = chatArea.scrollHeight;
+  }
+
+  function showTyping() {
+    var row = document.createElement('div');
+    row.className = 'message-row service';
+    row.id = 'typingRow';
+
+    var avatar = document.createElement('div');
+    avatar.className = 'message-avatar';
+    avatar.innerHTML = '<img src="../assets/unsplash/1535713875002-d1d0cf377fde.jpg" alt="">';
+
+    var content = document.createElement('div');
+    content.className = 'message-content';
+
+    var typing = document.createElement('div');
+    typing.className = 'typing-indicator';
+    typing.innerHTML = '<span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>';
+
+    content.appendChild(typing);
+    row.appendChild(avatar);
+    row.appendChild(content);
+    chatArea.appendChild(row);
+    chatArea.scrollTop = chatArea.scrollHeight;
+  }
+
+  function hideTyping() {
+    var typingRow = document.getElementById('typingRow');
+    if (typingRow) typingRow.remove();
+  }
+
+  function sendMessage(text) {
+    if (!text.trim()) return;
+
+    addMessage('user', text);
+    messageInput.value = '';
+
+    // Show typing indicator
+    showTyping();
+
+    // Auto reply
+    setTimeout(function() {
+      hideTyping();
+      var reply = autoReplies[text] || '感谢您的咨询，您的问题已收到，我会尽快为您处理。如需更多帮助，请详细描述您的问题。';
+      addMessage('service', reply);
+    }, 1000);
+  }
+
+  // Send button
+  sendBtn.addEventListener('click', function() {
+    sendMessage(messageInput.value);
+  });
+
+  // Enter to send
+  messageInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage(this.value);
+    }
+  });
+
+  // Quick questions
+  document.querySelectorAll('.quick-item').forEach(function(item) {
+    item.addEventListener('click', function() {
+      sendMessage(this.textContent);
+    });
+  });
+})();
+</script>
+<script src="../assets/theme-switcher.js"></script>
+</body>
+</html>

@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>登录 - 苏银豆商城</title>
+<link rel="stylesheet" href="../assets/common.css">
+<style>
+  .login-container {
+    min-height: 100vh;
+    background: var(--card-bg);
+    display: flex;
+    flex-direction: column;
+    padding: 0 var(--space-xl);
+  }
+
+  /* Logo area */
+  .logo-area {
+    padding-top: 60px;
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  .logo-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(135deg, var(--primary-start), var(--price-color));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto var(--space-md);
+    box-shadow: 0 4px 16px rgba(238, 10, 36, 0.3);
+  }
+  .logo-icon svg { width: 36px; height: 36px; color: var(--card-bg); }
+  .logo-title {
+    font-size: var(--font-2xl);
+    font-weight: 700;
+    color: var(--text-color);
+  }
+  .logo-subtitle {
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+    margin-top: var(--space-xs);
+  }
+
+  /* Form area */
+  .form-area {
+    flex: 1;
+  }
+  .input-group {
+    margin-bottom: var(--space-xl);
+  }
+  .input-group label {
+    display: block;
+    font-size: var(--font-sm);
+    color: var(--text-secondary);
+    margin-bottom: var(--space-sm);
+  }
+  .input-wrapper {
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+    padding: var(--space-sm) 0;
+  }
+  .input-wrapper input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: var(--font-md);
+    color: var(--text-color);
+    background: transparent;
+  }
+  .input-wrapper input::placeholder { color: var(--text-muted); }
+  .input-wrapper .input-suffix {
+    flex-shrink: 0;
+    margin-left: var(--space-md);
+  }
+  .btn-code {
+    font-size: var(--font-sm);
+    color: var(--primary-start);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: var(--space-xs) 0;
+    white-space: nowrap;
+  }
+  .btn-code:disabled {
+    color: var(--text-light);
+    cursor: not-allowed;
+  }
+
+  /* Login button */
+  .btn-login {
+    width: 100%;
+    height: 48px;
+    background: linear-gradient(135deg, var(--primary-start), var(--price-color));
+    color: var(--card-bg);
+    border: none;
+    border-radius: var(--radius-xl);
+    font-size: var(--font-md);
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: var(--space-2xl);
+  }
+  .btn-login:active { opacity: 0.85; }
+  .btn-login:disabled {
+    background: var(--text-light);
+    cursor: not-allowed;
+  }
+
+  /* Other login */
+  .other-login {
+    margin-top: 40px;
+    text-align: center;
+  }
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: var(--space-lg);
+    margin-bottom: var(--space-xl);
+  }
+  .divider::before,
+  .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-color);
+  }
+  .divider span {
+    font-size: var(--font-sm);
+    color: var(--text-muted);
+  }
+  .social-login {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-2xl);
+  }
+  .social-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-sm);
+    cursor: pointer;
+  }
+  .social-item:active { opacity: 0.7; }
+  .social-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .social-icon.wechat { background: var(--wechat-green); }
+  .social-icon.wechat svg { width: 28px; height: 28px; color: var(--card-bg); }
+  .social-item span { font-size: var(--font-sm); color: var(--text-secondary); }
+
+  /* Agreement */
+  .agreement {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-sm);
+    margin-top: var(--space-lg);
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+    line-height: 1.5;
+  }
+  .agreement input {
+    margin-top: 3px;
+  }
+  .agreement a { color: var(--primary-start); }
+
+  /* WeChat auth popup */
+  .auth-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  .auth-overlay.show { display: flex; }
+  .auth-popup {
+    width: 280px;
+    background: var(--card-bg);
+    border-radius: var(--radius-md);
+    padding: var(--space-xl);
+    text-align: center;
+  }
+  .auth-popup .auth-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--wechat-green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto var(--space-md);
+  }
+  .auth-popup .auth-icon svg { width: 28px; height: 28px; color: var(--card-bg); }
+  .auth-popup .auth-title {
+    font-size: var(--font-md);
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: var(--space-sm);
+  }
+  .auth-popup .auth-desc {
+    font-size: var(--font-sm);
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: var(--space-lg);
+  }
+  .auth-popup .auth-user-preview {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+    padding: var(--space-md);
+    background: var(--bg-color);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-lg);
+  }
+  .auth-popup .auth-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--text-disabled);
+    overflow: hidden;
+  }
+  .auth-popup .auth-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .auth-popup .auth-nickname {
+    font-size: var(--font-base);
+    color: var(--text-color);
+  }
+  .auth-popup .auth-buttons {
+    display: flex;
+    gap: var(--space-md);
+  }
+  .auth-popup .btn-reject {
+    flex: 1;
+    height: 40px;
+    background: var(--bg-color);
+    color: var(--text-secondary);
+    border: none;
+    border-radius: var(--radius-xl);
+    font-size: var(--font-base);
+    cursor: pointer;
+  }
+  .auth-popup .btn-allow {
+    flex: 1;
+    height: 40px;
+    background: var(--wechat-green);
+    color: var(--card-bg);
+    border: none;
+    border-radius: var(--radius-xl);
+    font-size: var(--font-base);
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .auth-popup .btn-reject:active { background: var(--border-color); }
+  .auth-popup .btn-allow:active { opacity: 0.85; }
+
+  /* Bind phone popup */
+  .bind-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1001;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  .bind-overlay.show { display: flex; }
+  .bind-popup {
+    width: 300px;
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl) 20px 20px;
+  }
+  .bind-popup .bind-header {
+    text-align: center;
+    margin-bottom: var(--space-xl);
+  }
+  .bind-popup .bind-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-start), var(--price-color));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto var(--space-md);
+  }
+  .bind-popup .bind-icon svg { width: 24px; height: 24px; color: var(--card-bg); }
+  .bind-popup .bind-title {
+    font-size: var(--font-md);
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: var(--space-xs);
+  }
+  .bind-popup .bind-desc {
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+    line-height: 1.5;
+  }
+  .bind-popup .bind-field {
+    margin-bottom: var(--space-lg);
+  }
+  .bind-popup .bind-field label {
+    display: block;
+    font-size: var(--font-sm);
+    color: var(--text-secondary);
+    margin-bottom: var(--space-sm);
+  }
+  .bind-popup .bind-input-row {
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+  .bind-popup .bind-input-row input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: var(--font-base);
+    color: var(--text-color);
+    padding: var(--space-md) 12px;
+    background: transparent;
+  }
+  .bind-popup .bind-input-row input::placeholder { color: var(--text-muted); }
+  .bind-popup .bind-input-row .bind-code-btn {
+    flex-shrink: 0;
+    font-size: var(--font-sm);
+    color: var(--primary-start);
+    background: transparent;
+    border: none;
+    border-left: 1px solid var(--border-color);
+    padding: var(--space-md) 12px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .bind-popup .bind-input-row .bind-code-btn:disabled {
+    color: var(--text-light);
+    cursor: not-allowed;
+  }
+  .bind-popup .btn-bind {
+    width: 100%;
+    height: 42px;
+    background: linear-gradient(135deg, var(--primary-start), var(--price-color));
+    color: var(--card-bg);
+    border: none;
+    border-radius: var(--radius-xl);
+    font-size: var(--font-md);
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: var(--space-xs);
+  }
+  .bind-popup .btn-bind:active { opacity: 0.85; }
+
+  /* WeChat info choose popup */
+  .wxinfo-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1002;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  .wxinfo-overlay.show { display: flex; }
+  .wxinfo-popup {
+    width: 300px;
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl) 20px 20px;
+    text-align: center;
+  }
+  .wxinfo-popup .wxinfo-title {
+    font-size: var(--font-lg);
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: var(--space-sm);
+  }
+  .wxinfo-popup .wxinfo-desc {
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+    line-height: 1.5;
+    margin-bottom: var(--space-xl);
+  }
+  .wxinfo-options {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+  .wxinfo-opt {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-md);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: border-color 0.2s;
+    text-align: left;
+  }
+  .wxinfo-opt:active { border-color: var(--primary-start); }
+  .wxinfo-opt.selected { border-color: var(--primary-start); background: var(--selected-bg); }
+  .wxinfo-opt .wxinfo-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: var(--border-divider);
+  }
+  .wxinfo-opt .wxinfo-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .wxinfo-opt .wxinfo-text { flex: 1; }
+  .wxinfo-opt .wxinfo-name {
+    font-size: var(--font-base);
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: 2px;
+  }
+  .wxinfo-opt .wxinfo-label {
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+  }
+  .wxinfo-opt .wxinfo-check {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--text-disabled);
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .wxinfo-opt.selected .wxinfo-check {
+    background: var(--primary-start);
+    border-color: var(--primary-start);
+  }
+  .wxinfo-opt.selected .wxinfo-check::after {
+    content: '';
+    width: 6px;
+    height: 10px;
+    border: 2px solid var(--card-bg);
+    border-top: none;
+    border-left: none;
+    transform: rotate(45deg) translateY(-1px);
+  }
+  .btn-wxinfo-confirm {
+    width: 100%;
+    height: 44px;
+    background: linear-gradient(135deg, var(--primary-start), var(--price-color));
+    color: var(--card-bg);
+    border: none;
+    border-radius: var(--radius-xl);
+    font-size: var(--font-md);
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: var(--space-lg);
+  }
+  .btn-wxinfo-confirm:active { opacity: 0.85; }
+</style>
+</head>
+<body>
+<div class="phone-frame">
+
+  <div class="login-container">
+    <!-- Logo -->
+    <div class="logo-area">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      </div>
+      <div class="logo-title">苏银豆商城</div>
+      <div class="logo-subtitle">江苏银行专属积分商城</div>
+    </div>
+
+    <!-- Form -->
+    <div class="form-area">
+      <div class="input-group">
+        <label>手机号</label>
+        <div class="input-wrapper">
+          <input type="tel" id="phone" placeholder="请输入手机号" maxlength="11">
+        </div>
+      </div>
+      <div class="input-group">
+        <label>验证码</label>
+        <div class="input-wrapper">
+          <input type="text" id="code" placeholder="请输入验证码" maxlength="6">
+          <div class="input-suffix">
+            <button class="btn-code" id="sendCode">获取验证码</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="agreement">
+        <input type="checkbox" id="agree" checked>
+        <label for="agree">登录即表示同意 <a href="#">《用户协议》</a>和<a href="#">《隐私政策》</a></label>
+      </div>
+
+      <button class="btn-login" id="loginBtn">登 录</button>
+
+      <!-- Other login methods -->
+      <div class="other-login">
+        <div class="divider"><span>其他登录方式</span></div>
+        <div class="social-login">
+          <div class="social-item" id="wechatLoginBtn">
+            <div class="social-icon wechat">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 01.213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.326.326 0 00.167-.054l1.903-1.114a.864.864 0 01.717-.098 10.16 10.16 0 002.837.403c.276 0 .543-.027.811-.05-.857-2.578.157-4.972 1.932-6.446 1.703-1.415 3.882-1.98 5.853-1.838-.576-3.583-4.196-6.348-8.596-6.348zM5.785 5.991c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 01-1.162 1.178A1.17 1.17 0 014.623 7.17c0-.651.52-1.18 1.162-1.18zm5.813 0c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 01-1.162 1.178 1.17 1.17 0 01-1.162-1.178c0-.651.52-1.18 1.162-1.18zm5.34 2.867c-1.797-.052-3.746.512-5.28 1.786-1.72 1.428-2.687 3.72-1.78 6.22.942 2.453 3.666 4.229 6.884 4.229.826 0 1.622-.12 2.361-.336a.722.722 0 01.598.082l1.584.926a.272.272 0 00.139.045c.133 0 .241-.108.241-.243 0-.06-.023-.118-.039-.177l-.326-1.233a.49.49 0 01.178-.553c1.527-1.124 2.502-2.79 2.502-4.635 0-3.25-3.004-6.054-7.062-6.111zm-1.739 2.769c.535 0 .969.44.969.983a.976.976 0 01-.969.983.976.976 0 01-.969-.983c0-.542.434-.983.969-.983zm4.844 0c.535 0 .969.44.969.983a.976.976 0 01-.969.983.976.976 0 01-.969-.983c0-.542.434-.983.969-.983z"/></svg>
+            </div>
+            <span>微信登录</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WeChat Auth Popup -->
+  <div class="auth-overlay" id="authOverlay">
+    <div class="auth-popup">
+      <div class="auth-icon">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 01.213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.326.326 0 00.167-.054l1.903-1.114a.864.864 0 01.717-.098 10.16 10.16 0 002.837.403c.276 0 .543-.027.811-.05-.857-2.578.157-4.972 1.932-6.446 1.703-1.415 3.882-1.98 5.853-1.838-.576-3.583-4.196-6.348-8.596-6.348zM5.785 5.991c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 01-1.162 1.178A1.17 1.17 0 014.623 7.17c0-.651.52-1.18 1.162-1.18zm5.813 0c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 01-1.162 1.178 1.17 1.17 0 01-1.162-1.178c0-.651.52-1.18 1.162-1.18zm5.34 2.867c-1.797-.052-3.746.512-5.28 1.786-1.72 1.428-2.687 3.72-1.78 6.22.942 2.453 3.666 4.229 6.884 4.229.826 0 1.622-.12 2.361-.336a.722.722 0 01.598.082l1.584.926a.272.272 0 00.139.045c.133 0 .241-.108.241-.243 0-.06-.023-.118-.039-.177l-.326-1.233a.49.49 0 01.178-.553c1.527-1.124 2.502-2.79 2.502-4.635 0-3.25-3.004-6.054-7.062-6.111zm-1.739 2.769c.535 0 .969.44.969.983a.976.976 0 01-.969.983.976.976 0 01-.969-.983c0-.542.434-.983.969-.983zm4.844 0c.535 0 .969.44.969.983a.976.976 0 01-.969.983.976.976 0 01-.969-.983c0-.542.434-.983.969-.983z"/></svg>
+      </div>
+      <div class="auth-title">微信授权登录</div>
+      <div class="auth-desc">申请获取您的微信昵称、头像及手机号，用于快速登录苏银豆商城</div>
+      <div class="auth-user-preview">
+        <div class="auth-avatar"><img src="../assets/unsplash/1535713875002-d1d0cf377fde.jpg" alt=""></div>
+        <span class="auth-nickname">微信用户</span>
+      </div>
+      <div class="auth-buttons">
+        <button class="btn-reject" id="btnReject">拒绝</button>
+        <button class="btn-allow" id="btnAllow">允许</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bind Phone Popup -->
+  <div class="bind-overlay" id="bindOverlay">
+    <div class="bind-popup">
+      <div class="bind-header">
+        <div class="bind-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+        </div>
+        <div class="bind-title">绑定手机号</div>
+        <div class="bind-desc">首次使用微信登录需绑定手机号，将关联您的企业员工账号</div>
+      </div>
+      <div class="bind-field">
+        <label>手机号</label>
+        <div class="bind-input-row">
+          <input type="tel" id="bindPhone" placeholder="请输入手机号" maxlength="11">
+        </div>
+      </div>
+      <div class="bind-field">
+        <label>验证码</label>
+        <div class="bind-input-row">
+          <input type="text" id="bindCode" placeholder="请输入验证码" maxlength="6">
+          <button class="bind-code-btn" id="bindSendCode">获取验证码</button>
+        </div>
+      </div>
+      <button class="btn-bind" id="bindConfirmBtn">确认绑定</button>
+    </div>
+  </div>
+
+  <!-- WeChat Info Choose Popup -->
+  <div class="wxinfo-overlay" id="wxinfoOverlay">
+    <div class="wxinfo-popup">
+      <div class="wxinfo-title">设置个人信息</div>
+      <div class="wxinfo-desc">是否使用微信头像和昵称？</div>
+      <div class="wxinfo-options">
+        <div class="wxinfo-opt selected" id="wxinfoUse" data-choice="use">
+          <div class="wxinfo-avatar">
+            <img src="../assets/unsplash/1535713875002-d1d0cf377fde.jpg" alt="">
+          </div>
+          <div class="wxinfo-text">
+            <div class="wxinfo-name">微信用户</div>
+            <div class="wxinfo-label">使用微信头像和昵称</div>
+          </div>
+          <div class="wxinfo-check"></div>
+        </div>
+        <div class="wxinfo-opt" id="wxinfoSkip" data-choice="skip">
+          <div class="wxinfo-avatar">
+            <img src="../assets/icons/default-avatar.svg" alt="">
+          </div>
+          <div class="wxinfo-text">
+            <div class="wxinfo-name">随机昵称</div>
+            <div class="wxinfo-label">使用默认头像和随机昵称</div>
+          </div>
+          <div class="wxinfo-check"></div>
+        </div>
+      </div>
+      <button class="btn-wxinfo-confirm" id="wxinfoConfirmBtn">确认</button>
+    </div>
+  </div>
+
+</div>
+<script src="../assets/common.js"></script>
+<script src="../assets/auth.js"></script>
+<script>
+(function() {
+  // Clean up stale temp sessions from incomplete WeChat login
+  Auth.clearTempSession();
+
+  // If already logged in, redirect to home
+  if (Auth.isLoggedIn()) {
+    location.href = '10.首页-原型页面.html';
+    return;
+  }
+
+  var phone = document.getElementById('phone');
+  var code = document.getElementById('code');
+  var sendCode = document.getElementById('sendCode');
+  var loginBtn = document.getElementById('loginBtn');
+  var agree = document.getElementById('agree');
+  var wechatLoginBtn = document.getElementById('wechatLoginBtn');
+  var authOverlay = document.getElementById('authOverlay');
+  var btnReject = document.getElementById('btnReject');
+  var btnAllow = document.getElementById('btnAllow');
+  var bindOverlay = document.getElementById('bindOverlay');
+  var bindPhone = document.getElementById('bindPhone');
+  var bindCode = document.getElementById('bindCode');
+  var bindSendCode = document.getElementById('bindSendCode');
+  var bindConfirmBtn = document.getElementById('bindConfirmBtn');
+  var wxinfoOverlay = document.getElementById('wxinfoOverlay');
+  var wxinfoOpts = document.querySelectorAll('.wxinfo-opt');
+  var wxinfoConfirmBtn = document.getElementById('wxinfoConfirmBtn');
+
+  var countdown = 0;
+  var timer = null;
+
+  // Show toast
+  function showToast(msg) {
+    var toast = document.createElement('div');
+    toast.textContent = msg;
+    toast.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.7);color:var(--card-bg);padding:var(--space-sm) var(--space-xl);border-radius:var(--radius-sm);font-size:var(--font-base);z-index:9999;';
+    document.body.appendChild(toast);
+    setTimeout(function() { document.body.removeChild(toast); }, 1500);
+  }
+
+  // WeChat login popup
+  wechatLoginBtn.addEventListener('click', function() {
+    authOverlay.classList.add('show');
+  });
+
+  // Reject
+  btnReject.addEventListener('click', function() {
+    authOverlay.classList.remove('show');
+    showToast('需要授权才能登录');
+  });
+
+  // Allow - authorize then show bind phone popup
+  btnAllow.addEventListener('click', function() {
+    authOverlay.classList.remove('show');
+    Auth.loginWithWeChat();
+    bindOverlay.classList.add('show');
+  });
+
+  // Close popup when clicking overlay
+  authOverlay.addEventListener('click', function(e) {
+    if (e.target === authOverlay) {
+      authOverlay.classList.remove('show');
+    }
+  });
+
+  // Close bind popup when clicking overlay — clean up temp session
+  bindOverlay.addEventListener('click', function(e) {
+    if (e.target === bindOverlay) {
+      bindOverlay.classList.remove('show');
+      Auth.clearTempSession();
+      showToast('已取消微信登录');
+    }
+  });
+
+  // Bind phone: send code
+  var bindCountdown = 0;
+  var bindTimer = null;
+
+  bindSendCode.addEventListener('click', function() {
+    var phoneVal = bindPhone.value.trim();
+    if (!phoneVal) {
+      alert('请输入手机号');
+      return;
+    }
+    if (!/^1\d{10}$/.test(phoneVal)) {
+      alert('请输入正确的手机号');
+      return;
+    }
+    if (bindCountdown > 0) return;
+
+    bindCountdown = 60;
+    bindSendCode.disabled = true;
+    bindSendCode.textContent = bindCountdown + 's';
+
+    bindTimer = setInterval(function() {
+      bindCountdown--;
+      if (bindCountdown <= 0) {
+        clearInterval(bindTimer);
+        bindSendCode.disabled = false;
+        bindSendCode.textContent = '获取验证码';
+      } else {
+        bindSendCode.textContent = bindCountdown + 's';
+      }
+    }, 1000);
+
+    alert('验证码已发送');
+  });
+
+  // Bind phone: confirm
+  bindConfirmBtn.addEventListener('click', function() {
+    var phoneVal = bindPhone.value.trim();
+    var codeVal = bindCode.value.trim();
+
+    if (!phoneVal) {
+      alert('请输入手机号');
+      return;
+    }
+    if (!/^1\d{10}$/.test(phoneVal)) {
+      alert('请输入正确的手机号');
+      return;
+    }
+    if (!codeVal) {
+      alert('请输入验证码');
+      return;
+    }
+
+    if (!Auth.isRegistered(phoneVal)) {
+      alert('该手机号尚未开通商城服务，请联系企业管理员开通');
+      return;
+    }
+
+    var result = Auth.bindPhoneToWeChat(phoneVal);
+    if (result.error === 'already_bound') {
+      alert('该手机号已绑定其他微信，请更换手机号或使用手机号登录');
+      return;
+    }
+    bindOverlay.classList.remove('show');
+
+    // New WeChat user: show info selection popup
+    if (result.isWechat) {
+      wxinfoOverlay.classList.add('show');
+      return;
+    }
+
+    // Existing user merged
+    showToast(result.isNew ? '登录成功，正在跳转...' : '绑定成功，正在登录...');
+    setTimeout(function() {
+      location.href = '10.首页-原型页面.html';
+    }, 1500);
+  });
+
+  // WeChat info option toggle
+  wxinfoOpts.forEach(function(opt) {
+    opt.addEventListener('click', function() {
+      wxinfoOpts.forEach(function(o) { o.classList.remove('selected'); });
+      this.classList.add('selected');
+    });
+  });
+
+  // WeChat info confirm
+  wxinfoConfirmBtn.addEventListener('click', function() {
+    var selected = document.querySelector('.wxinfo-opt.selected');
+    if (selected.dataset.choice === 'use') {
+      Auth.applyWeChatInfo();
+    } else {
+      Auth.applyRandomInfo();
+    }
+    wxinfoOverlay.classList.remove('show');
+    showToast('登录成功，正在跳转...');
+    setTimeout(function() {
+      location.href = '10.首页-原型页面.html';
+    }, 1500);
+  });
+
+  // Send code
+  sendCode.addEventListener('click', function() {
+    var phoneVal = phone.value.trim();
+    if (!phoneVal) {
+      alert('请输入手机号');
+      return;
+    }
+    if (!/^1\d{10}$/.test(phoneVal)) {
+      alert('请输入正确的手机号');
+      return;
+    }
+    if (countdown > 0) return;
+
+    countdown = 60;
+    sendCode.disabled = true;
+    sendCode.textContent = countdown + 's';
+
+    timer = setInterval(function() {
+      countdown--;
+      if (countdown <= 0) {
+        clearInterval(timer);
+        sendCode.disabled = false;
+        sendCode.textContent = '获取验证码';
+      } else {
+        sendCode.textContent = countdown + 's';
+      }
+    }, 1000);
+
+    alert('验证码已发送');
+  });
+
+  // Login
+  loginBtn.addEventListener('click', function() {
+    var phoneVal = phone.value.trim();
+    var codeVal = code.value.trim();
+
+    if (!phoneVal) {
+      alert('请输入手机号');
+      return;
+    }
+    if (!/^1\d{10}$/.test(phoneVal)) {
+      alert('请输入正确的手机号');
+      return;
+    }
+    if (!codeVal) {
+      alert('请输入验证码');
+      return;
+    }
+    if (!agree.checked) {
+      alert('请阅读并同意用户协议');
+      return;
+    }
+
+    if (!Auth.isRegistered(phoneVal)) {
+      alert('该手机号尚未开通商城服务，请联系企业管理员开通');
+      return;
+    }
+    Auth.loginWithPhone(phoneVal);
+    alert('登录成功');
+    location.href = '10.首页-原型页面.html';
+  });
+})();
+</script>
+<script src="../assets/theme-switcher.js"></script>
+</body>
+</html>

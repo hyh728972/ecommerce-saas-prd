@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>修改手机号 - 苏银豆商城</title>
+<link rel="stylesheet" href="../assets/common.css">
+<style>
+  .change-phone-content {
+    padding: var(--space-xl) 16px;
+  }
+
+  /* Current phone */
+  .current-phone-section {
+    background: var(--card-bg);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    margin-bottom: var(--space-xl);
+    text-align: center;
+  }
+  .current-phone-label {
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+    margin-bottom: var(--space-sm);
+  }
+  .current-phone-value {
+    font-size: var(--font-xl);
+    font-weight: 600;
+    color: var(--text-color);
+  }
+
+  /* Steps */
+  .steps-section {
+    margin-bottom: var(--space-xl);
+  }
+  .step-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-xl);
+  }
+  .step-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+  .step-num {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--text-disabled);
+    color: var(--card-bg);
+    font-size: var(--font-sm);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .step-num.active { background: var(--primary-start); }
+  .step-text {
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+  }
+  .step-text.active { color: var(--text-color); font-weight: 500; }
+  .step-line {
+    width: 40px;
+    height: 2px;
+    background: var(--text-disabled);
+  }
+  .step-line.active { background: var(--primary-start); }
+
+  /* Form */
+  .form-section {
+    background: var(--card-bg);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    margin-bottom: var(--space-md);
+  }
+  .form-title {
+    font-size: var(--font-base);
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: var(--space-lg);
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+  .form-title svg { width: 16px; height: 16px; color: var(--primary-start); }
+
+  .input-group {
+    margin-bottom: var(--space-lg);
+  }
+  .input-group:last-child { margin-bottom: 0; }
+  .input-group label {
+    display: block;
+    font-size: var(--font-sm);
+    color: var(--text-secondary);
+    margin-bottom: var(--space-sm);
+  }
+  .input-wrapper {
+    display: flex;
+    align-items: center;
+    background: var(--bg-color);
+    border-radius: var(--radius-sm);
+    padding: var(--space-md) 14px;
+    gap: var(--space-md);
+  }
+  .input-wrapper input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: var(--font-base);
+    color: var(--text-color);
+    background: transparent;
+  }
+  .input-wrapper input::placeholder { color: var(--text-muted); }
+  .input-wrapper .input-suffix {
+    flex-shrink: 0;
+  }
+
+  .btn-code {
+    font-size: var(--font-sm);
+    color: var(--primary-start);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: var(--space-xs) 0;
+    white-space: nowrap;
+  }
+  .btn-code:disabled {
+    color: var(--text-light);
+    cursor: not-allowed;
+  }
+
+  /* Submit button */
+  .btn-submit {
+    width: 100%;
+    height: 48px;
+    background: linear-gradient(135deg, var(--primary-start), var(--price-color));
+    color: var(--card-bg);
+    border: none;
+    border-radius: var(--radius-xl);
+    font-size: var(--font-md);
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: var(--space-xl);
+  }
+  .btn-submit:active { opacity: 0.85; }
+  .btn-submit:disabled {
+    background: var(--text-light);
+    cursor: not-allowed;
+  }
+
+  /* Tips */
+  .tips-section {
+    margin-top: var(--space-xl);
+    padding: var(--space-md);
+    background: var(--selected-bg);
+    border-radius: var(--radius-sm);
+  }
+  .tips-title {
+    font-size: var(--font-sm);
+    font-weight: 600;
+    color: var(--primary-start);
+    margin-bottom: var(--space-sm);
+  }
+  .tips-item {
+    font-size: var(--font-sm);
+    color: var(--text-secondary);
+    line-height: 1.6;
+    padding-left: var(--space-md);
+    position: relative;
+  }
+  .tips-item::before {
+    content: '•';
+    position: absolute;
+    left: 0;
+    color: var(--primary-start);
+  }
+
+  /* Hide sections for step switching */
+  .step-content { display: none; }
+  .step-content.active { display: block; }
+</style>
+</head>
+<body>
+<div class="phone-frame">
+
+  <!-- Sub-page Navigation -->
+  <div class="sub-nav">
+    <div class="status-bar dark">
+      <span class="time">09:41</span>
+      <div class="icons">
+        <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+      </div>
+    </div>
+    <div class="nav-bar">
+      <div class="back-btn" onclick="history.back()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <span class="nav-title">修改手机号</span>
+      <div class="capsule-btn"><img src="../assets/icons/小程序按钮.svg" alt=""></div>
+    </div>
+  </div>
+
+  <!-- Scrollable Content -->
+  <div class="page-scroll">
+    <div class="change-phone-content">
+
+      <!-- Current Phone -->
+      <div class="current-phone-section">
+        <div class="current-phone-label">当前绑定手机号</div>
+        <div class="current-phone-value">138****8888</div>
+      </div>
+
+      <!-- Steps Indicator -->
+      <div class="steps-section">
+        <div class="step-indicator">
+          <div class="step-item" id="step1Item">
+            <div class="step-num active" id="step1Num">1</div>
+            <span class="step-text active" id="step1Text">验证旧手机</span>
+          </div>
+          <div class="step-line" id="stepLine"></div>
+          <div class="step-item" id="step2Item">
+            <div class="step-num" id="step2Num">2</div>
+            <span class="step-text" id="step2Text">绑定新手机</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 1: Verify Old Phone -->
+      <div class="step-content active" id="step1Content">
+        <div class="form-section">
+          <div class="form-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+            验证当前手机号
+          </div>
+          <div class="input-group">
+            <label>验证码</label>
+            <div class="input-wrapper">
+              <input type="text" id="oldCode" placeholder="请输入验证码" maxlength="6">
+              <div class="input-suffix">
+                <button class="btn-code" id="sendOldCode">获取验证码</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button class="btn-submit" id="verifyOldBtn">下一步</button>
+      </div>
+
+      <!-- Step 2: Bind New Phone -->
+      <div class="step-content" id="step2Content">
+        <div class="form-section">
+          <div class="form-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
+            绑定新手机号
+          </div>
+          <div class="input-group">
+            <label>新手机号</label>
+            <div class="input-wrapper">
+              <input type="tel" id="newPhone" placeholder="请输入新手机号" maxlength="11">
+            </div>
+          </div>
+          <div class="input-group">
+            <label>验证码</label>
+            <div class="input-wrapper">
+              <input type="text" id="newCode" placeholder="请输入验证码" maxlength="6">
+              <div class="input-suffix">
+                <button class="btn-code" id="sendNewCode">获取验证码</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button class="btn-submit" id="bindNewBtn">确认修改</button>
+      </div>
+
+      <!-- Tips -->
+      <div class="tips-section">
+        <div class="tips-title">温馨提示</div>
+        <div class="tips-item">修改手机号后，原手机号将无法用于登录</div>
+        <div class="tips-item">新手机号必须是未注册过的手机号</div>
+        <div class="tips-item">如手机号已丢失，请联系客服人工处理</div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+<script src="../assets/auth.js"></script>
+<script src="../assets/auth-guard.js"></script>
+<script src="../assets/common.js"></script>
+<script>
+(function() {
+  var currentStep = 1;
+
+  var step1Content = document.getElementById('step1Content');
+  var step2Content = document.getElementById('step2Content');
+  var step1Num = document.getElementById('step1Num');
+  var step2Num = document.getElementById('step2Num');
+  var step1Text = document.getElementById('step1Text');
+  var step2Text = document.getElementById('step2Text');
+  var stepLine = document.getElementById('stepLine');
+
+  var oldCode = document.getElementById('oldCode');
+  var sendOldCode = document.getElementById('sendOldCode');
+  var verifyOldBtn = document.getElementById('verifyOldBtn');
+
+  var newPhone = document.getElementById('newPhone');
+  var newCode = document.getElementById('newCode');
+  var sendNewCode = document.getElementById('sendNewCode');
+  var bindNewBtn = document.getElementById('bindNewBtn');
+
+  var countdown = 0;
+  var timer = null;
+
+  function startCountdown(btn) {
+    countdown = 60;
+    btn.disabled = true;
+    btn.textContent = countdown + 's';
+    timer = setInterval(function() {
+      countdown--;
+      if (countdown <= 0) {
+        clearInterval(timer);
+        btn.disabled = false;
+        btn.textContent = '获取验证码';
+      } else {
+        btn.textContent = countdown + 's';
+      }
+    }, 1000);
+  }
+
+  function goToStep2() {
+    currentStep = 2;
+    step1Content.classList.remove('active');
+    step2Content.classList.add('active');
+    step1Num.classList.remove('active');
+    step2Num.classList.add('active');
+    step1Text.classList.remove('active');
+    step2Text.classList.add('active');
+    stepLine.classList.add('active');
+  }
+
+  // Send code for old phone
+  sendOldCode.addEventListener('click', function() {
+    if (countdown > 0) return;
+    startCountdown(this);
+    alert('验证码已发送至138****8888');
+  });
+
+  // Verify old phone
+  verifyOldBtn.addEventListener('click', function() {
+    var code = oldCode.value.trim();
+    if (!code) {
+      alert('请输入验证码');
+      return;
+    }
+    if (code.length !== 6) {
+      alert('请输入6位验证码');
+      return;
+    }
+    alert('验证成功');
+    goToStep2();
+  });
+
+  // Send code for new phone
+  sendNewCode.addEventListener('click', function() {
+    var phone = newPhone.value.trim();
+    if (!phone) {
+      alert('请输入新手机号');
+      return;
+    }
+    if (!/^1\d{10}$/.test(phone)) {
+      alert('请输入正确的手机号');
+      return;
+    }
+    if (countdown > 0) return;
+    startCountdown(this);
+    alert('验证码已发送');
+  });
+
+  // Bind new phone
+  bindNewBtn.addEventListener('click', function() {
+    var phone = newPhone.value.trim();
+    var code = newCode.value.trim();
+
+    if (!phone) {
+      alert('请输入新手机号');
+      return;
+    }
+    if (!/^1\d{10}$/.test(phone)) {
+      alert('请输入正确的手机号');
+      return;
+    }
+    if (!code) {
+      alert('请输入验证码');
+      return;
+    }
+    if (code.length !== 6) {
+      alert('请输入6位验证码');
+      return;
+    }
+
+    alert('手机号修改成功');
+    location.href = '85.设置-原型页面.html';
+  });
+})();
+</script>
+<script src="../assets/theme-switcher.js"></script>
+</body>
+</html>

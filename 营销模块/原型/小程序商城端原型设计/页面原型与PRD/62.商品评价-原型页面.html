@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>全部评价 - 苏银豆商城</title>
+<link rel="stylesheet" href="../assets/common.css">
+<style>
+  /* Filter tags — P1 chip wrap, one row by default */
+  .filter-bar {
+    background: var(--card-bg);
+    padding: var(--space-md) 12px var(--space-sm);
+    flex-shrink: 0;
+  }
+  .filter-row,
+  .filter-extra-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+    align-items: center;
+  }
+  .filter-extra-row {
+    display: none;
+    margin-top: var(--space-sm);
+  }
+  .filter-bar.expanded .filter-extra-row { display: flex; }
+  .filter-bar.expanded .filter-more svg { transform: rotate(180deg); }
+  .filter-tag {
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: var(--font-sm);
+    color: var(--text-color);
+    background: var(--bg-color);
+    cursor: pointer;
+    white-space: nowrap;
+    line-height: 1.4;
+  }
+  .filter-tag:active { opacity: 0.7; }
+  .filter-tag.active {
+    background: var(--selected-bg);
+    color: var(--primary-start);
+    font-weight: 500;
+  }
+  .filter-tag .tag-count { font-size: var(--font-xs); margin-left: 2px; }
+  .filter-more {
+    width: 28px;
+    height: 26px;
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-color);
+    border-radius: 4px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+  }
+  .filter-more svg { width: 12px; height: 12px; transition: transform 0.2s; }
+
+  /* Fix phone-frame so the spec drawer sticks to the visible bottom */
+  .phone-frame {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .page-scroll {
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* Sort + SKU select — P1 */
+  .sort-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--card-bg);
+    padding: 6px 12px 12px;
+    border-bottom: 1px solid var(--border-color);
+    position: relative;
+    gap: var(--space-sm);
+    flex-shrink: 0;
+  }
+  .review-hint {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+    font-size: var(--font-xs);
+    color: var(--text-tertiary);
+  }
+  .review-hint svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+  .sku-select svg { width: 12px; height: 12px; }
+  .sku-select {
+    position: relative;
+    font-size: var(--font-xs);
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    cursor: pointer;
+    max-width: 48%;
+    flex-shrink: 0;
+  }
+  .sku-select .sku-select-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Spec drawer — aligned with 商品详情 */
+  .spec-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 300;
+    display: none;
+  }
+  .spec-overlay.show { display: block; }
+  .spec-popup {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--card-bg);
+    border-radius: var(--radius-lg) 16px 0 0;
+    z-index: 301;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+    max-height: 75vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .spec-popup.show { transform: translateY(0); }
+  .spec-popup-header {
+    display: flex;
+    gap: var(--space-md);
+    padding: var(--space-lg);
+    border-bottom: 1px solid var(--bg-color);
+    position: relative;
+    flex-shrink: 0;
+  }
+  .spec-popup-header .thumb {
+    width: 72px;
+    height: 72px;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    flex-shrink: 0;
+    background: var(--bg-input);
+  }
+  .spec-popup-header .thumb img { width: 100%; height: 100%; object-fit: contain; }
+  .spec-popup-header .info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding-top: 2px;
+    padding-right: 28px;
+  }
+  .spec-popup-header .popup-title {
+    font-size: var(--font-sm);
+    font-weight: 600;
+    color: var(--text-color);
+    line-height: 1.4;
+    word-break: break-word;
+  }
+  .spec-popup-header .popup-selected {
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+    margin-top: 6px;
+  }
+  .spec-popup-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-tertiary);
+  }
+  .spec-popup-close svg { width: 18px; height: 18px; }
+  .spec-popup-body {
+    padding: var(--space-lg);
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+  }
+  .spec-group-title { font-size: var(--font-sm); color: var(--text-color); font-weight: 600; margin-bottom: var(--space-md); }
+  .spec-options { display: flex; flex-wrap: wrap; gap: var(--space-sm); }
+  .spec-option {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-xs);
+    padding-right: 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--text-disabled);
+    background: var(--card-bg);
+    cursor: pointer;
+  }
+  .spec-option:active { opacity: 0.8; }
+  .spec-option img {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-xs);
+    object-fit: cover;
+    flex-shrink: 0;
+    background: var(--bg-input);
+  }
+  .spec-option span { font-size: var(--font-sm); color: var(--text-color); }
+  .spec-option.selected {
+    border-color: var(--primary-start);
+    background: var(--selected-bg);
+  }
+  .spec-option.selected span { color: var(--primary-start); }
+  .spec-popup-footer {
+    display: flex;
+    gap: var(--space-sm);
+    padding: var(--space-md) 16px 20px;
+    flex-shrink: 0;
+  }
+  .spec-clear-btn,
+  .spec-confirm-btn {
+    flex: 1;
+    height: 44px;
+    border: none;
+    border-radius: var(--radius-xl);
+    font-size: var(--font-md);
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .spec-clear-btn {
+    background: var(--warning-bg);
+    color: var(--text-color);
+  }
+  .spec-confirm-btn {
+    background: linear-gradient(135deg, var(--primary-start), var(--price-color));
+    color: var(--card-bg);
+  }
+  .spec-clear-btn:active,
+  .spec-confirm-btn:active { opacity: 0.85; }
+
+  /* Review list */
+  .review-list {
+    background: var(--card-bg);
+  }
+  .review-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 16px;
+    border-bottom: 1px solid var(--bg-color);
+  }
+  .review-card:last-child { border-bottom: none; }
+  .review-card .avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: var(--border-divider);
+    flex-shrink: 0;
+  }
+  .review-card .avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .review-card .avatar-text {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-start), var(--price-color));
+    color: var(--card-bg);
+    font-size: var(--font-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .review-card-main {
+    flex: 1;
+    min-width: 0;
+  }
+  .review-card-main .nickname {
+    font-size: var(--font-base);
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: 4px;
+    line-height: 1.3;
+  }
+  .review-card-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-sm);
+    margin-bottom: 10px;
+    min-width: 0;
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+  }
+  .review-card-meta .meta-left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    flex: 1;
+  }
+  .review-card-meta .stars {
+    display: flex;
+    gap: 1px;
+    flex-shrink: 0;
+  }
+  .review-card-meta .stars .star { font-size: var(--font-sm); color: var(--primary-start); }
+  .review-card-meta .stars .star.empty { color: var(--text-disabled); }
+  .review-card-meta .sep {
+    width: 1px;
+    height: 10px;
+    background: var(--border-color);
+    flex-shrink: 0;
+  }
+  .review-card-meta .bought {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+  }
+  .review-card-meta .date {
+    flex-shrink: 0;
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+  }
+  .review-card-body {
+    font-size: 14px;
+    color: var(--text-color);
+    line-height: 1.5;
+    margin-bottom: var(--space-sm);
+  }
+  .review-card-images {
+    display: flex;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+  }
+  .review-card-images img {
+    width: 80px;
+    height: 80px;
+    border-radius: var(--radius-sm);
+    object-fit: cover;
+  }
+
+  /* Empty */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px var(--space-xl);
+    color: var(--text-tertiary);
+  }
+  .empty-state svg { width: 60px; height: 60px; color: var(--text-disabled); margin-bottom: var(--space-md); }
+  .empty-state .empty-text { font-size: var(--font-sm); }
+</style>
+</head>
+<body>
+<div class="phone-frame">
+
+  <!-- Sub-page Navigation -->
+  <div class="sub-nav">
+    <div class="status-bar dark">
+      <span class="time">09:41</span>
+      <div class="icons">
+        <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+      </div>
+    </div>
+    <div class="nav-bar">
+      <div class="back-btn" onclick="history.back()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <span class="nav-title">全部评价 (10万+)</span>
+      <div class="capsule-btn"><img src="../assets/icons/小程序按钮.svg" alt=""></div>
+    </div>
+  </div>
+
+  <!-- Filter Tags -->
+  <div class="filter-bar" id="filterBar">
+    <div class="filter-row">
+      <div class="filter-tag active" data-filter="all">全部 99%好评</div>
+      <div class="filter-tag" data-filter="img">图/视频 3.1万+</div>
+      <div class="filter-tag" data-filter="good">好评 9.9万+</div>
+      <div class="filter-more" id="filterMore">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+    </div>
+    <div class="filter-extra-row">
+      <div class="filter-tag" data-filter="mid">中评 6800+</div>
+      <div class="filter-tag" data-filter="bad">差评 2700+</div>
+    </div>
+  </div>
+
+  <!-- Sort + SKU -->
+  <div class="sort-bar">
+    <div class="review-hint">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 1.5l2.4 1.4 2.7-.2 1.5 2.3 2.3 1.5-.2 2.7L22.5 12l-1.4 2.4.2 2.7-2.3 1.5-1.5 2.3-2.7-.2L12 22.5l-2.4-1.4-2.7.2-1.5-2.3-2.3-1.5.2-2.7L1.5 12l1.4-2.4-.2-2.7 2.3-1.5 1.5-2.3 2.7.2L12 1.5zm-1.2 13.3l5.3-5.3-1.4-1.4-3.9 3.9-1.8-1.8-1.4 1.4 3.2 3.2z"/></svg>
+      为您展示真实评价
+    </div>
+    <div class="sku-select" id="skuSelect">
+      <span class="sku-select-text" id="skuSelectLabel">全部规格</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+  </div>
+
+  <!-- Review List -->
+  <div class="page-scroll">
+    <div class="review-list" id="reviewList"></div>
+  </div>
+
+  <!-- Spec Drawer -->
+  <div class="spec-overlay" id="specOverlay"></div>
+  <div class="spec-popup" id="specPopup">
+    <div class="spec-popup-header">
+      <div class="thumb"><img src="../assets/products/oppo-x9/sku02-绒砂峡谷.jpg" alt=""></div>
+      <div class="info">
+        <div class="popup-title">【OPPO】Find X9 Ultra 16GB+512GB 大地苔原 10倍光变天眼长焦 长续航 游戏 5G 摄影旗舰</div>
+        <div class="popup-selected" id="specSelectedHint">请选择规格</div>
+      </div>
+      <div class="spec-popup-close" id="specClose">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+      </div>
+    </div>
+    <div class="spec-popup-body">
+      <div class="spec-group-title">规格</div>
+      <div class="spec-options" id="specOptions">
+        <div class="spec-option" data-sku="大地苔原 · 16GB+512GB"><img src="../assets/products/oppo-x9/sku01-大地苔原.jpg" alt=""><span>大地苔原 · 16GB+512GB</span></div>
+        <div class="spec-option" data-sku="绒砂峡谷 · 16GB+512GB"><img src="../assets/products/oppo-x9/sku02-绒砂峡谷.jpg" alt=""><span>绒砂峡谷 · 16GB+512GB</span></div>
+        <div class="spec-option" data-sku="极地冰川 · 16GB+512GB"><img src="../assets/products/oppo-x9/sku03-极地冰川.jpg" alt=""><span>极地冰川 · 16GB+512GB</span></div>
+      </div>
+    </div>
+    <div class="spec-popup-footer">
+      <button class="spec-clear-btn" id="specClearBtn">清空选项</button>
+      <button class="spec-confirm-btn" id="specConfirmBtn">确定</button>
+    </div>
+  </div>
+
+</div>
+<script src="../assets/common.js"></script>
+<script>
+(function() {
+  // 评价数据与商品详情「实物商品」（OPPO Find X9 Ultra）对齐，前两条为详情页评价区预览同款
+  var IMG_OPP = '../assets/products/oppo-x9/';
+  var reviews = [
+    {
+      id: 1, nickname: 'j***8', avatarText: '张',
+      stars: 5, type: 'good',
+      text: '大地苔原配色很有质感，10倍长焦拍远景很清晰，企业积分换机比官方便宜，顺丰次日达，正品无疑。',
+      images: [IMG_OPP + 'main03.jpg', IMG_OPP + 'main02.jpg'],
+      spec: '大地苔原 · 16GB+512GB', date: '2026-07-18'
+    },
+    {
+      id: 2, nickname: 'w***2', avatarText: '李',
+      stars: 5, type: 'good',
+      text: '16+512 大内存玩游戏很稳，影像旗舰名不虚传，续航一天没问题，非常满意。',
+      images: [],
+      spec: '绒砂峡谷 · 16GB+512GB', date: '2026-07-09'
+    },
+    {
+      id: 3, nickname: 'c***3', avatarText: '陈',
+      stars: 5, type: 'good',
+      text: '极地冰川配色实物比图片还好看，天玑9400性能拉满，打原神稳帧不烫手，重度用一天没问题。',
+      images: [IMG_OPP + 'main01.jpg'],
+      spec: '极地冰川 · 16GB+512GB', date: '2026-07-02'
+    },
+    {
+      id: 4, nickname: 'x***9', avatarText: '许',
+      stars: 4, type: 'good',
+      text: '10倍长焦拍月亮真的很出片，哈苏色彩直出就能发圈，就是机身偏重，单手刷久了有点累。',
+      images: [],
+      spec: '大地苔原 · 16GB+512GB', date: '2026-06-28'
+    },
+    {
+      id: 5, nickname: 'l***5', avatarText: '刘',
+      stars: 3, type: 'mid',
+      text: '性能拍照都在线，就是系统预装应用有点多，清理了半天，其他还好。',
+      images: [],
+      spec: '绒砂峡谷 · 16GB+512GB', date: '2026-06-22'
+    },
+    {
+      id: 6, nickname: 'z***1', avatarText: '赵',
+      stars: 2, type: 'bad',
+      text: '收到时屏幕有个亮点，申请了换货，客服响应挺快，等新机到了再追评。',
+      images: [IMG_OPP + 'sku03-极地冰川.jpg'],
+      spec: '极地冰川 · 16GB+512GB', date: '2026-06-18'
+    },
+    {
+      id: 7, nickname: 'q***7', avatarText: '钱',
+      stars: 5, type: 'good',
+      text: '给爸妈换的手机，字体大、屏幕清晰，拍照一键出片，老人用着很顺手。',
+      images: [IMG_OPP + 'sku01-大地苔原.jpg'],
+      spec: '大地苔原 · 16GB+512GB', date: '2026-06-15'
+    },
+    {
+      id: 8, nickname: 's***4', avatarText: '孙',
+      stars: 4, type: 'good',
+      text: '2K屏幕看视频很爽，扬声器外放音质在线，续航中规中矩，重度用户一天一充。',
+      images: [],
+      spec: '绒砂峡谷 · 16GB+512GB', date: '2026-06-10'
+    },
+    {
+      id: 9, nickname: 'h***2', avatarText: '何',
+      stars: 5, type: 'good',
+      text: '企业积分抵了一大半，比官方便宜好几百，顺丰次日达，激活查询是全新机。',
+      images: [IMG_OPP + 'detail01.jpg'],
+      spec: '极地冰川 · 16GB+512GB', date: '2026-06-06'
+    },
+    {
+      id: 10, nickname: 'y***6', avatarText: '杨',
+      stars: 1, type: 'bad',
+      text: '信号偶尔跳变，重启又好了，观望后续系统更新，先给个差评提醒一下。',
+      images: [],
+      spec: '大地苔原 · 16GB+512GB', date: '2026-06-01'
+    },
+    {
+      id: 11, nickname: 'm***0', avatarText: '孟',
+      stars: 5, type: 'good',
+      text: '快递包装很严实，双层气泡膜，机器完好无损，激活日期全新，放心。',
+      images: [],
+      spec: '大地苔原 · 16GB+512GB', date: '2026-05-26'
+    },
+    {
+      id: 12, nickname: 'g***8', avatarText: '高',
+      stars: 5, type: 'good',
+      text: '长焦夜景比想象中稳，演唱会山顶位也能拍清舞台，这钱花得值。',
+      images: [IMG_OPP + 'main02.jpg'],
+      spec: '绒砂峡谷 · 16GB+512GB', date: '2026-05-20'
+    }
+  ];
+
+  var currentFilter = 'all';
+  var currentSku = 'all';
+
+  function renderStars(count) {
+    var html = '';
+    for (var i = 0; i < 5; i++) {
+      html += '<span class="star ' + (i < count ? '' : 'empty') + '">★</span>';
+    }
+    return html;
+  }
+
+  function getFilteredReviews() {
+    return reviews.filter(function(r) {
+      var filterOk = true;
+      if (currentFilter === 'good') filterOk = r.stars >= 4;
+      else if (currentFilter === 'mid') filterOk = r.stars === 3;
+      else if (currentFilter === 'bad') filterOk = r.stars <= 2;
+      else if (currentFilter === 'img') filterOk = r.images && r.images.length > 0;
+
+      var skuOk = currentSku === 'all' || r.spec.indexOf(currentSku) !== -1;
+      return filterOk && skuOk;
+    });
+  }
+
+  function renderList() {
+    var list = document.getElementById('reviewList');
+    var data = getFilteredReviews();
+
+    if (data.length === 0) {
+      list.innerHTML = '<div class="empty-state">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>' +
+        '<div class="empty-text">暂无符合条件的评价</div>' +
+      '</div>';
+      return;
+    }
+
+    var html = '';
+    data.forEach(function(r) {
+      var imagesHtml = '';
+      if (r.images && r.images.length > 0) {
+        imagesHtml = '<div class="review-card-images">';
+        r.images.forEach(function(img) {
+          imagesHtml += '<img src="' + img + '" alt="">';
+        });
+        imagesHtml += '</div>';
+      }
+
+      var avatarHtml = r.avatarText
+        ? '<div class="avatar-text">' + r.avatarText + '</div>'
+        : '<div class="avatar"><img src="' + r.avatar + '" alt=""></div>';
+
+      html += '<div class="review-card">' +
+        avatarHtml +
+        '<div class="review-card-main">' +
+          '<div class="nickname">' + r.nickname + '</div>' +
+          '<div class="review-card-meta">' +
+            '<div class="meta-left">' +
+              '<div class="stars">' + renderStars(r.stars) + '</div>' +
+              '<span class="sep"></span>' +
+              '<span class="bought">已购 ' + r.spec + '</span>' +
+            '</div>' +
+            '<span class="date">' + r.date + '</span>' +
+          '</div>' +
+          '<div class="review-card-body">' + r.text + '</div>' +
+          imagesHtml +
+        '</div>' +
+      '</div>';
+    });
+    list.innerHTML = html;
+  }
+
+  // Filter tag switching
+  document.querySelectorAll('.filter-tag').forEach(function(tag) {
+    tag.addEventListener('click', function() {
+      document.querySelectorAll('.filter-tag').forEach(function(t) { t.classList.remove('active'); });
+      this.classList.add('active');
+      currentFilter = this.dataset.filter;
+      renderList();
+    });
+  });
+
+  document.getElementById('filterMore').addEventListener('click', function() {
+    document.getElementById('filterBar').classList.toggle('expanded');
+  });
+
+  // Spec drawer
+  var pendingSku = 'all';
+  var skuSelect = document.getElementById('skuSelect');
+  var skuSelectLabel = document.getElementById('skuSelectLabel');
+  var specOverlay = document.getElementById('specOverlay');
+  var specPopup = document.getElementById('specPopup');
+  var specSelectedHint = document.getElementById('specSelectedHint');
+
+  function skuLabel(sku) {
+    return sku === 'all' ? '全部规格' : sku;
+  }
+
+  function syncSpecOptions() {
+    document.querySelectorAll('#specOptions .spec-option').forEach(function(o) {
+      o.classList.toggle('selected', o.dataset.sku === pendingSku);
+    });
+    specSelectedHint.textContent = pendingSku === 'all' ? '请选择规格' : ('已选：' + pendingSku);
+  }
+
+  function openSpec() {
+    pendingSku = currentSku;
+    syncSpecOptions();
+    specOverlay.classList.add('show');
+    specPopup.classList.add('show');
+  }
+
+  function closeSpec() {
+    specOverlay.classList.remove('show');
+    specPopup.classList.remove('show');
+  }
+
+  skuSelect.addEventListener('click', openSpec);
+  specOverlay.addEventListener('click', closeSpec);
+  document.getElementById('specClose').addEventListener('click', closeSpec);
+
+  document.querySelectorAll('#specOptions .spec-option').forEach(function(opt) {
+    opt.addEventListener('click', function() {
+      pendingSku = this.dataset.sku;
+      syncSpecOptions();
+    });
+  });
+
+  document.getElementById('specClearBtn').addEventListener('click', function() {
+    pendingSku = 'all';
+    currentSku = 'all';
+    skuSelectLabel.textContent = skuLabel(currentSku);
+    closeSpec();
+    renderList();
+  });
+
+  document.getElementById('specConfirmBtn').addEventListener('click', function() {
+    currentSku = pendingSku;
+    skuSelectLabel.textContent = skuLabel(currentSku);
+    closeSpec();
+    renderList();
+  });
+
+  renderList();
+})();
+</script>
+<script src="../assets/theme-switcher.js"></script>
+</body>
+</html>

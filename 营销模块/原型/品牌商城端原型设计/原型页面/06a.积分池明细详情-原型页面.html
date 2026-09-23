@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>积分池明细详情 - 品牌商城后台</title>
+<style>
+:root {
+  --bg-app:#f4f3f0; --bg-sidebar:#1e1e22; --bg-surface:#ffffff; --bg-hover:#f7f6f4; --bg-input:#f9f8f7;
+  --border:#e6e4e0; --border-light:#f0eeeb;
+  --text-primary:#1a1a1c; --text-secondary:#6b6b70; --text-muted:#99999d; --text-sidebar:#c4c4c9;
+  --accent:#2d2d33; --accent-soft:#f0eeeb;
+  --blue:#2563eb; --blue-bg:#f5f8ff; --blue-border:#d4e0fc;
+  --red:#da3e3a; --red-bg:#fef4f3; --red-border:#fcd9d7;
+  --green:#16a34a; --green-bg:#f4fdf6; --green-border:#c6f0d4;
+  --orange:#d97706; --orange-bg:#fffbf0; --orange-border:#fde8c4;
+  --purple:#7c3aed; --purple-bg:#faf8ff; --purple-border:#e4dcfc;
+  --radius-sm:4px; --radius:8px; --radius-lg:12px;
+  --shadow:0 1px 3px rgba(0,0,0,.06); --shadow-lg:0 4px 16px rgba(0,0,0,.10);
+  --transition:160ms ease;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:"Microsoft YaHei",sans-serif;background:var(--bg-app);color:var(--text-primary);display:flex;min-height:100vh;-webkit-font-smoothing:antialiased;}
+.sidebar{width:232px;min-width:232px;background:var(--bg-sidebar);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;z-index:10;}
+.sidebar-brand{padding:20px 20px 28px;border-bottom:1px solid rgba(255,255,255,.06);}
+.sidebar-brand .logo{font-size:17px;font-weight:600;color:#fff;letter-spacing:-.02em;display:flex;align-items:center;gap:10px;}
+.sidebar-brand .sub{font-size:11px;color:var(--text-sidebar);margin-top:2px;}
+.sidebar-nav{flex:1;padding:12px 10px;display:flex;flex-direction:column;gap:2px;}
+.nav-section-label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.25);padding:14px 10px 6px;display:flex;align-items:center;gap:4px;cursor:pointer;user-select:none;}
+.nav-section-label:hover{color:rgba(255,255,255,.45);}
+.section-arrow{font-size:8px;transition:transform .2s ease;flex-shrink:0;}
+.nav-section.collapsed .section-arrow{transform:rotate(-90deg);}
+.nav-section.collapsed .nav-section-items{display:none;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:6px;color:var(--text-sidebar);font-size:13.5px;cursor:pointer;transition:all var(--transition);text-decoration:none;letter-spacing:.01em;}
+.nav-item:hover{background:rgba(255,255,255,.05);color:#fff;}
+.nav-item.active{background:rgba(255,255,255,.10);color:#fff;font-weight:500;}
+.nav-icon{width:18px;height:18px;opacity:.55;flex-shrink:0;}
+.nav-item.active .nav-icon{opacity:1;}
+.main{flex:1;display:flex;flex-direction:column;min-width:0;}
+.topbar{height:52px;min-height:52px;background:var(--bg-surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 28px;gap:16px;z-index:5;}
+.topbar .breadcrumb{font-size:12.5px;color:var(--text-muted);letter-spacing:.01em;}
+.topbar .breadcrumb a{color:var(--text-muted);text-decoration:none;}
+.topbar .breadcrumb a:hover{color:var(--text-primary);}
+.topbar .breadcrumb span{color:var(--text-primary);font-weight:500;}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:16px;}
+.user-avatar{width:30px;height:30px;border-radius:50%;background:#e6e4e0;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);}
+.content{flex:1;display:flex;flex-direction:column;padding:24px 28px;padding-bottom:70px;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;gap:16px;}
+.page-header h1{font-size:22px;font-weight:600;letter-spacing:-.02em;}
+.page-header p{font-size:13px;color:var(--text-muted);margin-top:2px;}
+.page-header-actions{display:flex;gap:8px;align-items:center;flex-shrink:0;}
+.demo-toggle{display:flex;gap:6px;align-items:center;}
+.demo-toggle label{font-size:11px;color:var(--text-muted);white-space:nowrap;}
+.demo-toggle select{font-size:11px;padding:3px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-surface);color:var(--text-primary);cursor:pointer;max-width:200px;}
+
+.detail-container{display:flex;gap:20px;max-width:1200px;}
+.detail-main{flex:1;display:flex;flex-direction:column;gap:20px;}
+
+.detail-card{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;}
+.detail-card-title{font-size:15px;font-weight:600;color:var(--text-primary);margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.detail-card-title svg{width:18px;height:18px;opacity:.6;}
+
+.detail-section{margin-bottom:20px;}
+.detail-section:last-child{margin-bottom:0;}
+.detail-section-title{font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+.detail-section-title svg{width:16px;height:16px;}
+.detail-row{display:flex;padding:10px 0;border-bottom:1px solid var(--border-light);}
+.detail-row:last-child{border-bottom:none;}
+.detail-label{width:100px;font-size:12px;color:var(--text-muted);flex-shrink:0;}
+.detail-value{font-size:13px;color:var(--text-primary);flex:1;}
+.detail-value.highlight{font-weight:500;color:var(--blue);font-family:"Microsoft YaHei",sans-serif;}
+.detail-value.success{color:var(--green);font-weight:500;}
+
+.status-tag{display:inline-flex;align-items:center;padding:3px 12px;border-radius:100px;font-size:12px;font-weight:500;white-space:nowrap;border:1px solid transparent;}
+.status-success{background:var(--green-bg);color:var(--green);border-color:var(--green-border);}
+
+.type-tag{display:inline;color:var(--text-secondary);}
+
+.detail-panel{display:none;}
+.detail-panel.active{display:block;}
+
+.points-card.recharge{background:linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);border-color:#bbf7d0;}
+.points-card.recharge .points-card-title{color:#15803d;}
+.points-card.recharge .points-amount{color:#14532d;}
+.points-card.recharge .points-item-label{color:#15803d;}
+.points-card.recharge .points-item-value{color:#14532d;}
+
+.tip-note{display:flex;align-items:flex-start;gap:8px;padding:10px 12px;background:var(--bg-input);border-radius:var(--radius-sm);font-size:12px;color:var(--text-secondary);margin-top:12px;line-height:1.6;}
+.tip-note .tip-dot{width:6px;height:6px;border-radius:50%;background:var(--blue);margin-top:6px;flex-shrink:0;}
+
+.coupon-preview{display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg-input);border-radius:var(--radius);margin-top:8px;}
+.coupon-avatar{width:56px;height:56px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:600;border:1px solid var(--border);}
+.coupon-avatar.points{background:linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%);color:#92400e;}
+.coupon-avatar.coupon{background:linear-gradient(135deg, #dbeafe 0%, #60a5fa 100%);color:#fff;}
+.coupon-preview-info{flex:1;}
+.coupon-preview-name{font-size:15px;font-weight:600;color:var(--text-primary);margin-bottom:4px;}
+.coupon-preview-spec{font-size:12px;color:var(--text-muted);}
+
+.points-card{background:linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);border:1px solid #bae6fd;border-radius:var(--radius-lg);padding:20px;}
+.points-card-title{font-size:12px;color:#0369a1;margin-bottom:12px;font-weight:500;}
+.points-amount{font-size:28px;font-weight:700;color:#0c4a6e;font-family:"Microsoft YaHei",sans-serif;margin-bottom:16px;}
+.points-breakdown{display:flex;gap:20px;}
+.points-item{flex:1;}
+.points-item-label{font-size:11px;color:#0369a1;margin-bottom:4px;}
+.points-item-value{font-size:16px;font-weight:600;color:#0c4a6e;font-family:"Microsoft YaHei",sans-serif;}
+.points-item-value.negative{color:var(--red);}
+.points-item-value.positive{color:var(--green);}
+
+.user-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:12px;}
+.user-table th{background:#fafaf9;text-align:left;padding:10px 12px;font-weight:500;font-size:12px;color:var(--text-muted);border-bottom:1px solid var(--border);}
+.user-table td{padding:10px 12px;border-bottom:1px solid var(--border-light);}
+.user-table tbody tr:hover{background:var(--bg-hover);}
+.user-cell{display:flex;align-items:center;gap:8px;}
+.user-mini-avatar{width:28px;height:28px;border-radius:50%;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--text-secondary);}
+.user-name{font-weight:500;color:var(--text-primary);}
+.user-status{text-align:center;}
+.user-status .status-mini{display:inline-flex;align-items:center;padding:2px 8px;border-radius:100px;font-size:11px;font-weight:500;}
+.user-status .sent{background:var(--green-bg);color:var(--green);}
+
+.btn{display:inline-flex;align-items:center;padding:6px 16px;border-radius:var(--radius-sm);font-size:13px;font-family:inherit;cursor:pointer;border:1px solid transparent;transition:all var(--transition);white-space:nowrap;font-weight:500;gap:6px;}
+.btn-outline{border-color:var(--border);color:var(--text-primary);background:var(--bg-surface);}
+.btn-outline:hover{border-color:var(--text-muted);background:var(--bg-hover);}
+.btn-blue{background:var(--blue);color:#fff;}
+.btn-blue:hover{opacity:.88;}
+
+.toast-container{position:fixed;top:24px;right:24px;z-index:400;display:flex;flex-direction:column;gap:8px;}
+.toast{background:var(--bg-sidebar);color:#fff;padding:12px 18px;border-radius:var(--radius);font-size:13px;box-shadow:var(--shadow-lg);}
+.toast.success{border-left:3px solid var(--green);}
+.toast.info{border-left:3px solid var(--blue);}
+.toast.error{border-left:3px solid var(--red);}
+
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:100px;font-size:11px;font-weight:600;background:var(--red);color:#fff;}
+</style>
+</head>
+<body>
+
+<aside class="sidebar" id="app-sidebar" data-nav-active="mall-points"></aside>
+<script src="../assets/common-sidebar.js"></script>
+
+<div class="main">
+  <div class="topbar">
+    <div class="breadcrumb">
+营销管理 / <a href="06.商城积分管理-原型页面.html">商城积分管理</a> / <span>详情</span>
+    </div>
+    <div class="topbar-right">
+      <span style="font-size:12px;color:var(--text-muted);">品牌运营 晓琳</span>
+      <div class="user-avatar">晓</div>
+    </div>
+  </div>
+  <div class="content">
+    <div class="page-header">
+      <div>
+        <h1>积分池明细详情</h1>
+        <p>查看积分池单条记录详情（平台充值 / 品牌发放 / 平台代发）</p>
+      </div>
+      <div class="page-header-actions">
+        <div class="demo-toggle">
+          <label>演示模式：</label>
+          <select id="demoModeSwitcher" onchange="switchDemoMode(this.value)">
+            <option value="recharge-mall">平台充值</option>
+            <option value="platform">卡券发放</option>
+            <option value="recharge-user">积分发放</option>
+          </select>
+        </div>
+        <button class="btn btn-outline" style="color:var(--orange);border-color:var(--orange-border);" onclick="freezeDetail()">冻结</button>
+        <button class="btn btn-outline" style="color:var(--red);border-color:var(--red-border);" onclick="revokeDetail()">作废</button>
+      </div>
+    </div>
+
+    <!-- 面板：平台充值 -->
+    <div class="detail-panel active" data-type="recharge-mall">
+      <div class="detail-container">
+        <div class="detail-main">
+          <div class="detail-card">
+            <div class="detail-card-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="12" y1="4" x2="12" y2="10"/></svg>
+              充值基本信息
+            </div>
+            <div class="detail-section">
+              <div class="detail-row"><span class="detail-label">记录编号</span><span class="detail-value highlight">REC-101</span></div>
+              <div class="detail-row"><span class="detail-label">发放批次号</span><span class="detail-value" style="font-family:"Microsoft YaHei",sans-serif;color:var(--blue);">J20260701001</span></div>
+              <div class="detail-row"><span class="detail-label">充值时间</span><span class="detail-value">2026-07-01 10:18</span></div>
+              <div class="detail-row"><span class="detail-label">业务类型</span><span class="detail-value"><span class="type-tag type-points">平台充值</span></span></div>
+              <div class="detail-row"><span class="detail-label">充值状态</span><span class="detail-value"><span class="status-tag status-success">充值成功</span></span></div>
+              <div class="detail-row"><span class="detail-label">操作人</span><span class="detail-value">道馨（平台运营）</span></div>
+              <div class="detail-row"><span class="detail-label">充值对象</span><span class="detail-value">苏银商城（品牌商城余额）</span></div>
+            </div>
+          </div>
+
+          <div class="detail-card">
+            <div class="detail-card-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v12"/><path d="M6 12h12"/></svg>
+              积分充值详情
+            </div>
+            <div class="points-card recharge">
+              <div class="points-card-title">本次充值积分</div>
+              <div class="points-amount">+100,000 积分</div>
+              <div class="points-breakdown">
+                <div class="points-item"><div class="points-item-label">充值前余额</div><div class="points-item-value">6,500</div></div>
+                <div class="points-item"><div class="points-item-label">本次充值</div><div class="points-item-value positive">+100,000</div></div>
+                <div class="points-item"><div class="points-item-label">充值后余额</div><div class="points-item-value">106,500</div></div>
+              </div>
+            </div>
+            <div class="detail-row" style="margin-top:16px;"><span class="detail-label">充值原因</span><span class="detail-value">三季度营销预算充值</span></div>
+            <div class="detail-row"><span class="detail-label">凭证编号</span><span class="detail-value" style="font-family:"Microsoft YaHei",sans-serif;">PZ20260701001</span></div>
+            <div class="detail-row"><span class="detail-label">入账账户</span><span class="detail-value">苏银商城积分池（P2601001）</span></div>
+            <div class="tip-note"><span class="tip-dot"></span><span>该笔积分充值至品牌商城余额，可用于后续商城自主发放卡券、品牌发放等消耗操作，不直接进入用户账户。</span></div>
+          </div>
+
+          <div class="detail-card">
+            <div class="detail-card-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              充值凭证
+            </div>
+            <div style="border:1px dashed var(--border);border-radius:var(--radius);padding:32px 20px;text-align:center;background:var(--bg-input);">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5" style="margin-bottom:8px;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              <div style="font-size:13px;color:var(--text-primary);font-weight:500;">转账凭证.jpg</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">凭证编号：PZ20260701001 · 演示凭证图片</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 面板：品牌发放（积分） -->
+    <div class="detail-panel" data-type="recharge-user">
+      <div class="detail-container">
+        <div class="detail-main">
+          <div class="detail-card">
+            <div class="detail-card-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="12" y1="4" x2="12" y2="10"/></svg>
+              发放基本信息
+            </div>
+            <div class="detail-section">
+              <div class="detail-row"><span class="detail-label">记录编号</span><span class="detail-value highlight">REC-102</span></div>
+              <div class="detail-row"><span class="detail-label">发放批次号</span><span class="detail-value" style="font-family:"Microsoft YaHei",sans-serif;color:var(--blue);">J20260615001</span></div>
+              <div class="detail-row"><span class="detail-label">发放时间</span><span class="detail-value">2026-06-15 14:05</span></div>
+              <div class="detail-row"><span class="detail-label">业务类型</span><span class="detail-value"><span class="type-tag type-platform">积分发放</span></span></div>
+              <div class="detail-row"><span class="detail-label">发放主体</span><span class="detail-value">品牌端</span></div>
+              <div class="detail-row"><span class="detail-label">发放状态</span><span class="detail-value"><span class="status-tag status-success">发放成功</span></span></div>
+              <div class="detail-row"><span class="detail-label">操作人</span><span class="detail-value">晓琳（品牌运营）</span></div>
+              <div class="detail-row"><span class="detail-label">目标商城</span><span class="detail-value">苏银商城（P2601001）</span></div>
+              <div class="detail-row"><span class="detail-label">积分有效期</span><span class="detail-value">1年</span></div>
+              <div class="detail-row"><span class="detail-label">发放原因</span><span class="detail-value">会员回馈积分</span></div>
+            </div>
+            <div class="tip-note"><span class="tip-dot"></span><span>品牌商城向<strong>同一品牌商城（苏银商城）</strong>下的用户积分直充，积分<strong>扣减该商城积分池</strong>后直接进入用户个人账户。一次发放仅限单个商城下的用户。</span></div>
+          </div>
+
+          <div class="detail-card">
+            <div class="detail-card-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v12"/><path d="M6 12h12"/></svg>
+              积分消耗详情
+            </div>
+            <div class="points-card recharge">
+              <div class="points-card-title">本次消耗积分合计</div>
+              <div class="points-amount">-10,500 积分</div>
+              <div class="points-breakdown">
+                <div class="points-item"><div class="points-item-label">发放人数</div><div class="points-item-value">3 人</div></div>
+                <div class="points-item"><div class="points-item-label">人均发放</div><div class="points-item-value">3,500</div></div>
+                <div class="points-item"><div class="points-item-label">成功 / 失败</div><div class="points-item-value">3 / 0</div></div>
+              </div>
+            </div>
+            <div class="detail-row" style="margin-top:16px;"><span class="detail-label">发放前余额</span><span class="detail-value" style="color:var(--green);font-family:"Microsoft YaHei",sans-serif;">160,500</span></div>
+            <div class="detail-row"><span class="detail-label">本次消耗</span><span class="detail-value" style="color:var(--red);font-family:"Microsoft YaHei",sans-serif;">-10,500</span></div>
+            <div class="detail-row"><span class="detail-label">发放后余额</span><span class="detail-value" style="color:var(--green);font-family:"Microsoft YaHei",sans-serif;">150,000</span></div>
+            <div class="detail-row"><span class="detail-label">积分来源</span><span class="detail-value">苏银商城积分池</span></div>
+          </div>
+
+          <!-- 发放用户列表 -->
+          <div class="detail-card">
+            <div class="detail-card-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+              发放用户列表
+              <span class="badge" style="margin-left:8px;">3人</span>
+            </div>
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">共向 3 位用户发放积分，成功 3 人，失败 0 人（均属苏银商城）</div>
+            <table class="user-table">
+              <thead>
+                <tr>
+                  <th style="width:180px;">用户</th>
+                  <th style="width:120px;">发放积分</th>
+                  <th style="width:130px;">发放前余额</th>
+                  <th style="width:130px;">发放后余额</th>
+                  <th style="width:100px;">发放状态</th>
+                  <th style="width:110px;">发放时间</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><div class="user-cell"><div class="user-mini-avatar">张</div><div><div class="user-name">张三</div></div></div></td>
+                  <td><span class="points-cell" style="color:var(--green);font-weight:600;">+5,000</span></td>
+                  <td><span style="color:var(--text-muted);font-size:12px;">1,200</span></td>
+                  <td><span style="color:var(--green);font-weight:600;font-size:12px;">6,200</span></td>
+                  <td class="user-status"><span class="status-mini sent">成功</span></td>
+                  <td><span style="color:var(--text-muted);font-size:12px;">14:05</span></td>
+                </tr>
+                <tr>
+                  <td><div class="user-cell"><div class="user-mini-avatar">李</div><div><div class="user-name">李四</div></div></div></td>
+                  <td><span class="points-cell" style="color:var(--green);font-weight:600;">+3,000</span></td>
+                  <td><span style="color:var(--text-muted);font-size:12px;">800</span></td>
+                  <td><span style="color:var(--green);font-weight:600;font-size:12px;">3,800</span></td>
+                  <td class="user-status"><span class="status-mini sent">成功</span></td>
+                  <td><span style="color:var(--text-muted);font-size:12px;">14:05</span></td>
+                </tr>
+                <tr>
+                  <td><div class="user-cell"><div class="user-mini-avatar">王</div><div><div class="user-name">王芳</div></div></div></td>
+                  <td><span class="points-cell" style="color:var(--green);font-weight:600;">+2,500</span></td>
+                  <td><span style="color:var(--text-muted);font-size:12px;">500</span></td>
+                  <td><span style="color:var(--green);font-weight:600;font-size:12px;">3,000</span></td>
+                  <td class="user-status"><span class="status-mini sent">成功</span></td>
+                  <td><span style="color:var(--text-muted);font-size:12px;">14:05</span></td>
+                </tr>
+              </tbody>
+            </table>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding-top:12px;border-top:1px solid var(--border-light);">
+              <div style="font-size:12px;color:var(--text-muted);">共 3 条</div>
+              <button class="btn btn-blue" onclick="exportUserList()">导出用户列表</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- 面板：品牌发放（卡券） -->
+    <div class="detail-panel" data-type="platform">
+      <div class="detail-container">
+        <div class="detail-main">
+          <div class="detail-card">
+            <div class="detail-card-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="12" y1="4" x2="12" y2="10"/></svg>
+              发放基本信息
+            </div>
+            <div class="detail-section">
+              <div class="detail-row"><span class="detail-label">记录编号</span><span class="detail-value highlight">REC-002</span></div>
+              <div class="detail-row"><span class="detail-label">发放批次号</span><span class="detail-value" style="font-family:"Microsoft YaHei",sans-serif;color:var(--blue);">C20260627001</span></div>
+              <div class="detail-row"><span class="detail-label">发放时间</span><span class="detail-value">2026-06-27 09:15</span></div>
+              <div class="detail-row"><span class="detail-label">业务类型</span><span class="detail-value"><span class="type-tag type-platform">卡券发放</span></span></div>
+              <div class="detail-row"><span class="detail-label">发放主体</span><span class="detail-value">品牌端</span></div>
+              <div class="detail-row"><span class="detail-label">发放方式</span><span class="detail-value">选人直充</span></div>
+              <div class="detail-row"><span class="detail-label">发放状态</span><span class="detail-value"><span class="status-tag status-success">发放成功</span></span></div>
+              <div class="detail-row"><span class="detail-label">操作人</span><span class="detail-value">晓琳（品牌运营）</span></div>
+              <div class="detail-row"><span class="detail-label">目标商城</span><span class="detail-value">苏银商城（P2601001）</span></div>
+            </div>
+
+            <div class="detail-section">
+              <div class="detail-section-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="6" y1="4" x2="6" y2="16"/></svg>卡券信息</div>
+              <div class="coupon-preview">
+                <div class="coupon-avatar coupon">券</div>
+                <div class="coupon-preview-info">
+                  <div class="coupon-preview-name">满200减50券</div>
+                  <div class="coupon-preview-spec">满减券 × 100张 | 有效期至 2026-12-31</div>
+                </div>
+              </div>
+              <div class="detail-row" style="margin-top:12px;"><span class="detail-label">卡券编号</span><span class="detail-value highlight">TPL-2024012</span></div>
+              <div class="detail-row"><span class="detail-label">卡券类型</span><span class="detail-value">满减券</span></div>
+              <div class="detail-row"><span class="detail-label">单张面值</span><span class="detail-value">满200减50</span></div>
+              <div class="detail-row"><span class="detail-label">兑换单价</span><span class="detail-value">45 积分/张</span></div>
+              <div class="detail-row"><span class="detail-label">有效期</span><span class="detail-value">发放后15天 · 兑换后7天</span></div>
+              <div class="detail-row"><span class="detail-label">使用范围</span><span class="detail-value">全场通用（满200元可用）</span></div>
+              <div class="detail-row"><span class="detail-label">发放数量</span><span class="detail-value">100 张</span></div>
+              <div class="detail-row"><span class="detail-label">实际抵扣金额</span><span class="detail-value highlight">¥1,500（已核销 30 张 × ¥50）</span></div>
+            </div>
+          </div>
+
+          <div class="detail-card">
+            <div class="detail-card-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v12"/><path d="M6 12h12"/></svg>
+              积分消耗详情
+            </div>
+            <div class="points-card">
+              <div class="points-card-title">本次实际消耗积分</div>
+              <div class="points-amount">-4,500 积分</div>
+              <div class="points-breakdown">
+                <div class="points-item"><div class="points-item-label">发放前余额</div><div class="points-item-value positive">61,000</div></div>
+                <div class="points-item"><div class="points-item-label">本次消耗</div><div class="points-item-value negative">-4,500</div></div>
+                <div class="points-item"><div class="points-item-label">发放后余额</div><div class="points-item-value positive">56,500</div></div>
+              </div>
+            </div>
+            <div class="detail-row" style="margin-top:16px;"><span class="detail-label">应消耗积分</span><span class="detail-value" style="font-family:"Microsoft YaHei",sans-serif;">4,500（100张 × 45积分）</span></div>
+            <div class="detail-row"><span class="detail-label">实际消耗</span><span class="detail-value highlight">4,500 积分（100张 × 45积分）</span></div>
+            <div class="detail-row"><span class="detail-label">消耗原因</span><span class="detail-value">品牌商城发放满减券</span></div>
+            <div class="detail-row"><span class="detail-label">积分来源</span><span class="detail-value">苏银商城积分池</span></div>
+          </div>
+
+          <div class="detail-card">
+            <div class="detail-card-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+              发放对象列表
+              <span class="badge" style="margin-left:8px;">100人</span>
+            </div>
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">共发放 100 张卡券至 100 位用户，已发送 100 张（均属苏银商城）</div>
+            <table class="user-table">
+              <thead><tr><th style="width:180px;">用户</th><th style="width:120px;">发放时间</th><th style="width:100px;">卡券状态</th><th style="width:120px;">卡券编号</th></tr></thead>
+              <tbody>
+                <tr><td><div class="user-cell"><div class="user-mini-avatar">张</div><div><div class="user-name">张三</div></div></div></td><td><span style="color:var(--text-muted);font-size:12px;">09:15</span></td><td class="user-status"><span class="status-mini sent">已发送</span></td><td><span style="color:var(--text-muted);font-size:12px;">CPN-2026010</span></td></tr>
+                <tr><td><div class="user-cell"><div class="user-mini-avatar">李</div><div><div class="user-name">李四</div></div></div></td><td><span style="color:var(--text-muted);font-size:12px;">09:15</span></td><td class="user-status"><span class="status-mini sent">已发送</span></td><td><span style="color:var(--text-muted);font-size:12px;">CPN-2026011</span></td></tr>
+                <tr><td><div class="user-cell"><div class="user-mini-avatar">赵</div><div><div class="user-name">赵六</div></div></div></td><td><span style="color:var(--text-muted);font-size:12px;">09:15</span></td><td class="user-status"><span class="status-mini sent">已发送</span></td><td><span style="color:var(--text-muted);font-size:12px;">CPN-2026012</span></td></tr>
+              </tbody>
+            </table>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding-top:12px;border-top:1px solid var(--border-light);">
+              <div style="font-size:12px;color:var(--text-muted);">显示前 3 条，共 100 条 · 已核销 30 张，未核销 70 张</div>
+              <div style="display:flex;gap:8px;"><button class="btn btn-outline" onclick="loadMoreUsers()">加载更多</button><button class="btn btn-blue" onclick="exportUserList()">导出完整列表</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+function showToast(type, message) {
+  var container = document.getElementById('toastContainer');
+  var toast = document.createElement('div');
+  toast.className = 'toast ' + type;
+  toast.textContent = message;
+  container.appendChild(toast);
+  setTimeout(function() {
+    toast.remove();
+  }, 3000);
+}
+
+// 记录ID → 演示类型映射（06 商城积分管理页传入，自动切换对应面板）
+var RECORD_TYPE_MAP = {
+  'REC-101': 'recharge-mall',  // 平台充值
+  'REC-102': 'recharge-user',  // 积分发放
+  'REC-001': 'platform',       // 品牌发放 -> 品牌发放（卡券）
+  'REC-002': 'platform',       // 品牌发放
+  'REC-003': 'platform',       // 品牌发放
+  'REC-004': 'platform',       // 品牌发放
+  'REC-005': 'platform',       // 品牌发放
+  'REC-006': 'platform',       // 品牌发放（失败）
+  'REC-007': 'platform',       // 品牌发放（已作废）
+  'REC-008': 'platform',       // 品牌发放（已作废）
+  'REC-009': 'platform',       // 品牌发放
+  'REC-010': 'platform',       // 品牌发放（失败）
+  'REC-011': 'platform',       // 品牌发放（已冻结）
+  'REC-012': 'platform',       // 品牌发放（已冻结）
+  'REC-013': 'platform'        // 平台代发
+};
+
+// 演示模式切换：模拟不同业务类型的详情展示
+function switchDemoMode(type){
+  document.querySelectorAll('.detail-panel').forEach(function(p){
+    p.classList.toggle('active', p.getAttribute('data-type') === type);
+  });
+  document.getElementById('demoModeSwitcher').value = type;
+}
+// 初始化：从 URL 参数指定初始面板，支持 ?recordId=xxx 和 ?type=xxx
+(function(){
+  var initialType = 'recharge-mall';
+  var params = new URLSearchParams(window.location.search);
+  var recordId = params.get('recordId');
+  if (recordId && RECORD_TYPE_MAP[recordId]) {
+    initialType = RECORD_TYPE_MAP[recordId];
+  } else if (params.get('type')) {
+    initialType = params.get('type');
+  }
+  switchDemoMode(initialType);
+})();
+
+// 页头冻结/作废入口：点击 toast 提示（不要求联动29）
+function freezeDetail() {
+  showToast('info', '演示：对该发放批次发起冻结（作废前需先冻结），冻结后未核销/未使用部分暂停使用');
+}
+
+function revokeDetail() {
+  showToast('info', '演示：对该发放批次发起作废，未使用部分积分将返还品牌商城积分池（作废前需先冻结）');
+}
+
+function loadMoreUsers() {
+  showToast('info', '演示：加载更多用户数据');
+}
+
+function exportUserList() {
+  showToast('success', '演示：导出完整用户列表（500条）');
+}
+
+</script>
+
+</body>
+</html>

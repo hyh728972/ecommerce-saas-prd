@@ -1,0 +1,1800 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>确认订单 - 苏银豆商城</title>
+<link rel="stylesheet" href="../assets/common.css">
+<link rel="stylesheet" href="../assets/beans-insufficient.css">
+<style>
+  /* Fix: page-scroll 的 min-height:100vh 会撑高 phone-frame，导致 absolute 的底部栏被顶出视口。
+     锁定 phone-frame 为一屏、让 page-scroll 吃掉中间空间，底部栏即可正常贴底。 */
+  .phone-frame {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    isolation: isolate;
+    transform: translateZ(0);
+  }
+  .page-scroll {
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* 演示场景切换条（原型演示控件，固定于手机界面外左上角） */
+  .scene-bar {
+    position: fixed;
+    top: 8px;
+    left: 8px;
+    z-index: 99999;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background: var(--card-bg);
+    padding: 8px 8px 10px;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    width: 88px;
+  }
+  .scene-bar-label {
+    font-size: 10px;
+    color: var(--text-light);
+    text-align: center;
+    line-height: 1.2;
+  }
+  .scene-tab {
+    width: 100%;
+    padding: 8px 0;
+    font-size: 12px;
+    color: var(--text-secondary);
+    background: var(--bg-color);
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-family: inherit;
+    transition: all .15s;
+  }
+  .scene-tab.scene-tab--active {
+    color: var(--card-bg);
+    background: linear-gradient(135deg, var(--primary-start), var(--price-color));
+    font-weight: 600;
+  }
+
+  /* Address section（editable，跳收货地址页） */
+  .address-section {
+    background: var(--card-bg);
+    padding: var(--space-lg) 12px;
+    margin-bottom: var(--space-sm);
+    position: relative;
+    cursor: pointer;
+  }
+  .address-section:active { background: var(--hover-bg); }
+  .address-section::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: repeating-linear-gradient(90deg, var(--primary-start) 0, var(--primary-start) 8px, var(--price-color) 8px, var(--price-color) 16px, var(--warning-color) 16px, var(--warning-color) 24px);
+  }
+  .address-row {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-sm);
+  }
+  .address-row svg.addr-pin { width: 20px; height: 20px; color: var(--primary-start); flex-shrink: 0; margin-top: 2px; }
+  .address-info { flex: 1; }
+  .address-name-phone {
+    font-size: var(--font-md);
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: var(--space-xs);
+  }
+  .address-detail {
+    font-size: var(--font-sm);
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+  .address-arrow {
+    display: flex;
+    align-items: center;
+    color: var(--text-light);
+    align-self: center;
+  }
+  .address-arrow svg { width: 16px; height: 16px; color: var(--text-light); }
+
+  /* 虚拟商品 · 充值手机号（替代收货地址） */
+  .recharge-phone-section {
+    background: var(--card-bg);
+    padding: 14px 12px 12px;
+    margin-bottom: var(--space-sm);
+  }
+  .recharge-phone-section .rp-hd {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .recharge-phone-section .rp-label {
+    font-size: var(--font-base);
+    font-weight: 500;
+    color: var(--text-color);
+  }
+  .recharge-phone-section .rp-req {
+    font-size: 12px;
+    color: var(--primary-start);
+  }
+  .recharge-phone-section .rp-field {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    background: var(--bg-color);
+    border-radius: 6px;
+  }
+  .recharge-phone-section .rp-field svg {
+    width: 18px;
+    height: 18px;
+    color: var(--text-tertiary);
+    flex-shrink: 0;
+  }
+  .recharge-phone-section .rp-field input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-color);
+    font-family: inherit;
+    letter-spacing: 0.02em;
+  }
+  .recharge-phone-section .rp-field input::placeholder { color: var(--text-light); font-weight: 400; }
+  .recharge-phone-section .rp-tip {
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--text-tertiary);
+    line-height: 1.4;
+  }
+
+  /* Product items · 对齐订单详情 order-product-row */
+  .order-products {
+    background: var(--card-bg);
+    padding: 4px 12px 12px;
+    margin-bottom: var(--space-sm);
+  }
+  .order-product-item {
+    display: flex;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--bg-color);
+  }
+  .order-product-item:last-child { border-bottom: none; }
+  .order-product-item .prod-img {
+    width: 72px;
+    height: 72px;
+    border-radius: 6px;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: var(--bg-input);
+  }
+  .order-product-item .prod-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .order-product-item .prod-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .order-product-item .prod-line {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .order-product-item .prod-name {
+    flex: 1;
+    min-width: 0;
+    font-size: 13px;
+    color: #262626;
+    line-height: 1.4;
+    font-weight: 400;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .order-product-item .prod-price {
+    flex-shrink: 0;
+    font-size: 13px;
+    font-weight: 400;
+    color: #262626;
+    line-height: 1.4;
+    text-align: right;
+  }
+  .order-product-item .prod-spec {
+    flex: 1;
+    min-width: 0;
+    font-size: 12px;
+    color: #999;
+    line-height: 1.35;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .order-product-item .prod-qty {
+    flex-shrink: 0;
+    font-size: 12px;
+    color: #999;
+    line-height: 1.35;
+    text-align: right;
+  }
+
+  /* 组合商品 · 套装标识 + 组合详情摘要条 / 抽屉清单 */
+  .order-product-item.is-combo-row {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    column-gap: 10px;
+    row-gap: 6px;
+  }
+  .order-product-item .prod-combo-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1 1 100%;
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    padding: 6px 8px;
+    background: var(--bg-color);
+    border-radius: 4px;
+    text-decoration: none;
+    color: inherit;
+    line-height: 1.35;
+    cursor: pointer;
+    box-sizing: border-box;
+  }
+  .order-product-item .prod-combo-bar:active { opacity: 0.85; }
+  .order-product-item .prod-combo-bar .pcb-thumbs {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  .order-product-item .prod-combo-bar .pcb-thumb {
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    overflow: hidden;
+    background: var(--card-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .order-product-item .prod-combo-bar .pcb-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .order-product-item .prod-combo-bar .pcb-text {
+    flex: 1;
+    min-width: 0;
+    font-size: 12px;
+    color: #999;
+    font-weight: 400;
+    text-align: right;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .order-product-item .prod-combo-bar .pcb-arrow {
+    flex-shrink: 0;
+    color: var(--text-light);
+    font-size: 12px;
+    line-height: 1;
+  }
+  .combo-detail-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 8px; }
+  .combo-detail-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .combo-detail-item .cd-thumb {
+    width: 56px;
+    height: 56px;
+    border-radius: 6px;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: var(--bg-input);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .combo-detail-item .cd-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .combo-detail-item .cd-info { flex: 1; min-width: 0; }
+  .combo-detail-item .cd-name {
+    font-size: 13px;
+    color: #262626;
+    line-height: 1.4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .combo-detail-item .cd-meta {
+    font-size: 12px;
+    color: #999;
+    line-height: 1.35;
+    margin-top: 2px;
+  }
+  .combo-detail-item .cd-role {
+    flex-shrink: 0;
+    font-size: 10px;
+    padding: 1px 5px;
+    border-radius: 3px;
+    line-height: 1.3;
+  }
+  .combo-detail-item .cd-role-main { background: rgba(46,125,50,0.1); color: var(--price-color); }
+  .combo-detail-item .cd-role-fit { background: var(--bg-light); color: var(--text-secondary); }
+
+  /* Options section */
+  .order-options {
+    background: var(--card-bg);
+    margin-bottom: var(--space-sm);
+  }
+  .option-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-md);
+    border-bottom: 1px solid var(--bg-color);
+  }
+  .option-item:last-child { border-bottom: none; }
+  .option-item .opt-label { font-size: var(--font-base); color: var(--text-color); }
+  .option-item .opt-value {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-size: var(--font-sm);
+    color: var(--text-secondary);
+  }
+
+  /* Movie ticket */
+  .movie-ticket-section { background: var(--card-bg); padding: var(--space-md); margin-bottom: var(--space-sm); }
+  .movie-ticket-card { display: flex; gap: var(--space-md); }
+  .movie-poster { width: 80px; height: 112px; border-radius: var(--radius-sm); overflow: hidden; flex-shrink: 0; background: var(--border-divider); }
+  .movie-poster img { width: 100%; height: 100%; object-fit: cover; }
+  .movie-info { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: space-between; }
+  .movie-title { font-size: var(--font-md); font-weight: 600; color: var(--text-color); line-height: 1.4; }
+  .movie-meta { font-size: var(--font-sm); color: var(--text-tertiary); margin-top: var(--space-xs); }
+  .movie-meta b { color: var(--text-color); font-weight: 500; }
+  .movie-price-row { display: flex; align-items: center; justify-content: space-between; margin-top: var(--space-sm); }
+  .movie-price { font-size: var(--font-base); font-weight: 600; color: var(--text-color); }
+  .movie-qty { font-size: var(--font-sm); color: var(--text-tertiary); }
+
+  /* Remark */
+  .remark-row {
+    background: var(--card-bg);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-md);
+    margin-bottom: var(--space-sm);
+    cursor: pointer;
+  }
+  .remark-row:active { background: var(--hover-bg); }
+  .remark-row .rr-label { font-size: var(--font-base); color: var(--text-color); }
+  .remark-row .rr-value {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+    max-width: 60%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .remark-row .rr-value svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+  .drawer-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    background: rgba(0,0,0,0.4);
+    z-index: 300;
+    display: none;
+    align-items: flex-end;
+    box-sizing: border-box;
+  }
+  .drawer-overlay.show { display: flex; }
+  .drawer-sheet {
+    width: 100%;
+    background: var(--card-bg);
+    border-radius: var(--radius-lg) 16px 0 0;
+    padding: 0 var(--space-lg) var(--space-xl);
+    animation: drawerUp .25s ease;
+    max-height: 80%;
+    overflow-y: auto;
+  }
+  @keyframes drawerUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  .drawer-handle { width: 36px; height: 4px; border-radius: var(--radius-xs); background: var(--text-disabled); margin: var(--space-md) auto 14px; }
+  .drawer-title { font-size: var(--font-md); font-weight: 600; color: var(--text-color); margin-bottom: var(--space-md); }
+  .drawer textarea {
+    width: 100%; height: 80px;
+    border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: var(--space-md);
+    font-size: var(--font-base); color: var(--text-color); resize: none; outline: none; box-sizing: border-box;
+  }
+  .drawer textarea:focus { border-color: var(--primary-start); }
+  .drawer textarea::placeholder { color: var(--text-light); }
+  .drawer-counter { text-align: right; font-size: var(--font-sm); color: var(--text-light); margin-top: var(--space-xs); }
+  .drawer-counter .current { color: var(--text-tertiary); }
+  .drawer-btn {
+    width: 100%; height: 44px; border: none; border-radius: var(--radius-xl);
+    background: linear-gradient(135deg, var(--primary-start), var(--price-color));
+    color: var(--card-bg); font-size: var(--font-md); font-weight: 600; cursor: pointer; margin-top: var(--space-md);
+  }
+  .drawer-btn:active { opacity: .85; }
+
+  .beans-edit-field {
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 0 12px;
+    height: 44px;
+    margin-bottom: 8px;
+  }
+  .beans-edit-field:focus-within { border-color: var(--primary-start); }
+  .beans-edit-field input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-color);
+    font-family: DINAlternate, "Helvetica Neue", sans-serif;
+    -moz-appearance: textfield;
+  }
+  .beans-edit-field input::-webkit-outer-spin-button,
+  .beans-edit-field input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .beans-edit-field .unit { font-size: 14px; color: var(--text-tertiary); margin-left: 8px; }
+  .beans-edit-hint { font-size: 12px; color: var(--text-light); line-height: 1.5; margin-bottom: 4px; }
+  .beans-edit-hint em { font-style: normal; color: var(--text-secondary); }
+
+  /* 苏银豆 */
+  .beans-block { display: none; background: var(--card-bg); margin-bottom: var(--space-sm); overflow: hidden; }
+  .beans-block.show { display: block; }
+  .beans-block-hd { display: flex; align-items: center; justify-content: space-between; padding: 14px var(--space-md); min-height: 48px; }
+  .beans-block-title { display: flex; align-items: center; gap: 8px; font-size: var(--font-base); font-weight: 500; color: var(--text-color); }
+  .beans-block-title .tag { font-size: 10px; font-weight: 600; color: #fff; background: linear-gradient(135deg, var(--primary-start), var(--price-color)); padding: 2px 6px; border-radius: 3px; line-height: 1.2; }
+  .beans-switch { position: relative; width: 44px; height: 26px; flex-shrink: 0; cursor: pointer; }
+  .beans-switch input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .beans-switch-track { position: absolute; inset: 0; background: #e5e5e5; border-radius: 13px; transition: background .22s; }
+  .beans-switch-thumb { position: absolute; top: 2px; left: 2px; width: 22px; height: 22px; background: #fff; border-radius: 50%; box-shadow: 0 1px 4px rgba(0,0,0,.18); transition: transform .22s; }
+  .beans-switch input:checked + .beans-switch-track { background: var(--primary-start); }
+  .beans-switch input:checked ~ .beans-switch-thumb { transform: translateX(18px); }
+  .beans-block-bd { display: none; padding: 0 var(--space-md) 14px; border-top: 1px solid var(--bg-color); }
+  .beans-block-bd.show { display: block; }
+  .beans-summary { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 10px 0 2px; }
+  .beans-summary-text { flex: 1; font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+  .beans-summary-text em { font-style: normal; color: var(--primary-start); font-weight: 500; }
+  .beans-edit-link { flex-shrink: 0; padding: 0; border: none; background: none; font-size: 12px; color: var(--text-tertiary); cursor: pointer; font-family: inherit; line-height: 1.5; }
+  .beans-edit-link:active { color: var(--primary-start); }
+  .beans-error { font-size: 12px; color: var(--price-color); margin-top: 6px; display: none; }
+  .beans-error.show { display: block; }
+
+  /* Summary */
+  .summary-row.clickable { cursor: pointer; padding: var(--space-sm) 0; }
+  .summary-row.clickable:active { opacity: .7; }
+  .summary-row.clickable .sr-arrow { width: 14px; height: 14px; color: var(--text-light); flex-shrink: 0; margin-left: var(--space-xs); }
+  .price-summary {
+    background: var(--card-bg);
+    padding: var(--space-md);
+    margin-bottom: var(--space-sm);
+  }
+  .summary-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-xs) 0;
+    font-size: var(--font-sm);
+    color: var(--text-secondary);
+  }
+  .summary-row.total {
+    padding-top: var(--space-sm);
+    margin-top: var(--space-xs);
+    border-top: 1px solid var(--bg-color);
+    font-size: var(--font-base);
+    color: var(--text-color);
+    font-weight: 600;
+  }
+  .summary-row .total-price {
+    color: var(--price-color);
+    font-size: var(--font-lg);
+    font-weight: 700;
+  }
+  .summary-row .total-price .symbol { font-size: var(--font-sm); }
+
+  /* Submit bar */
+  .submit-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--card-bg);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    border-top: 1px solid var(--border-color);
+    z-index: 200;
+    padding: 0 var(--space-md) var(--space-sm);
+  }
+  .submit-bar .total-area { display: flex; align-items: baseline; gap: var(--space-xs); }
+  .submit-bar .total-label { font-size: var(--font-base); color: var(--text-color); }
+  .submit-bar .total-num { font-size: var(--font-xl); color: var(--price-color); font-weight: 700; }
+  .submit-bar .total-num .symbol { font-size: var(--font-sm); }
+  .submit-bar .btn-submit {
+    background: linear-gradient(135deg, var(--primary-start), var(--price-color));
+    color: var(--card-bg);
+    border: none;
+    padding: 0 var(--space-2xl);
+    height: 42px;
+    font-size: var(--font-md);
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: var(--radius-xl);
+  }
+  .submit-bar .btn-submit:active { opacity: 0.85; }
+
+  /* Pay popup */
+  .pay-popup-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 320;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  .pay-popup-overlay.show { display: flex; }
+  .pay-popup {
+    position: relative;
+    width: calc(100% - 48px);
+    max-width: 320px;
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    z-index: 321;
+    overflow: hidden;
+    animation: popupFadeIn 0.2s ease;
+  }
+  @keyframes popupFadeIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  .pay-step { display: none; }
+  .pay-step.active { display: block; }
+  .pay-popup-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-xl) 16px 0;
+    position: relative;
+  }
+  .pay-popup-header .popup-title { font-size: var(--font-lg); font-weight: 600; color: var(--text-color); }
+  .pay-popup-header .popup-close {
+    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-tertiary);
+  }
+  .pay-popup-header .popup-close svg { width: 18px; height: 18px; }
+  .pay-popup-amount { text-align: center; padding: var(--space-xl) 16px 12px; }
+  .pay-popup-amount .amount { font-size: 36px; font-weight: 700; color: var(--text-color); }
+  .pay-popup-amount .amount .symbol { font-size: var(--font-xl); }
+  .pay-popup-channel {
+    display: flex; align-items: center; gap: var(--space-md);
+    margin: var(--space-sm) 16px 0; padding: var(--space-md) 14px;
+    background: var(--bg-input); border-radius: var(--radius-md);
+  }
+  .pay-popup-channel .ch-icon { width: 32px; height: 32px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .pay-popup-channel .ch-icon svg { width: 20px; height: 20px; color: var(--card-bg); }
+  .pay-popup-channel .ch-name { flex: 1; font-size: var(--font-base); color: var(--text-color); font-weight: 500; }
+  .pay-popup-deduct {
+    display: flex; align-items: center; justify-content: space-between;
+    margin: var(--space-sm) 16px 0; padding: var(--space-md) 14px;
+    background: var(--selected-bg); border-radius: var(--radius-sm);
+    font-size: var(--font-sm); color: var(--text-secondary);
+  }
+  .pay-popup-deduct .val { color: var(--primary-start); font-weight: 600; }
+  .pay-popup-btn {
+    display: block; width: calc(100% - 32px); margin: var(--space-xl) 16px 24px;
+    height: 44px; background: var(--wechat-green); color: var(--card-bg);
+    border: none; border-radius: var(--radius-sm); font-size: var(--font-md); font-weight: 600; cursor: pointer;
+  }
+  .pay-popup-btn:active { opacity: 0.85; }
+  .pwd-header { text-align: center; padding: var(--space-xl) 16px 4px; position: relative; }
+  .pwd-header .pwd-back { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-tertiary); }
+  .pwd-header .pwd-back svg { width: 18px; height: 18px; }
+  .pwd-header .pwd-title { font-size: var(--font-lg); font-weight: 600; color: var(--text-color); }
+  .pwd-body { text-align: center; padding: var(--space-lg) 16px 0; }
+  .pwd-body .pwd-channel-name { font-size: var(--font-base); color: var(--text-color); font-weight: 500; margin-bottom: var(--space-md); }
+  .pwd-body .pwd-amount { font-size: 28px; font-weight: 700; color: var(--text-color); margin-bottom: var(--space-xl); }
+  .pwd-body .pwd-amount .symbol { font-size: var(--font-md); }
+  .pwd-grid { display: flex; justify-content: center; gap: var(--space-sm); padding: 0 var(--space-xl); }
+  .pwd-dot { width: 40px; height: 44px; border: 1px solid var(--text-disabled); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; background: var(--card-bg); }
+  .pwd-dot::after { content: ''; width: 12px; height: 12px; border-radius: 50%; background: var(--text-color); display: none; }
+  .pwd-dot.filled::after { display: block; }
+  .pwd-grid-wrap { position: relative; }
+  .pwd-hidden-input { position: absolute; opacity: 0; width: 100%; height: 100%; top: 0; left: 0; z-index: 1; cursor: pointer; }
+  .pwd-hint { font-size: var(--font-sm); color: var(--text-tertiary); margin-top: var(--space-lg); padding-bottom: var(--space-xl); text-align: center; }
+
+  /* 抽屉内卡券卡片（移植自 16/17） */
+  .coupon-section-title { font-size: var(--font-base); font-weight: 500; color: var(--text-color); margin-bottom: var(--space-md); }
+  .coupon-section-title .sub { font-size: 12px; color: var(--text-tertiary); font-weight: 400; }
+  .coupon-grid { display: flex; flex-direction: column; gap: var(--space-sm); }
+  .coupon-card {
+    position: relative; display: flex; align-items: flex-start;
+    border: 2px solid var(--border-color); border-radius: var(--radius-md);
+    padding: var(--space-md) 10px 10px 6px; cursor: pointer; transition: all .15s;
+  }
+  .coupon-card:active { transform: scale(.97); }
+  .coupon-card.active { border-color: var(--primary-start); background: var(--selected-bg); }
+  .coupon-card .cc-radio {
+    flex-shrink: 0; width: 18px; height: 18px; border: 2px solid var(--text-light);
+    border-radius: 50%; margin: 2px var(--space-sm) 0 var(--space-xs);
+    display: flex; align-items: center; justify-content: center; transition: all .15s;
+  }
+  .coupon-card.active .cc-radio { border-color: var(--primary-start); }
+  .coupon-card .cc-radio::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: transparent; transition: all .15s; }
+  .coupon-card.active .cc-radio::after { background: var(--primary-start); }
+  .coupon-card .cc-body { flex: 1; min-width: 0; }
+  .coupon-card .cc-header { display: flex; align-items: center; gap: var(--space-sm); }
+  .coupon-card .cc-name { font-size: var(--font-sm); font-weight: 600; color: var(--text-color); }
+  .coupon-card.active .cc-name { color: var(--primary-start); }
+  .coupon-card .cc-amount { font-size: var(--font-sm); color: var(--primary-start); font-weight: 600; }
+  .coupon-card .cc-badge { font-size: var(--font-xs); padding: 1px var(--space-xs); border-radius: var(--radius-xs); background: var(--primary-start); color: var(--card-bg); }
+  .coupon-card .cc-threshold { font-size: var(--font-sm); color: var(--text-tertiary); margin-top: 2px; }
+  .coupon-card .cc-expire { font-size: var(--font-xs); color: var(--text-muted); margin-top: 2px; }
+  .gc-balance, .pc-balance { font-size: 22px; color: var(--primary-start); font-weight: 700; line-height: 1.1; margin: 4px 0 2px; letter-spacing: -0.02em; }
+  .gc-balance .gc-cur { font-size: 14px; font-weight: 700; }
+  .gc-balance .gc-bal-unit, .pc-balance .pc-bal-unit { font-size: 12px; color: var(--text-tertiary); font-weight: 400; margin-left: 4px; }
+  .coupon-card.unavailable { opacity: .5; pointer-events: none; }
+  .coupon-card.unavailable .cc-radio { border-color: var(--text-disabled); }
+
+  /* 礼品卡抽屉 TAB */
+  .gc-tabs-bar {
+    display: flex; background: var(--bg-color); border-radius: var(--radius-md);
+    padding: 3px; margin-bottom: var(--space-md);
+  }
+  .gc-tab {
+    flex: 1; text-align: center; padding: 9px 0; font-size: var(--font-sm);
+    color: var(--text-secondary); cursor: pointer; position: relative;
+    border: none; background: transparent; font-family: inherit; border-radius: var(--radius-sm);
+    transition: all .15s;
+  }
+  .gc-tab.gc-tab--active { color: var(--card-bg); font-weight: 600; background: linear-gradient(135deg, var(--primary-start), var(--price-color)); }
+  .gc-tab-count { font-size: var(--font-xs); font-weight: 500; color: var(--text-tertiary); margin-left: 2px; }
+  .gc-tab.gc-tab--active .gc-tab-count { color: var(--card-bg); opacity: .85; }
+</style>
+</head>
+<body>
+<!-- 演示场景切换条（原型演示控件，位于手机界面外） -->
+<div class="scene-bar">
+  <span class="scene-bar-label">演示</span>
+  <button type="button" class="scene-tab scene-tab--active" data-scene="goods">实物商品</button>
+  <button type="button" class="scene-tab" data-scene="combo">组合商品</button>
+  <button type="button" class="scene-tab" data-scene="virtual">虚拟商品</button>
+  <button type="button" class="scene-tab" data-scene="cake">蛋糕叔叔</button>
+  <button type="button" class="scene-tab" data-scene="movie">电影购票</button>
+</div>
+
+<div class="phone-frame">
+
+  <!-- Sub-page Navigation -->
+  <div class="sub-nav">
+    <div class="status-bar dark">
+      <span class="time">09:41</span>
+      <div class="icons">
+        <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+      </div>
+    </div>
+    <div class="nav-bar">
+      <div class="back-btn" onclick="history.back()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <span class="nav-title">确认订单</span>
+      <div class="capsule-btn"><img src="../assets/icons/小程序按钮.svg" alt=""></div>
+    </div>
+  </div>
+
+  <!-- Scrollable Content -->
+  <div class="page-scroll" style="padding-bottom: 70px;">
+
+    <!-- 地址（editable，跳收货地址页；movie / virtual 场景隐藏） -->
+    <div class="address-section" id="addressSection" onclick="location.href='83.收货地址-原型页面.html'">
+      <div class="address-row">
+        <svg class="addr-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <div class="address-info">
+          <div class="address-name-phone" id="addrNamePhone">张三  138****8888</div>
+          <div class="address-detail" id="addrDetail">北京市朝阳区建国路88号 悦享大厦A座12层</div>
+        </div>
+        <div class="address-arrow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- 商品块 · goods -->
+    <div class="order-products" id="block-goods">
+      <div class="order-product-item" data-price="68" data-qty="1" data-sku="SKU001" data-category="cat-home" data-brand="brand-thermos">
+        <div class="prod-img"><img src="../assets/unsplash/1602143407151-7111542de6e8.jpg" alt=""></div>
+        <div class="prod-info">
+          <div class="prod-line">
+            <div class="prod-name">日本进口保温杯 不锈钢真空便携水杯500ml</div>
+            <div class="prod-price">&yen;68.00</div>
+          </div>
+          <div class="prod-line">
+            <div class="prod-spec">白色 500ml</div>
+            <div class="prod-qty">&times;1</div>
+          </div>
+        </div>
+      </div>
+      <div class="order-product-item" data-price="89" data-qty="1" data-sku="SKU002" data-category="cat-digital" data-brand="brand-earphone">
+        <div class="prod-img"><img src="../assets/unsplash/1505740420928-5e560c06d30e.jpg" alt=""></div>
+        <div class="prod-info">
+          <div class="prod-line">
+            <div class="prod-name">无线蓝牙降噪耳机 迷你入耳式超长续航</div>
+            <div class="prod-price">&yen;89.00</div>
+          </div>
+          <div class="prod-line">
+            <div class="prod-spec">黑色 标准版</div>
+            <div class="prod-qty">&times;1</div>
+          </div>
+        </div>
+      </div>
+      <div class="order-product-item" data-price="39.9" data-qty="1" data-sku="SKU003" data-category="cat-clothing" data-brand="brand-tshirt">
+        <div class="prod-img"><img src="../assets/unsplash/1521572163474-6864f9cf17ab.jpg" alt=""></div>
+        <div class="prod-info">
+          <div class="prod-line">
+            <div class="prod-name">纯棉短袖T恤男女款 夏季宽松百搭潮流</div>
+            <div class="prod-price">&yen;39.90</div>
+          </div>
+          <div class="prod-line">
+            <div class="prod-spec">白色 L码</div>
+            <div class="prod-qty">&times;1</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 商品块 · cake -->
+    <div class="order-products" id="block-cake" style="display:none">
+      <div class="order-product-item" data-price="168" data-qty="1" data-sku="CAKE001" data-category="cat-cake" data-brand="brand-cake" data-tags="蛋糕">
+        <div class="prod-img"><img src="../assets/unsplash/cake-birthday.jpg" alt=""></div>
+        <div class="prod-info">
+          <div class="prod-line">
+            <div class="prod-name">经典鲜奶油生日蛋糕 8寸</div>
+            <div class="prod-price">&yen;168.00</div>
+          </div>
+          <div class="prod-line">
+            <div class="prod-spec">8寸 草莓味</div>
+            <div class="prod-qty">&times;1</div>
+          </div>
+        </div>
+      </div>
+      <div class="order-product-item" data-price="58" data-qty="1" data-sku="CAKE002" data-category="cat-cake" data-brand="brand-cake" data-tags="蛋糕">
+        <div class="prod-img"><img src="../assets/unsplash/cake-cupcake.jpg" alt=""></div>
+        <div class="prod-info">
+          <div class="prod-line">
+            <div class="prod-name">法式杯子蛋糕礼盒 6只装</div>
+            <div class="prod-price">&yen;58.00</div>
+          </div>
+          <div class="prod-line">
+            <div class="prod-spec">混合口味 6只</div>
+            <div class="prod-qty">&times;1</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 商品块 · movie（无地址/无配送） -->
+    <div class="movie-ticket-section" id="block-movie" style="display:none">
+      <div class="movie-ticket-card">
+        <div class="movie-poster"><img src="../assets/unsplash/movie-poster-placeholder.jpg" alt=""></div>
+        <div class="movie-info">
+          <div>
+            <div class="movie-title">速度与激情11</div>
+            <div class="movie-meta">今天 <b>14:30</b> 英语 3D</div>
+            <div class="movie-meta">苏银国际影城 · 3号厅</div>
+            <div class="movie-meta">座位：<b>5排8座</b></div>
+          </div>
+          <div class="movie-price-row">
+            <span class="movie-price">&yen;50.00/张</span>
+            <span class="movie-qty">&times;1</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 商品块 · combo（组合商品 + 单品） -->
+    <div class="order-products" id="block-goods-combo" style="display:none">
+      <div class="order-product-item is-combo-row" data-price="6999" data-qty="1" data-sku="ZOPPO1" data-category="cat-digital" data-brand="brand-oppo">
+        <div class="prod-img"><img src="../assets/products/oppo-x9/cp main01.jpg" alt=""></div>
+        <div class="prod-info">
+          <div class="prod-line">
+            <div class="prod-name">【OPPO】Find X9 Ultra 哈苏联名专业影像套装</div>
+            <div class="prod-price">&yen;6999</div>
+          </div>
+          <div class="prod-line">
+            <div class="prod-spec">极地冰川 · 12GB+512GB · 哈苏专业摄影套装</div>
+            <div class="prod-qty">&times;1</div>
+          </div>
+        </div>
+        <div class="prod-combo-bar" role="button" onclick="openDrawer('comboDetailDrawer')">
+          <div class="pcb-thumbs">
+            <div class="pcb-thumb"><img src="../assets/products/oppo-x9/cp main01.jpg" alt=""></div>
+            <div class="pcb-thumb"><img src="../assets/products/oppo-x9/c main02.webp" alt=""></div>
+            <div class="pcb-thumb"><img src="../assets/products/oppo-x9/c main01.jpg" alt=""></div>
+          </div>
+          <span class="pcb-text">含三个子件</span>
+          <span class="pcb-arrow">&gt;</span>
+        </div>
+      </div>
+      <div class="order-product-item" data-price="89" data-qty="1" data-sku="SKU002" data-category="cat-digital" data-brand="brand-earphone">
+        <div class="prod-img"><img src="../assets/unsplash/1505740420928-5e560c06d30e.jpg" alt=""></div>
+        <div class="prod-info">
+          <div class="prod-line">
+            <div class="prod-name">无线蓝牙降噪耳机 迷你入耳式超长续航</div>
+            <div class="prod-price">&yen;89.00</div>
+          </div>
+          <div class="prod-line">
+            <div class="prod-spec">黑色 标准版</div>
+            <div class="prod-qty">&times;1</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 商品块 · virtual（虚拟商品：无地址，自动发货） -->
+    <div class="order-products" id="block-virtual" style="display:none">
+      <div class="order-product-item" data-price="198" data-qty="1" data-sku="XVIP001" data-category="cat-virtual" data-brand="brand-iqiyi">
+        <div class="prod-img"><img src="../assets/unsplash/1513364776144-60967b0f800f.jpg" alt=""></div>
+        <div class="prod-info">
+          <div class="prod-line">
+            <div class="prod-name">【爱奇艺】黄金VIP会员年卡 自动充值到账</div>
+            <div class="prod-price">&yen;198.00</div>
+          </div>
+          <div class="prod-line">
+            <div class="prod-spec">12个月 · 官方直充</div>
+            <div class="prod-qty">&times;1</div>
+          </div>
+        </div>
+      </div>
+      <div class="order-product-item" data-price="58" data-qty="1" data-sku="XVIP002" data-category="cat-virtual" data-brand="brand-tencent">
+        <div class="prod-img"><img src="../assets/unsplash/1483985988355-763728e1935b.jpg" alt=""></div>
+        <div class="prod-info">
+          <div class="prod-line">
+            <div class="prod-name">【腾讯视频】VIP会员季卡 支持手机号充值</div>
+            <div class="prod-price">&yen;58.00</div>
+          </div>
+          <div class="prod-line">
+            <div class="prod-spec">3个月 · 官方直充</div>
+            <div class="prod-qty">&times;1</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 虚拟商品 · 充值手机号（商品卡下方） -->
+    <div class="recharge-phone-section" id="rechargePhoneSection" style="display:none">
+      <div class="rp-hd">
+        <span class="rp-label">充值手机号</span>
+        <span class="rp-req">必填</span>
+      </div>
+      <div class="rp-field">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg>
+        <input type="tel" id="rechargePhoneInput" maxlength="11" inputmode="numeric" placeholder="请输入充值手机号" value="13800138888">
+      </div>
+      <div class="rp-tip">预填登录手机号，可修改；支付成功后权益将充至该号码绑定账号</div>
+    </div>
+
+    <!-- 组合详情抽屉 -->
+    <div class="drawer-overlay" id="comboDetailDrawer" onclick="closeDrawer(event,'comboDetailDrawer')">
+      <div class="drawer-sheet" onclick="event.stopPropagation()">
+        <div class="drawer-handle"></div>
+        <div class="drawer-title">组合详情 <span style="font-size:13px;font-weight:400;color:var(--text-tertiary);">共 3 件</span></div>
+        <div class="combo-detail-list">
+          <div class="combo-detail-item">
+            <div class="cd-thumb"><img src="../assets/products/oppo-x9/cp main01.jpg" alt=""></div>
+            <div class="cd-info">
+              <div class="cd-name">Find X9 Ultra 手机</div>
+              <div class="cd-meta">极地冰川 · 12GB+512GB · x1</div>
+            </div>
+            <span class="cd-role cd-role-main">主件</span>
+          </div>
+          <div class="combo-detail-item">
+            <div class="cd-thumb"><img src="../assets/products/oppo-x9/c main02.webp" alt=""></div>
+            <div class="cd-info">
+              <div class="cd-name">哈苏专业增距镜</div>
+              <div class="cd-meta">10倍光变长焦 · x1</div>
+            </div>
+            <span class="cd-role cd-role-fit">搭配</span>
+          </div>
+          <div class="combo-detail-item">
+            <div class="cd-thumb"><img src="../assets/products/oppo-x9/c main01.jpg" alt=""></div>
+            <div class="cd-info">
+              <div class="cd-name">哈苏影像配件套装</div>
+              <div class="cd-meta">滤镜/脚架/收纳包 · x1套</div>
+            </div>
+            <span class="cd-role cd-role-fit">搭配</span>
+          </div>
+        </div>
+        <button class="drawer-btn" onclick="closeDrawer(null,'comboDetailDrawer')">我知道了</button>
+      </div>
+    </div>
+
+    <!-- 配送 · goods（单行） -->
+    <div class="order-options" id="delivery-goods">
+      <div class="option-item">
+        <span class="opt-label">配送方式</span>
+        <div class="opt-value"><span>快递 免邮</span></div>
+      </div>
+    </div>
+
+    <!-- 配送 · cake（双行） -->
+    <div class="order-options" id="delivery-cake" style="display:none">
+      <div class="option-item">
+        <span class="opt-label">配送方式</span>
+        <div class="opt-value"><span>商家配送 免邮</span></div>
+      </div>
+      <div class="option-item">
+        <span class="opt-label">预计送达</span>
+        <div class="opt-value"><span>今天 14:00-16:00</span></div>
+      </div>
+    </div>
+
+    <!-- 配送 · virtual（虚拟商品） -->
+    <div class="order-options" id="delivery-virtual" style="display:none">
+      <div class="option-item">
+        <span class="opt-label">发货方式</span>
+        <div class="opt-value"><span>自动发货 · 无需物流</span></div>
+      </div>
+      <div class="option-item">
+        <span class="opt-label">到账说明</span>
+        <div class="opt-value"><span>支付成功后即时到账</span></div>
+      </div>
+    </div>
+
+    <!-- 苏银豆 -->
+    <div class="beans-block show" id="beansPanel">
+      <div class="beans-block-hd">
+        <div class="beans-block-title">
+          <span class="tag">豆</span>
+          <span>苏银豆</span>
+        </div>
+        <label class="beans-switch" id="beansSwitchWrap">
+          <input type="checkbox" id="beansSwitch">
+          <span class="beans-switch-track"></span>
+          <span class="beans-switch-thumb"></span>
+        </label>
+      </div>
+      <div class="beans-block-bd" id="beansBlockBd">
+        <div class="beans-summary">
+          <span class="beans-summary-text" id="beansSummaryText"></span>
+          <button type="button" class="beans-edit-link" id="beansEditBtn">修改</button>
+        </div>
+        <div class="beans-error" id="comboError"></div>
+      </div>
+    </div>
+
+    <!-- 苏银豆修改抽屉 -->
+    <div class="drawer-overlay" id="beansEditDrawer" onclick="closeDrawer(event,'beansEditDrawer')">
+      <div class="drawer-sheet" onclick="event.stopPropagation()">
+        <div class="drawer-handle"></div>
+        <div class="drawer-title">修改苏银豆使用数量</div>
+        <div class="beans-edit-hint">账户共 <em id="beansEditBalance">0</em> 豆 · 本单最多可用 <em id="beansEditMax">0</em> 豆</div>
+        <div class="beans-edit-field">
+          <input type="number" id="beansEditInput" min="0" step="1" inputmode="numeric">
+          <span class="unit">豆</span>
+        </div>
+        <div class="beans-error" id="beansEditError"></div>
+        <button class="drawer-btn" onclick="confirmBeansEdit()">确定</button>
+      </div>
+    </div>
+
+    <!-- 备注 -->
+    <div class="remark-row" onclick="openDrawer('remarkDrawer')">
+      <span class="rr-label">备注</span>
+      <div class="rr-value">
+        <span id="remarkPreview">选填</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </div>
+
+    <!-- 备注抽屉 -->
+    <div class="drawer-overlay" id="remarkDrawer" onclick="closeDrawer(event,'remarkDrawer')">
+      <div class="drawer-sheet" onclick="event.stopPropagation()">
+        <div class="drawer-handle"></div>
+        <div class="drawer-title">备注</div>
+        <textarea id="remarkInput" maxlength="200" placeholder="请输入备注信息（选填）"></textarea>
+        <div class="drawer-counter"><span class="current" id="remarkCount">0</span>/200</div>
+        <button class="drawer-btn" onclick="confirmRemark()">确定</button>
+      </div>
+    </div>
+
+    <!-- 价格汇总 -->
+    <div class="price-summary" id="priceSummary"></div>
+
+  </div><!-- end page-scroll -->
+
+  <!-- 提交栏 -->
+  <div class="submit-bar">
+    <div class="total-area">
+      <span class="total-label">合计：</span>
+      <span class="total-num" id="bottomTotal"><span class="symbol">&yen;</span>0.00</span>
+    </div>
+    <button class="btn-submit" id="btnSubmit" onclick="handleSubmit()">立即支付</button>
+  </div>
+
+  <!-- 收银台弹窗 -->
+  <div class="pay-popup-overlay" id="payPopupOverlay">
+    <div class="pay-popup" onclick="event.stopPropagation()">
+
+      <!-- Step 1 -->
+      <div class="pay-step active" id="payStep1">
+        <div class="pay-popup-header">
+          <span class="popup-title">收银台</span>
+          <div class="popup-close" onclick="closePayPopup()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </div>
+        </div>
+        <div class="pay-popup-amount">
+          <div class="amount" id="popupAmount"><span class="symbol">&yen;</span>0.00</div>
+        </div>
+        <div class="pay-popup-channel">
+          <div class="ch-icon" id="popupChIcon" style="background:var(--wechat-green);">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 01.213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.326.326 0 00.167-.054l1.903-1.114a.864.864 0 01.717-.098 10.16 10.16 0 002.837.403c.276 0 .543-.027.811-.05-.857-2.578.157-4.972 1.932-6.446 1.703-1.415 3.882-1.98 5.853-1.838-.576-3.583-4.196-6.348-8.596-6.348zM5.785 5.991c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 01-1.162 1.178A1.17 1.17 0 014.623 7.17c0-.651.52-1.18 1.162-1.18zm5.813 0c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 01-1.162 1.178 1.17 1.17 0 01-1.162-1.178c0-.651.52-1.18 1.162-1.18zm5.34 2.867c-1.797-.052-3.746.512-5.28 1.786-1.72 1.428-2.687 3.72-1.78 6.22.942 2.453 3.666 4.229 6.884 4.229.826 0 1.622-.12 2.361-.336a.722.722 0 01.598.082l1.584.926a.272.272 0 00.14.045c.133 0 .241-.11.241-.245 0-.06-.023-.12-.038-.177l-.327-1.233a.582.582 0 01-.023-.156.49.49 0 01.201-.398C23.024 18.48 24 16.82 24 14.98c0-3.21-2.931-5.952-7.062-6.122zM14.033 13.4c.535 0 .969.44.969.982a.976.976 0 01-.969.983.976.976 0 01-.969-.983c0-.542.434-.982.97-.982zm4.844 0c.535 0 .969.44.969.982a.976.976 0 01-.969.983.976.976 0 01-.969-.983c0-.542.434-.982.97-.982z"/></svg>
+          </div>
+          <span class="ch-name" id="popupChName">微信支付</span>
+        </div>
+        <div class="pay-popup-deduct" id="popupCoupon" style="display:none;">
+          <span>优惠券已抵扣</span>
+          <span class="val" id="popupCouponVal">-¥0.00</span>
+        </div>
+        <div class="pay-popup-deduct" id="popupCard" style="display:none;">
+          <span>礼品卡/次卡已抵扣</span>
+          <span class="val" id="popupCardVal">-¥0.00</span>
+        </div>
+        <div class="pay-popup-deduct" id="popupBeans" style="display:none;">
+          <span>苏银豆已抵扣</span>
+          <span class="val" id="popupBeansVal">-¥0.00（0苏银豆）</span>
+        </div>
+        <button class="pay-popup-btn" onclick="showPwdStep()">确认支付</button>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="pay-step" id="payStep2">
+        <div class="pwd-header">
+          <div class="pwd-back" onclick="showConfirmStep()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </div>
+          <span class="pwd-title">请输入支付密码</span>
+        </div>
+        <div class="pwd-body">
+          <div class="pwd-channel-name" id="pwdChannelName">微信支付</div>
+          <div class="pwd-amount" id="pwdAmount"><span class="symbol">&yen;</span>0.00</div>
+          <div class="pwd-grid-wrap">
+            <input type="tel" maxlength="6" class="pwd-hidden-input" id="pwdInput" inputmode="numeric" autocomplete="off">
+            <div class="pwd-grid" id="pwdGrid">
+              <div class="pwd-dot"></div><div class="pwd-dot"></div><div class="pwd-dot"></div>
+              <div class="pwd-dot"></div><div class="pwd-dot"></div><div class="pwd-dot"></div>
+            </div>
+          </div>
+        </div>
+        <div class="pwd-hint">请输入6位支付密码</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 优惠券抽屉 -->
+  <div class="drawer-overlay" id="couponDrawer" onclick="closeDrawer(event,'couponDrawer')">
+    <div class="drawer-sheet" onclick="event.stopPropagation()">
+      <div class="drawer-handle"></div>
+      <div class="drawer-title">选择优惠券</div>
+      <div class="coupon-section-title">可用优惠券 <span class="sub">（每单限选1张，与礼品卡/次卡互斥，可与苏银豆叠加）</span></div>
+      <div class="coupon-grid" id="couponList"></div>
+      <button class="drawer-btn" onclick="confirmCoupon()">确认选择</button>
+    </div>
+  </div>
+
+  <!-- 礼品卡抽屉（带 TAB） -->
+  <div class="drawer-overlay" id="giftDrawer" onclick="closeDrawer(event,'giftDrawer')">
+    <div class="drawer-sheet" onclick="event.stopPropagation()">
+      <div class="drawer-handle"></div>
+      <div class="drawer-title">选择礼品卡</div>
+      <div class="gc-tabs-bar" role="tablist">
+        <button type="button" class="gc-tab gc-tab--active" id="gcTabBalance" data-tab="balance">礼品卡<span class="gc-tab-count" id="gcCountBalance"></span></button>
+        <button type="button" class="gc-tab" id="gcTabPass" data-tab="pass">次卡<span class="gc-tab-count" id="gcCountPass"></span></button>
+      </div>
+      <div id="panelBalance"></div>
+      <div id="panelPass" style="display:none"></div>
+      <button class="drawer-btn" onclick="confirmGiftCard()">确认选择</button>
+    </div>
+  </div>
+
+</div>
+<script src="../assets/auth.js"></script>
+<script src="../assets/auth-guard.js"></script>
+<script src="../assets/common.js"></script>
+<script src="../assets/beans-insufficient.js"></script>
+<script>
+(function() {
+  var BEAN_BALANCE = 68000;
+
+  // 场景配置：每个场景独立定义卡券字典（券门槛随场景不同）、配送、地址、商品块
+  var SCENARIOS = {
+    goods: {
+      label: '实物商品',
+      address: 'editable',
+      addrNamePhone: '张三  138****8888',
+      addrDetail: '北京市朝阳区建国路88号 悦享大厦A座12层',
+      productBlock: 'block-goods',
+      deliveryBlock: 'delivery-goods',
+      summaryLabel: '商品金额',
+      remarkPh: '请输入备注信息（选填）',
+      coupons: [
+        { id: 'C001', name: '满100减20', threshold: 10000, discount: 2000, expireText: '2026-06-30前有效' },
+        { id: 'C002', name: '满150减30', threshold: 15000, discount: 3000, expireText: '2026-07-15前有效' },
+        { id: 'C003', name: '无门槛10元券', threshold: 0, discount: 1000, expireText: '2026-08-01前有效' }
+      ],
+      giftCards: {
+        gcv1: { id: 'gcv1', name: '苏银豆商城·全场通用礼品卡', remainCents: 15000 },
+        gcv2: { id: 'gcv2', name: '新人专享·全场通用礼品卡', remainCents: 8000 }
+      },
+      passCards: {
+        P001: { id: 'P001', name: '数码专场·兑换次卡', target: 'cat-digital', remaining: 5, pricePerUse: 8900 },
+        P002: { id: 'P002', name: '蛋糕叔叔·蛋糕次卡', target: 'cake', remaining: 5, pricePerUse: 6800 }
+      },
+      passDeductMode: 'matchByItem'
+    },
+    cake: {
+      label: '蛋糕叔叔',
+      address: 'editable',
+      addrNamePhone: '张三  138****8888',
+      addrDetail: '南京市鼓楼区中山北路123号 甜蜜时光蛋糕店',
+      productBlock: 'block-cake',
+      deliveryBlock: 'delivery-cake',
+      summaryLabel: '商品金额',
+      remarkPh: '请输入备注信息（如蜡烛数量、贺卡内容等）',
+      coupons: [
+        { id: 'C001', name: '满100减20', threshold: 10000, discount: 2000, expireText: '2026-06-30前有效' },
+        { id: 'C002', name: '满150减30', threshold: 15000, discount: 3000, expireText: '2026-07-15前有效' },
+        { id: 'C003', name: '无门槛10元券', threshold: 0, discount: 1000, expireText: '2026-08-01前有效' }
+      ],
+      giftCards: {
+        gcv1: { id: 'gcv1', name: '苏银豆商城·全场通用礼品卡', remainCents: 15000 },
+        gcv2: { id: 'gcv2', name: '新人专享·全场通用礼品卡', remainCents: 8000 }
+      },
+      passCards: {
+        P002: { id: 'P002', name: '蛋糕叔叔·蛋糕次卡', target: 'cake', remaining: 5, pricePerUse: 6800 }
+      },
+      passDeductMode: 'matchByItem'
+    },
+    movie: {
+      label: '电影购票',
+      address: 'none',
+      addrNamePhone: '',
+      addrDetail: '',
+      productBlock: 'block-movie',
+      deliveryBlock: '',
+      summaryLabel: '票款金额',
+      remarkPh: '请输入备注信息（选填）',
+      ticketPrice: 5000,
+      coupons: [
+        { id: 'C001', name: '电影专场·满50减10', threshold: 5000, discount: 1000, expireText: '2026-06-30前有效' },
+        { id: 'C002', name: '无门槛5元立减券', threshold: 0, discount: 500, expireText: '2026-07-15前有效' }
+      ],
+      giftCards: {
+        gcv1: { id: 'gcv1', name: '苏银豆商城·全场通用礼品卡', remainCents: 15000 },
+        gcv2: { id: 'gcv2', name: '新人专享·全场通用礼品卡', remainCents: 8000 }
+      },
+      passCards: {
+        M001: { id: 'M001', name: '单人观影次卡', target: 'movie', remaining: 3, pricePerUse: 3500 },
+        M002: { id: 'M002', name: 'VIP观影次卡', target: 'movie', remaining: 1, pricePerUse: 6000 }
+      },
+      passDeductMode: 'coverByQty'
+    },
+    combo: {
+      label: '组合商品',
+      address: 'editable',
+      addrNamePhone: '张三  138****8888',
+      addrDetail: '北京市朝阳区建国路88号 悦享大厦A座12层',
+      productBlock: 'block-goods-combo',
+      deliveryBlock: 'delivery-goods',
+      summaryLabel: '商品金额',
+      remarkPh: '请输入备注信息（选填）',
+      coupons: [
+        { id: 'C8000', name: '满8000减300', threshold: 800000, discount: 30000, expireText: '2026-08-31前有效' },
+        { id: 'C001', name: '满100减20', threshold: 10000, discount: 2000, expireText: '2026-06-30前有效' }
+      ],
+      giftCards: {
+        gcv1: { id: 'gcv1', name: '苏银豆商城·全场通用礼品卡', remainCents: 15000 }
+      },
+      passCards: {},
+      passDeductMode: 'matchByItem'
+    },
+    virtual: {
+      label: '虚拟商品',
+      address: 'rechargePhone',
+      addrNamePhone: '',
+      addrDetail: '',
+      productBlock: 'block-virtual',
+      deliveryBlock: 'delivery-virtual',
+      summaryLabel: '商品金额',
+      remarkPh: '选填备注（如特殊到账说明）',
+      coupons: [
+        { id: 'C001', name: '满100减20', threshold: 10000, discount: 2000, expireText: '2026-06-30前有效' },
+        { id: 'C003', name: '无门槛10元券', threshold: 0, discount: 1000, expireText: '2026-08-01前有效' }
+      ],
+      giftCards: {
+        gcv1: { id: 'gcv1', name: '苏银豆商城·全场通用礼品卡', remainCents: 15000 },
+        gcv2: { id: 'gcv2', name: '新人专享·全场通用礼品卡', remainCents: 8000 }
+      },
+      passCards: {},
+      passDeductMode: 'matchByItem'
+    }
+  };
+
+  // 当前场景状态（setScene 时赋值）
+  var SCENE = 'goods';
+  var SCENARIO = SCENARIOS.goods;
+  var COUPONS = [];
+  var GIFT_CARDS = {};
+  var PASS_CARDS = {};
+  var PASS_DEDUCT_MODE = 'matchByItem';
+  var ticketQty = 1; // 电影票张数（页面不可改，仅演示数据）
+
+  // 卡券选择状态（主状态，抽屉确认后写入）
+  var selectedCoupon = null;
+  var couponActive = false;
+  var selectedGiftCards = [];
+  var giftCardActive = false;
+  var selectedPassCards = [];
+  var passCardActive = false;
+
+  // 苏银豆
+  var useBeans = null;
+  var beansOn = false;
+
+  // 抽屉草稿
+  var couponDraft = null;
+  var giftDraft = [];
+  var passDraft = [];
+  var giftTab = 'balance';
+
+  // ---- 通用抽屉开关 ----
+  window.openDrawer = function(id) { document.getElementById(id).classList.add('show'); };
+  window.closeDrawer = function(e, id) {
+    if (e && e.target !== e.currentTarget) return;
+    document.getElementById(id).classList.remove('show');
+  };
+
+  // ---- 商品 / 金额（活动块隔离） ----
+  function activeProductItems() {
+    if (SCENE === 'movie') return [];
+    var block = document.getElementById(SCENARIO.productBlock);
+    return block ? block.querySelectorAll('.order-product-item') : [];
+  }
+
+  function getTotal() {
+    if (SCENE === 'movie') return SCENARIO.ticketPrice * ticketQty;
+    var total = 0;
+    activeProductItems().forEach(function(el) {
+      total += parseFloat(el.dataset.price) * parseInt(el.dataset.qty, 10);
+    });
+    return total;
+  }
+
+  // 某 target 在本单匹配数量（次卡核销用）
+  function getMatchCount(target) {
+    if (SCENE === 'movie') return target === 'movie' ? ticketQty : 0;
+    var n = 0;
+    activeProductItems().forEach(function(el) {
+      if (el.dataset.category === target) n += parseInt(el.dataset.qty, 10);
+      else if (target === 'cake' && /蛋糕|cake/i.test(el.querySelector('.prod-name').textContent)) n += parseInt(el.dataset.qty, 10);
+    });
+    return n;
+  }
+
+  // ---- 卡券抵扣（券/卡互斥取一） ----
+  function getCouponObj(id) {
+    for (var i = 0; i < COUPONS.length; i++) if (COUPONS[i].id === id) return COUPONS[i];
+    return null;
+  }
+  function getCouponDiscount() {
+    if (!couponActive || !selectedCoupon) return 0;
+    var c = getCouponObj(selectedCoupon);
+    if (!c) return 0;
+    if (Math.round(getTotal() * 100) < c.threshold) return 0;
+    return c.discount;
+  }
+  function getGiftCardTotalCents() {
+    var sum = 0;
+    selectedGiftCards.forEach(function(id) { if (GIFT_CARDS[id]) sum += GIFT_CARDS[id].remainCents; });
+    return sum;
+  }
+  // 次卡抵扣（分）：matchByItem 按品类/名称件数核销；coverByQty 按票数依次填满（单价 cap 在票价）
+  function getPassCardDeductCents() {
+    var cents = 0;
+    if (PASS_DEDUCT_MODE === 'coverByQty') {
+      var need = ticketQty, covered = 0;
+      selectedPassCards.forEach(function(id) {
+        if (covered >= need) return;
+        var pc = PASS_CARDS[id]; if (!pc) return;
+        var times = Math.min(pc.remaining, need - covered);
+        covered += times;
+        cents += times * Math.min(pc.pricePerUse, SCENARIO.ticketPrice);
+      });
+    } else {
+      selectedPassCards.forEach(function(id) {
+        var pc = PASS_CARDS[id]; if (!pc) return;
+        var useTimes = Math.min(pc.remaining, getMatchCount(pc.target));
+        cents += useTimes * pc.pricePerUse;
+      });
+    }
+    return cents;
+  }
+
+  // 互斥：券/礼品卡/次卡 三选一
+  function getPreDeduct(totalCents) {
+    if (couponActive && selectedCoupon) return getCouponDiscount();
+    if (giftCardActive && selectedGiftCards.length) return Math.min(getGiftCardTotalCents(), totalCents);
+    if (passCardActive && selectedPassCards.length) return Math.min(getPassCardDeductCents(), totalCents);
+    return 0;
+  }
+
+  function maxUseBeans() {
+    var totalCents = Math.round(getTotal() * 100);
+    var afterDiscount = Math.max(0, totalCents - getPreDeduct(totalCents));
+    return Math.min(BEAN_BALANCE, afterDiscount);
+  }
+  function clampUseBeans(maxUse) {
+    if (useBeans === null) useBeans = maxUse;
+    else useBeans = Math.max(0, Math.min(maxUse, useBeans));
+  }
+
+  // 统一支付链：券/卡（互斥）→ 苏银豆（叠加）→ 现金（兜底）
+  function calcFee() {
+    var total = getTotal();
+    var totalCents = Math.round(total * 100);
+    var coupon = 0, giftUsed = 0, passUsed = 0;
+    if (couponActive && selectedCoupon) coupon = getCouponDiscount();
+    else if (giftCardActive && selectedGiftCards.length) giftUsed = Math.min(getGiftCardTotalCents(), totalCents);
+    else if (passCardActive && selectedPassCards.length) passUsed = Math.min(getPassCardDeductCents(), totalCents);
+    var afterDiscount = Math.max(0, totalCents - coupon - giftUsed - passUsed);
+    var maxUse = Math.min(BEAN_BALANCE, afterDiscount);
+    var beansUsed = 0;
+    if (beansOn && maxUse > 0) { clampUseBeans(maxUse); beansUsed = useBeans; }
+    else useBeans = 0;
+    var cashDue = Math.max(0, afterDiscount - beansUsed);
+    var hasCard = giftUsed > 0 || passUsed > 0;
+    // 归一：cashDue<=0 → points（豆或卡抵完，均「确认兑换」直跳）；否则 combo/cash
+    var payMode = cashDue <= 0 ? ((beansUsed > 0 || hasCard) ? 'points' : 'cash')
+                              : ((beansUsed > 0 || hasCard) ? 'combo' : 'cash');
+    return {
+      total: total, totalCents: totalCents, coupon: coupon,
+      giftUsed: giftUsed, passUsed: passUsed, beansUsed: beansUsed,
+      cashDue: cashDue, payMode: payMode, maxUse: maxUse
+    };
+  }
+
+  // ---- 可用数量（入口文案） ----
+  function countAvailableCoupons() {
+    var c = Math.round(getTotal() * 100), n = 0;
+    COUPONS.forEach(function(k) { if (c >= k.threshold) n++; });
+    return n;
+  }
+  function countAvailableGiftCards() {
+    var n = 0;
+    Object.keys(GIFT_CARDS).forEach(function(k) { if (GIFT_CARDS[k].remainCents > 0) n++; });
+    return n;
+  }
+  function countAvailablePassCards() {
+    var n = 0;
+    Object.keys(PASS_CARDS).forEach(function(k) { if (PASS_CARDS[k].remaining > 0 && getMatchCount(PASS_CARDS[k].target) > 0) n++; });
+    return n;
+  }
+
+  function syncBeansPanel(fee) {
+    var panel = document.getElementById('beansPanel');
+    var switchEl = document.getElementById('beansSwitch');
+    var editBtn = document.getElementById('beansEditBtn');
+    // 只要账户有苏银豆，区块常驻显示（默认进入不勾选、不抵扣）
+    if (BEAN_BALANCE <= 0) { panel.classList.remove('show'); return; }
+    panel.classList.add('show');
+    // 本单无可抵扣额度（如券/卡已抵完）：禁用开关 + 提示，仍保留区块不隐藏
+    if (fee.maxUse <= 0) {
+      switchEl.disabled = true;
+      switchEl.checked = false;
+      editBtn.style.display = 'none';
+      document.getElementById('beansSummaryText').textContent = '本单无可抵扣额度';
+      document.getElementById('beansBlockBd').classList.add('show');
+      return;
+    }
+    switchEl.disabled = false;
+    editBtn.style.display = '';
+    switchEl.checked = beansOn;
+    document.getElementById('beansBlockBd').classList.toggle('show', beansOn);
+    var isMax = fee.beansUsed === fee.maxUse;
+    var beansStr = fee.beansUsed.toLocaleString();
+    var cashStr = (fee.beansUsed / 100).toFixed(2);
+    var el = document.getElementById('beansSummaryText');
+    if (isMax) el.innerHTML = '已为您最大化使用 <em>' + beansStr + '</em> 苏银豆，抵扣 <em>¥' + cashStr + '</em>';
+    else el.innerHTML = '已使用 <em>' + beansStr + '</em> 苏银豆，抵扣 <em>¥' + cashStr + '</em>';
+  }
+
+  function guardBeans(fee) {
+    if (!fee.beansUsed || fee.beansUsed <= BEAN_BALANCE) return true;
+    BeansInsufficient.open({ need: fee.beansUsed, balance: BEAN_BALANCE });
+    return false;
+  }
+
+  function renderCouponEntry(fee) {
+    var arrow = '<svg class="sr-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>';
+    if (couponActive && selectedCoupon) {
+      var c = getCouponObj(selectedCoupon);
+      return '<div class="summary-row clickable" onclick="openCouponDrawer()"><span>' + (c ? c.name : '优惠券') + '</span><div style="display:flex;align-items:center;gap:2px;"><span style="color:var(--primary-start);">-¥' + (fee.coupon / 100).toFixed(2) + '</span>' + arrow + '</div></div>';
+    }
+    var tip = (giftCardActive || passCardActive) ? '与礼品卡互斥' : (countAvailableCoupons() + '张可用');
+    return '<div class="summary-row clickable" onclick="openCouponDrawer()"><span>优惠券</span><div style="display:flex;align-items:center;gap:2px;"><span style="color:var(--text-tertiary);font-size:12px;">' + tip + '</span>' + arrow + '</div></div>';
+  }
+
+  function renderCardEntry(fee) {
+    var arrow = '<svg class="sr-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>';
+    if (passCardActive && selectedPassCards.length) {
+      var pn = selectedPassCards.length;
+      var plabel = pn === 1 ? (PASS_CARDS[selectedPassCards[0]] ? PASS_CARDS[selectedPassCards[0]].name : '次卡') : ('已选' + pn + '张次卡');
+      return '<div class="summary-row clickable" onclick="openGiftDrawer()"><span>' + plabel + '</span><div style="display:flex;align-items:center;gap:2px;"><span style="color:var(--primary-start);">-¥' + (fee.passUsed / 100).toFixed(2) + '</span>' + arrow + '</div></div>';
+    }
+    if (giftCardActive && selectedGiftCards.length) {
+      var n = selectedGiftCards.length;
+      var label = n === 1 ? (GIFT_CARDS[selectedGiftCards[0]] ? GIFT_CARDS[selectedGiftCards[0]].name : '礼品卡') : ('已选' + n + '张礼品卡');
+      return '<div class="summary-row clickable" onclick="openGiftDrawer()"><span>' + label + '</span><div style="display:flex;align-items:center;gap:2px;"><span style="color:var(--primary-start);">-¥' + (fee.giftUsed / 100).toFixed(2) + '</span>' + arrow + '</div></div>';
+    }
+    var tip = couponActive ? '与优惠券互斥' : ((countAvailableGiftCards() + countAvailablePassCards()) + '张可用');
+    return '<div class="summary-row clickable" onclick="openGiftDrawer()"><span>礼品卡</span><div style="display:flex;align-items:center;gap:2px;"><span style="color:var(--text-tertiary);font-size:12px;">' + tip + '</span>' + arrow + '</div></div>';
+  }
+
+  function renderSummary() {
+    var fee = calcFee();
+    var qtyLabel = SCENE === 'movie' ? '（' + ticketQty + '张）' : '';
+    var html = '<div class="summary-row"><span>' + SCENARIO.summaryLabel + qtyLabel + '</span><span>¥' + fee.total.toFixed(2) + '</span></div>';
+    if (SCENE !== 'movie') html += '<div class="summary-row"><span>运费</span><span>¥0.00</span></div>';
+    html += renderCouponEntry(fee);
+    html += renderCardEntry(fee);
+    if (fee.beansUsed > 0) {
+      html += '<div class="summary-row"><span>苏银豆抵扣</span><span style="color:var(--primary-start);">-¥' + (fee.beansUsed / 100).toFixed(2) + '（' + fee.beansUsed.toLocaleString() + ' 豆）</span></div>';
+    }
+    if (fee.cashDue > 0 && (fee.beansUsed > 0 || fee.giftUsed > 0 || fee.passUsed > 0)) {
+      html += '<div class="summary-row"><span>现金支付</span><span>¥' + (fee.cashDue / 100).toFixed(2) + '</span></div>';
+    }
+    html += '<div class="summary-row total"><span>合计</span><span class="total-price"><span class="symbol">¥</span>' + (fee.cashDue / 100).toFixed(2) + '</span></div>';
+    document.getElementById('priceSummary').innerHTML = html;
+    syncBeansPanel(fee);
+
+    document.getElementById('bottomTotal').innerHTML = '<span class="symbol">¥</span>' + (fee.cashDue / 100).toFixed(2);
+    var btn = document.getElementById('btnSubmit');
+    if (fee.payMode === 'points') btn.textContent = '确认兑换';
+    else if (fee.payMode === 'combo') btn.textContent = '组合支付';
+    else btn.textContent = '立即支付';
+  }
+
+  // ---- 苏银豆 ----
+  document.getElementById('beansSwitch').addEventListener('change', function() {
+    beansOn = this.checked;
+    useBeans = beansOn ? null : 0;
+    document.getElementById('comboError').classList.remove('show');
+    renderSummary();
+  });
+  document.getElementById('beansEditBtn').addEventListener('click', function() {
+    var fee = calcFee();
+    document.getElementById('beansEditBalance').textContent = BEAN_BALANCE.toLocaleString();
+    document.getElementById('beansEditMax').textContent = fee.maxUse.toLocaleString();
+    document.getElementById('beansEditInput').max = fee.maxUse;
+    document.getElementById('beansEditInput').value = fee.beansUsed;
+    document.getElementById('beansEditError').classList.remove('show');
+    openDrawer('beansEditDrawer');
+    setTimeout(function() { var i = document.getElementById('beansEditInput'); i.focus(); i.select(); }, 100);
+  });
+  window.confirmBeansEdit = function() {
+    var input = document.getElementById('beansEditInput');
+    var val = parseInt(input.value, 10);
+    if (isNaN(val) || val < 0) val = 0;
+    var max = maxUseBeans();
+    var err = document.getElementById('beansEditError');
+    if (val > BEAN_BALANCE) { err.textContent = '不能超过账户余额'; err.classList.add('show'); return; }
+    if (val > max) { err.textContent = '不能超过本单可用上限'; err.classList.add('show'); return; }
+    err.classList.remove('show');
+    beansOn = val > 0;
+    useBeans = val === max ? null : val;
+    document.getElementById('comboError').classList.remove('show');
+    closeDrawer({ target: document.getElementById('beansEditDrawer'), currentTarget: document.getElementById('beansEditDrawer') }, 'beansEditDrawer');
+    renderSummary();
+  };
+
+  // ---- 备注 ----
+  document.getElementById('remarkInput').addEventListener('input', function() {
+    document.getElementById('remarkCount').textContent = this.value.length;
+  });
+  window.confirmRemark = function() {
+    var val = document.getElementById('remarkInput').value.trim();
+    document.getElementById('remarkPreview').textContent = val || '选填';
+    closeDrawer({ target: document.getElementById('remarkDrawer'), currentTarget: document.getElementById('remarkDrawer') }, 'remarkDrawer');
+  };
+
+  // ---- 优惠券抽屉 ----
+  window.openCouponDrawer = function() {
+    couponDraft = selectedCoupon;
+    renderCouponList();
+    openDrawer('couponDrawer');
+  };
+  function renderCouponList() {
+    var totalCents = Math.round(getTotal() * 100);
+    var html = '';
+    html += '<div class="coupon-card' + (couponDraft === null ? ' active' : '') + '" data-id="" onclick="selectCouponDraft(this)"><div class="cc-radio"></div><div class="cc-body"><div class="cc-header"><span class="cc-name">不使用优惠券</span></div><div class="cc-threshold">不使用优惠券抵扣</div></div></div>';
+    COUPONS.forEach(function(c) {
+      var isActive = c.id === couponDraft;
+      var available = totalCents >= c.threshold;
+      html += '<div class="coupon-card' + (isActive ? ' active' : '') + (!available ? ' unavailable' : '') + '" data-id="' + c.id + '" onclick="selectCouponDraft(this)"><div class="cc-radio"></div><div class="cc-body"><div class="cc-header"><span class="cc-name">' + c.name + '</span><span class="cc-amount">¥' + (c.discount / 100).toFixed(0) + '</span>' + (isActive ? '<span class="cc-badge">已选</span>' : '') + '</div>';
+      html += '<div class="cc-threshold">' + (c.threshold > 0 ? '满' + (c.threshold / 100).toFixed(0) + '元可用' + (available ? '' : '（未满足）') : '无门槛') + '</div>';
+      html += '<div class="cc-expire">' + c.expireText + '</div></div></div>';
+    });
+    document.getElementById('couponList').innerHTML = html;
+  }
+  window.selectCouponDraft = function(el) {
+    var id = el.dataset.id;
+    couponDraft = id === '' ? null : (couponDraft === id ? null : id);
+    renderCouponList();
+  };
+  window.confirmCoupon = function() {
+    selectedCoupon = couponDraft;
+    couponActive = !!selectedCoupon;
+    if (couponActive) { // 互斥：清卡
+      giftCardActive = false; selectedGiftCards = [];
+      passCardActive = false; selectedPassCards = [];
+    }
+    useBeans = null;
+    closeDrawer({ target: document.getElementById('couponDrawer'), currentTarget: document.getElementById('couponDrawer') }, 'couponDrawer');
+    renderSummary();
+  };
+
+  // ---- 礼品卡抽屉（TAB） ----
+  window.openGiftDrawer = function() {
+    giftDraft = selectedGiftCards.slice();
+    passDraft = selectedPassCards.slice();
+    giftTab = passDraft.length ? 'pass' : 'balance';
+    renderGiftAll();
+    openDrawer('giftDrawer');
+  };
+  function renderGiftTabs() {
+    var isBalance = giftTab === 'balance';
+    document.getElementById('gcTabBalance').classList.toggle('gc-tab--active', isBalance);
+    document.getElementById('gcTabPass').classList.toggle('gc-tab--active', !isBalance);
+    document.getElementById('panelBalance').style.display = isBalance ? 'block' : 'none';
+    document.getElementById('panelPass').style.display = isBalance ? 'none' : 'block';
+    document.getElementById('gcCountBalance').textContent = '(' + countAvailableGiftCards() + ')';
+    document.getElementById('gcCountPass').textContent = '(' + countAvailablePassCards() + ')';
+  }
+  function renderBalancePanel() {
+    var totalCents = Math.round(getTotal() * 100);
+    var html = '<div class="coupon-section-title">可用礼品卡 <span class="sub">（可多选，与优惠券/次卡互斥，可与苏银豆叠加）</span></div><div class="coupon-grid">';
+    html += '<div class="coupon-card' + (giftDraft.length === 0 ? ' active' : '') + '" data-id="" onclick="selectGiftDraft(this)"><div class="cc-radio"></div><div class="cc-body"><div class="cc-header"><span class="cc-name">不使用礼品卡</span></div><div class="cc-threshold">不使用礼品卡抵扣</div></div></div>';
+    Object.keys(GIFT_CARDS).forEach(function(k) {
+      var c = GIFT_CARDS[k];
+      var isActive = giftDraft.indexOf(c.id) >= 0;
+      var deduct = Math.min(c.remainCents, totalCents);
+      html += '<div class="coupon-card' + (isActive ? ' active' : '') + '" data-id="' + c.id + '" onclick="selectGiftDraft(this)"><div class="cc-radio"></div><div class="cc-body"><div class="cc-header"><span class="cc-name">' + c.name + '</span>' + (isActive ? '<span class="cc-badge">已选</span>' : '') + '</div>';
+      html += '<div class="gc-balance"><span class="gc-cur">¥</span>' + (c.remainCents / 100).toFixed(2) + '<span class="gc-bal-unit">余额</span></div>';
+      html += '<div class="cc-threshold">本单可抵扣 ¥' + (deduct / 100).toFixed(2) + '</div>';
+      html += '<div class="cc-expire">全场通用；余额可拆分多次消费</div></div></div>';
+    });
+    html += '</div>';
+    document.getElementById('panelBalance').innerHTML = html;
+  }
+  function renderPassPanel() {
+    var html = '<div class="coupon-section-title">可用次卡 <span class="sub">（1次抵1件，按本单匹配数量核销；与优惠券/礼品卡互斥，可与苏银豆叠加）</span></div><div class="coupon-grid">';
+    html += '<div class="coupon-card' + (passDraft.length === 0 ? ' active' : '') + '" data-id="" onclick="selectPassDraft(this)"><div class="cc-radio"></div><div class="cc-body"><div class="cc-header"><span class="cc-name">不使用次卡</span></div><div class="cc-threshold">不使用次卡抵扣</div></div></div>';
+    Object.keys(PASS_CARDS).forEach(function(k) {
+      var c = PASS_CARDS[k];
+      var isActive = passDraft.indexOf(c.id) >= 0;
+      var matchN = getMatchCount(c.target);
+      var useTimes = Math.min(c.remaining, matchN);
+      var perUse = PASS_DEDUCT_MODE === 'coverByQty' ? Math.min(c.pricePerUse, SCENARIO.ticketPrice) : c.pricePerUse;
+      var canUse = c.remaining > 0 && matchN > 0;
+      html += '<div class="coupon-card' + (isActive ? ' active' : '') + (!canUse ? ' unavailable' : '') + '" data-id="' + c.id + '" onclick="selectPassDraft(this)"><div class="cc-radio"></div><div class="cc-body"><div class="cc-header"><span class="cc-name">' + c.name + '</span>' + (isActive ? '<span class="cc-badge">已选</span>' : '') + '</div>';
+      html += '<div class="pc-balance">' + c.remaining + '<span class="pc-bal-unit">次剩余</span></div>';
+      html += '<div class="cc-threshold">每次价值¥' + (perUse / 100).toFixed(0) + '</div>';
+      if (!canUse) html += '<div class="cc-expire" style="color:var(--price-color);">' + (c.remaining <= 0 ? '已用尽' : '本单无可抵商品') + '</div>';
+      else html += '<div class="cc-expire">本单可抵' + useTimes + '次 ¥' + (useTimes * perUse / 100).toFixed(2) + '</div>';
+      html += '</div></div>';
+    });
+    html += '</div>';
+    document.getElementById('panelPass').innerHTML = html;
+  }
+  function renderGiftAll() {
+    renderGiftTabs();
+    if (giftTab === 'balance') renderBalancePanel(); else renderPassPanel();
+  }
+  window.selectGiftTab = function(tab) {
+    if (giftTab === tab) return;
+    giftTab = tab;
+    // 切 TAB 即放弃另一类草稿
+    if (tab === 'balance') passDraft = []; else giftDraft = [];
+    renderGiftAll();
+  };
+  window.selectGiftDraft = function(el) {
+    var id = el.dataset.id;
+    if (id === '') giftDraft = [];
+    else { var i = giftDraft.indexOf(id); if (i >= 0) giftDraft.splice(i, 1); else giftDraft.push(id); }
+    renderBalancePanel();
+  };
+  window.selectPassDraft = function(el) {
+    var id = el.dataset.id;
+    if (id === '') passDraft = [];
+    else { var i = passDraft.indexOf(id); if (i >= 0) passDraft.splice(i, 1); else passDraft.push(id); }
+    renderPassPanel();
+  };
+  window.confirmGiftCard = function() {
+    if (giftTab === 'balance') {
+      selectedGiftCards = giftDraft.slice(); giftCardActive = selectedGiftCards.length > 0;
+      selectedPassCards = []; passCardActive = false;
+    } else {
+      selectedPassCards = passDraft.slice(); passCardActive = selectedPassCards.length > 0;
+      selectedGiftCards = []; giftCardActive = false;
+    }
+    if (giftCardActive || passCardActive) { // 互斥：清券
+      couponActive = false; selectedCoupon = null;
+    }
+    useBeans = null;
+    closeDrawer({ target: document.getElementById('giftDrawer'), currentTarget: document.getElementById('giftDrawer') }, 'giftDrawer');
+    renderSummary();
+  };
+  document.getElementById('gcTabBalance').addEventListener('click', function() { window.selectGiftTab('balance'); });
+  document.getElementById('gcTabPass').addEventListener('click', function() { window.selectGiftTab('pass'); });
+
+  // ---- 场景切换 ----
+  function setScene(name) {
+    if (!SCENARIOS[name]) name = 'goods';
+    SCENE = name;
+    SCENARIO = SCENARIOS[name];
+    COUPONS = SCENARIO.coupons;
+    GIFT_CARDS = SCENARIO.giftCards;
+    PASS_CARDS = SCENARIO.passCards;
+    PASS_DEDUCT_MODE = SCENARIO.passDeductMode;
+
+    // 卡券选择重置（默认不选券/卡/豆，与各场景一致）
+    selectedCoupon = null; couponActive = false;
+    selectedGiftCards = []; giftCardActive = false;
+    selectedPassCards = []; passCardActive = false;
+    useBeans = null; beansOn = false;
+
+    // 商品块显隐
+    ['block-goods', 'block-goods-combo', 'block-virtual', 'block-cake', 'block-movie'].forEach(function(id) {
+      document.getElementById(id).style.display = (id === SCENARIO.productBlock) ? '' : 'none';
+    });
+    // 配送显隐
+    ['delivery-goods', 'delivery-cake', 'delivery-virtual'].forEach(function(id) {
+      var el = document.getElementById(id);
+      el.style.display = (id === SCENARIO.deliveryBlock) ? '' : 'none';
+    });
+    // 地址 / 充值手机号
+    var addrEl = document.getElementById('addressSection');
+    var rechargeEl = document.getElementById('rechargePhoneSection');
+    if (SCENARIO.address === 'rechargePhone') {
+      addrEl.style.display = 'none';
+      rechargeEl.style.display = '';
+    } else if (SCENARIO.address === 'none') {
+      addrEl.style.display = 'none';
+      rechargeEl.style.display = 'none';
+    } else {
+      addrEl.style.display = '';
+      rechargeEl.style.display = 'none';
+      document.getElementById('addrNamePhone').textContent = SCENARIO.addrNamePhone;
+      document.getElementById('addrDetail').textContent = SCENARIO.addrDetail;
+    }
+    // 备注占位符
+    document.getElementById('remarkInput').placeholder = SCENARIO.remarkPh;
+
+    // 场景条高亮
+    document.querySelectorAll('.scene-tab').forEach(function(t) {
+      t.classList.toggle('scene-tab--active', t.dataset.scene === name);
+    });
+
+    renderSummary();
+  }
+  document.querySelectorAll('.scene-tab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      setScene(this.dataset.scene);
+      var u = new URLSearchParams(location.search);
+      u.set('scene', this.dataset.scene);
+      history.replaceState(null, '', location.pathname + '?' + u.toString());
+    });
+  });
+
+  // ---- 收银台 / 支付 ----
+  var channelData = { name: '微信支付', color: 'var(--wechat-green)' };
+  window.handleSubmit = function() {
+    if (SCENE === 'virtual') {
+      var phone = (document.getElementById('rechargePhoneInput').value || '').trim();
+      if (!/^1\d{10}$/.test(phone)) {
+        alert('请填写正确的11位充值手机号');
+        document.getElementById('rechargePhoneInput').focus();
+        return;
+      }
+    }
+    var fee = calcFee();
+    if (!guardBeans(fee)) return;
+    if (fee.payMode === 'points') { location.href = '33.支付成功-原型页面.html'; return; }
+    document.getElementById('popupAmount').innerHTML = '<span class="symbol">¥</span>' + (fee.cashDue / 100).toFixed(2);
+    document.getElementById('popupChIcon').style.background = channelData.color;
+    document.getElementById('popupChName').textContent = channelData.name;
+    // 三槽动态显隐
+    var cEl = document.getElementById('popupCoupon');
+    if (fee.coupon > 0) { cEl.style.display = 'flex'; document.getElementById('popupCouponVal').textContent = '-¥' + (fee.coupon / 100).toFixed(2); } else cEl.style.display = 'none';
+    var dEl = document.getElementById('popupCard');
+    var cardUsed = fee.giftUsed + fee.passUsed;
+    if (cardUsed > 0) { dEl.style.display = 'flex'; document.getElementById('popupCardVal').textContent = '-¥' + (cardUsed / 100).toFixed(2); } else dEl.style.display = 'none';
+    var bEl = document.getElementById('popupBeans');
+    if (fee.beansUsed > 0) { bEl.style.display = 'flex'; document.getElementById('popupBeansVal').textContent = '-' + fee.beansUsed.toLocaleString() + ' 豆（¥' + (fee.beansUsed / 100).toFixed(2) + '）'; } else bEl.style.display = 'none';
+    document.getElementById('payStep1').classList.add('active');
+    document.getElementById('payStep2').classList.remove('active');
+    document.getElementById('pwdInput').value = '';
+    updatePwdDots();
+    document.getElementById('payPopupOverlay').classList.add('show');
+    document.getElementById('payPopupOverlay').onclick = function(e) { if (e.target === this) closePayPopup(); };
+  };
+  window.closePayPopup = function() { document.getElementById('payPopupOverlay').classList.remove('show'); };
+  window.showPwdStep = function() {
+    var fee = calcFee();
+    document.getElementById('pwdChannelName').textContent = channelData.name;
+    document.getElementById('pwdAmount').innerHTML = '<span class="symbol">¥</span>' + (fee.cashDue / 100).toFixed(2);
+    document.getElementById('payStep1').classList.remove('active');
+    document.getElementById('payStep2').classList.add('active');
+    document.getElementById('pwdInput').value = '';
+    updatePwdDots();
+    setTimeout(function() { document.getElementById('pwdInput').focus(); }, 100);
+  };
+  window.showConfirmStep = function() {
+    document.getElementById('payStep2').classList.remove('active');
+    document.getElementById('payStep1').classList.add('active');
+  };
+  function updatePwdDots() {
+    var val = document.getElementById('pwdInput').value;
+    document.querySelectorAll('.pwd-dot').forEach(function(dot, i) { dot.classList.toggle('filled', i < val.length); });
+  }
+  document.getElementById('pwdInput').addEventListener('input', function() {
+    this.value = this.value.replace(/\D/g, '').slice(0, 6);
+    updatePwdDots();
+    if (this.value.length === 6) { setTimeout(function() { location.href = '33.支付成功-原型页面.html'; }, 300); }
+  });
+
+  // ---- 初始化 ----
+  // 解析 ?scene=
+  var initScene = new URLSearchParams(location.search).get('scene');
+  if (!SCENARIOS[initScene]) initScene = 'goods';
+  setScene(initScene);
+})();
+</script>
+
+<script src="../assets/theme-switcher.js"></script>
+</body>
+</html>

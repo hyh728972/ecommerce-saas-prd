@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>商城积分管理 - 品牌商城后台</title>
+<style>
+:root {
+  --bg-app:#f4f3f0; --bg-sidebar:#1e1e22; --bg-surface:#ffffff; --bg-hover:#f7f6f4; --bg-input:#f9f8f7;
+  --border:#e6e4e0; --border-light:#f0eeeb;
+  --text-primary:#1a1a1c; --text-secondary:#6b6b70; --text-muted:#99999d; --text-sidebar:#c4c4c9;
+  --accent:#2d2d33; --accent-soft:#f0eeeb;
+  --blue:#2563eb; --blue-bg:#f5f8ff; --blue-border:#d4e0fc;
+  --red:#da3e3a; --red-bg:#fef4f3; --red-border:#fcd9d7;
+  --green:#16a34a; --green-bg:#f4fdf6; --green-border:#c6f0d4;
+  --orange:#d97706; --orange-bg:#fffbf0; --orange-border:#fde8c4;
+  --purple:#7c3aed; --purple-bg:#faf8ff; --purple-border:#e4dcfc;
+  --gray:#6b7280; --gray-bg:#f8f8f7; --gray-border:#e8e6e3;
+  --radius-sm:4px; --radius:8px; --radius-lg:12px;
+  --shadow:0 1px 3px rgba(0,0,0,.06); --shadow-lg:0 4px 16px rgba(0,0,0,.10);
+  --transition:160ms ease;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:"Microsoft YaHei",sans-serif;background:var(--bg-app);color:var(--text-primary);display:flex;min-height:100vh;-webkit-font-smoothing:antialiased;}
+.sidebar{width:232px;min-width:232px;background:var(--bg-sidebar);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;z-index:10;}
+.sidebar-brand{padding:20px 20px 28px;border-bottom:1px solid rgba(255,255,255,.06);}
+.sidebar-brand .logo{font-size:17px;font-weight:600;color:#fff;letter-spacing:-.02em;display:flex;align-items:center;gap:10px;}
+.sidebar-brand .sub{font-size:11px;color:var(--text-sidebar);margin-top:2px;}
+.sidebar-nav{flex:1;padding:12px 10px;display:flex;flex-direction:column;gap:2px;}
+.nav-section-label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.25);padding:14px 10px 6px;display:flex;align-items:center;gap:4px;cursor:pointer;user-select:none;}
+.nav-section-label:hover{color:rgba(255,255,255,.45);}
+.section-arrow{font-size:8px;transition:transform .2s ease;flex-shrink:0;}
+.nav-section.collapsed .section-arrow{transform:rotate(-90deg);}
+.nav-section.collapsed .nav-section-items{display:none;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:6px;color:var(--text-sidebar);font-size:13.5px;cursor:pointer;transition:all var(--transition);text-decoration:none;letter-spacing:.01em;}
+.nav-item:hover{background:rgba(255,255,255,.05);color:#fff;}
+.nav-item.active{background:rgba(255,255,255,.10);color:#fff;font-weight:500;}
+.nav-icon{width:18px;height:18px;opacity:.55;flex-shrink:0;}
+.nav-item.active .nav-icon{opacity:1;}
+.main{flex:1;display:flex;flex-direction:column;min-width:0;}
+.topbar{height:52px;min-height:52px;background:var(--bg-surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 28px;gap:16px;z-index:5;}
+.topbar .breadcrumb{font-size:12.5px;color:var(--text-muted);letter-spacing:.01em;}
+.topbar .breadcrumb a{color:var(--text-muted);text-decoration:none;}
+.topbar .breadcrumb a:hover{color:var(--text-primary);}
+.topbar .breadcrumb span{color:var(--text-primary);font-weight:500;}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:16px;}
+.user-avatar{width:30px;height:30px;border-radius:50%;background:#e6e4e0;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);}
+.content{flex:1;display:flex;flex-direction:column;padding:24px 28px;padding-bottom:70px;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;gap:16px;}
+.page-header h1{font-size:22px;font-weight:600;letter-spacing:-.02em;}
+.page-header p{font-size:13px;color:var(--text-muted);margin-top:2px;}
+.page-header-actions{display:flex;gap:8px;align-items:center;flex-shrink:0;}
+.page-header-actions a{text-decoration:none;}
+
+.stats-row{display:flex;gap:10px;margin-bottom:16px;}
+/* 积分池预警条 */
+.points-alert{display:none;align-items:center;gap:10px;border-radius:var(--radius);padding:8px 14px;margin-bottom:16px;}
+.points-alert svg{flex-shrink:0;width:15px;height:15px;}
+.points-alert .alert-text{flex:1;min-width:0;}
+.points-alert .alert-title{font-size:13px;font-weight:600;margin-right:6px;}
+.points-alert .alert-desc{font-size:12.5px;color:var(--text-secondary);line-height:1.5;}
+.points-alert .alert-desc em{font-style:normal;font-weight:600;color:var(--text-primary);font-family:"Microsoft YaHei",sans-serif;}
+.points-alert .alert-btn{flex-shrink:0;}
+.points-alert .alert-close{background:none;border:none;font-size:18px;color:var(--text-muted);cursor:pointer;padding:0 2px;line-height:1;flex-shrink:0;opacity:.55;margin-left:4px;}
+.points-alert .alert-close:hover{opacity:1;color:var(--text-primary);}
+.points-alert.alert-warning{background:var(--orange-bg);border:1px solid var(--orange-border);border-left:3px solid var(--orange);}
+.points-alert.alert-warning svg,.points-alert.alert-warning .alert-title{color:var(--orange);}
+.points-alert.alert-danger{background:var(--red-bg);border:1px solid var(--red-border);border-left:3px solid var(--red);}
+.points-alert.alert-danger svg,.points-alert.alert-danger .alert-title{color:var(--red);}
+.stat-card{flex:1;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;display:flex;align-items:center;gap:14px;min-width:0;}
+.stat-icon{width:42px;height:42px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.stat-icon.blue{background:var(--blue-bg);color:var(--blue);}
+.stat-icon.green{background:var(--green-bg);color:var(--green);}
+.stat-icon.orange{background:var(--orange-bg);color:var(--orange);}
+.stat-icon.gray{background:var(--gray-bg);color:var(--gray);}
+.stat-card>div:not(.stat-icon){min-width:0;flex:1;}
+.stat-value{font-size:22px;font-weight:600;letter-spacing:-.02em;line-height:1.2;}
+.stat-label{font-size:12px;color:var(--text-muted);margin-top:1px;}
+
+.table-panel{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-lg);}
+.content{flex:1;display:flex;flex-direction:column;padding:24px 28px;padding-bottom:60px;}
+.page-footer-fixed{position:fixed;bottom:0;left:232px;right:0;display:flex;align-items:center;justify-content:space-between;padding:12px 28px;background:#fafaf9;border-top:1px solid var(--border);z-index:100;box-shadow:0 -2px 8px rgba(0,0,0,.06);}
+.page-footer-left{display:flex;align-items:center;gap:12px;}
+.page-footer-right{display:flex;align-items:center;}
+.filter-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:12px 16px;background:var(--bg-surface);border-bottom:1px solid var(--border);}
+.filter-bar input,.filter-bar select{height:36px;padding:0 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;background:var(--bg-surface);color:var(--text-primary);outline:none;transition:border-color var(--transition);}
+.filter-bar input[type="text"]{width:220px;}
+.filter-bar input::placeholder{color:var(--text-muted);}
+.filter-bar select{min-width:140px;}
+.filter-bar > input:focus,.filter-bar > select:focus{border-color:var(--accent);}
+.filter-bar input[type="date"]{width:150px;}
+.date-range{display:flex;align-items:center;gap:6px;}
+.date-range .date-sep{font-size:12px;color:var(--text-muted);}
+.btn-filter{height:36px;padding:0 16px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);font-size:13px;font-family:inherit;cursor:pointer;font-weight:500;transition:opacity var(--transition);}
+.btn-filter:hover{opacity:.88;}
+.btn-reset{height:36px;padding:0 14px;background:transparent;color:var(--text-secondary);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;cursor:pointer;transition:all var(--transition);}
+.btn-reset:hover{border-color:var(--text-muted);color:var(--text-primary);}
+.btn{display:inline-flex;align-items:center;padding:5px 12px;border-radius:var(--radius-sm);font-size:12px;font-family:inherit;cursor:pointer;border:1px solid transparent;transition:all var(--transition);white-space:nowrap;font-weight:500;gap:5px;}
+.btn-outline{border-color:var(--border);color:var(--text-primary);background:var(--bg-surface);}
+.btn-outline:hover{border-color:var(--text-muted);background:var(--bg-hover);}
+.btn-blue{background:var(--blue);color:#fff;}
+.btn-blue:hover{opacity:.88;}
+
+.table-wrap{flex:1;display:flex;flex-direction:column;min-height:0;}
+.table-scroll{overflow-x:auto;flex:1;}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:1830px;}
+thead th{background:#fafaf9;text-align:left;padding:12px 14px;font-weight:500;font-size:12px;color:var(--text-muted);letter-spacing:.02em;border-bottom:1px solid var(--border);white-space:nowrap;}
+thead th:first-child,tbody td:first-child{padding-left:20px;}
+tbody td{padding:11px 14px;border-bottom:1px solid var(--border-light);vertical-align:middle;line-height:1.5;}
+tbody tr:hover{background:var(--bg-hover);}
+
+.record-type{display:inline;font-size:12px;font-weight:500;color:var(--text-secondary);white-space:nowrap;}
+
+.coupon-info{display:flex;align-items:center;gap:10px;}
+.coupon-avatar{width:32px;height:32px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;letter-spacing:-.02em;}
+.coupon-avatar.points{background:var(--orange-bg);color:var(--orange);}
+.coupon-avatar.coupon{background:var(--blue-bg);color:var(--blue);}
+.coupon-avatar.fullminus{background:var(--green-bg);color:var(--green);}
+.coupon-avatar.discount{background:var(--orange-bg);color:var(--orange);}
+.coupon-name{font-weight:500;color:var(--text-primary);font-size:13px;}
+.coupon-spec{font-size:11.5px;color:var(--text-muted);}
+
+.points-cell{font-family:"Microsoft YaHei",sans-serif;font-size:13px;font-weight:600;color:var(--text-primary);}
+.points-income{color:var(--green);}
+.points-consumed{color:var(--red);}
+
+.status-tag{display:inline-flex;align-items:center;padding:2px 10px;border-radius:100px;font-size:12px;font-weight:500;white-space:nowrap;border:1px solid transparent;}
+.status-success{background:var(--green-bg);color:var(--green);border-color:var(--green-border);}
+.status-failed{background:var(--red-bg);color:var(--red);border-color:var(--red-border);}
+.status-frozen{background:var(--gray-bg);color:var(--gray);border-color:var(--gray-border);}
+.status-revoked{background:var(--red-bg);color:var(--red);border-color:var(--red-border);}
+
+.user-cell{display:flex;align-items:center;gap:8px;}
+.user-mini-avatar{width:32px;height:32px;border-radius:50%;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--text-secondary);flex-shrink:0;}
+.user-name{font-weight:500;color:var(--text-primary);font-size:13px;}
+
+.actions{display:flex;align-items:center;gap:8px;white-space:nowrap;}
+.action-link{color:var(--blue);font-size:12.5px;cursor:pointer;}
+.action-link:hover{text-decoration:underline;}
+
+.pagination{display:flex;align-items:center;gap:4px;}
+.pagination .page-btn{min-width:32px;width:32px;height:32px;padding:0;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-surface);cursor:pointer;font-size:12px;color:var(--text-primary);transition:all var(--transition);}
+.pagination .page-btn:hover{border-color:var(--text-muted);}
+.pagination .page-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.pagination .page-btn.disabled{opacity:.35;pointer-events:none;}
+.pagination .page-info{font-size:12px;color:var(--text-muted);margin:0 8px;}
+
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:300;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--bg-surface);border-radius:var(--radius-lg);width:100%;max-width:520px;box-shadow:var(--shadow-lg);max-height:90vh;overflow-y:auto;}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);}
+.modal-header h3{font-size:15px;font-weight:600;}
+.modal-close{background:none;border:none;font-size:20px;color:var(--text-muted);cursor:pointer;padding:4px;line-height:1;}
+.modal-close:hover{color:var(--text-primary);}
+.modal-body{padding:20px;}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;padding:14px 20px;border-top:1px solid var(--border);}
+.form-group{margin-bottom:16px;}
+.form-group:last-child{margin-bottom:0;}
+.form-group label{display:block;font-size:12px;color:var(--text-muted);margin-bottom:6px;font-weight:500;}
+.form-group input,.form-group textarea{width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;outline:none;}
+.form-group input:focus,.form-group textarea:focus{border-color:var(--accent);}
+.form-group textarea{resize:vertical;min-height:80px;}
+.form-group input[readonly]{background:var(--bg-input);}
+.form-hint{font-size:11.5px;color:var(--text-muted);margin-top:4px;}
+.amount-input-group{display:flex;align-items:center;gap:8px;}
+.amount-input-group input{flex:1;}
+.amount-input-group .unit{font-size:13px;color:var(--text-muted);white-space:nowrap;}
+.amount-input-group select{width:140px;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;outline:none;transition:border-color var(--transition);background:var(--bg-surface);color:var(--text-primary);cursor:pointer;}
+.amount-input-group select:focus{border-color:var(--accent);}
+.btn{display:inline-flex;align-items:center;padding:6px 16px;border-radius:var(--radius-sm);font-size:13px;font-family:inherit;cursor:pointer;border:1px solid transparent;transition:all var(--transition);white-space:nowrap;font-weight:500;gap:6px;}
+.btn-outline{border-color:var(--border);color:var(--text-primary);background:var(--bg-surface);}
+.btn-outline:hover{border-color:var(--text-muted);background:var(--bg-hover);}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{opacity:.88;}
+.btn-green{background:var(--green);color:#fff;}
+.btn-green:hover{opacity:.88;}
+.btn-red{background:var(--red);color:#fff;}
+.btn-red:hover{opacity:.88;}
+
+.toast-container{position:fixed;top:24px;right:24px;z-index:400;display:flex;flex-direction:column;gap:8px;}
+.toast{background:var(--bg-sidebar);color:#fff;padding:12px 18px;border-radius:var(--radius);font-size:13px;box-shadow:var(--shadow-lg);}
+.toast.success{border-left:3px solid var(--green);}
+.toast.info{border-left:3px solid var(--blue);}
+.toast.warning{border-left:3px solid var(--orange);}
+</style>
+</head>
+<body>
+
+<aside class="sidebar" id="app-sidebar"></aside>
+<script src="../assets/common-sidebar.js"></script>
+
+<div class="main">
+  <div class="topbar">
+    <div class="breadcrumb">营销管理 / <span>商城积分管理</span></div>
+    <div class="topbar-right">
+      <span style="font-size:12px;color:var(--text-muted);">品牌运营 晓琳</span>
+      <div class="user-avatar">晓</div>
+    </div>
+  </div>
+  <div class="content">
+    <div class="page-header">
+      <div>
+        <h1>商城积分管理</h1>
+        <p>查看本商城积分池余额与积分池明细；积分池由平台方充值，本商城使用积分发放卡券</p>
+      </div>
+      <div class="page-header-actions">
+        <a class="btn btn-blue" href="06b.用户权益发放-原型页面.html">用户权益发放</a>
+        <button class="btn btn-outline" onclick="showPurchasePoints()">购买积分指引</button>
+        <button class="btn btn-outline" onclick="showPointsSetting('P2601001','苏银商城','苏银豆','10')">品牌积分配置</button>
+      </div>
+    </div>
+
+    <!-- 积分池统计卡片 -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-icon blue">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/>
+          </svg>
+        </div>
+        <div>
+          <div class="stat-value">98,500</div>
+          <div class="stat-label">商城积分池余额</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          </svg>
+        </div>
+        <div>
+          <div class="stat-value">161,500</div>
+          <div class="stat-label">已消耗积分</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon orange">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="19" y1="5" x2="5" y2="19"/>
+            <circle cx="6.5" cy="6.5" r="2.5"/>
+            <circle cx="17.5" cy="17.5" r="2.5"/>
+          </svg>
+        </div>
+        <div>
+          <div class="stat-value" style="font-size:16px;">1 积分 = 10 苏银豆</div>
+          <div class="stat-label">品牌积分配置</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon gray">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/>
+            <line x1="7" y1="7" x2="7.01" y2="7"/>
+          </svg>
+        </div>
+        <div>
+          <div class="stat-value">985,000</div>
+          <div class="stat-label">品牌积分余额（苏银豆）</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 积分池预警条 -->
+    <div class="points-alert" id="pointsAlert">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <div class="alert-text">
+        <span class="alert-title">积分池预警</span>
+        <span class="alert-desc"></span>
+      </div>
+      <button class="btn btn-outline alert-btn" onclick="showPurchasePoints()">购买积分指引</button>
+      <button class="alert-close" onclick="dismissPointsAlert()" title="关闭">&times;</button>
+    </div>
+
+    <div class="table-panel">
+      <div class="filter-bar">
+        <input type="text" placeholder="搜索批次号 / 业务对象 / 备注" />
+        <span style="font-size:12px;color:var(--text-muted);white-space:nowrap;">操作时间</span>
+        <div class="date-range">
+          <input type="date" />
+          <span class="date-sep">至</span>
+          <input type="date" />
+        </div>
+        <select>
+          <option value="">全部业务类型</option>
+          <option value="recharge">平台充值</option>
+          <option value="brand">品牌发放</option>
+          <option value="platform">平台代发</option>
+        </select>
+        <select>
+          <option value="">全部状态</option>
+          <option value="success">成功</option>
+          <option value="failed">失败</option>
+          <option value="frozen">已冻结</option>
+          <option value="revoked">已作废</option>
+        </select>
+        <button class="btn-filter" onclick="filterRecords()">筛选</button>
+        <button class="btn-reset" onclick="resetFilter()">重置</button>
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:40px;"><input type="checkbox" id="poolCheckAll" onchange="togglePoolAll(this)" /></th>
+                <th style="width:140px;">发放批次号</th>
+                <th style="width:120px;">业务类型</th>
+                <th style="width:300px;">业务对象</th>
+                <th style="width:140px;">发放目标</th>
+                <th style="width:100px;">发放数量</th>
+                <th style="width:120px;">收入积分</th>
+                <th style="width:120px;">支出积分</th>
+                <th style="width:140px;">剩余积分</th>
+                <th style="width:80px;">状态</th>
+                <th style="width:350px;">备注</th>
+                <th style="width:180px;">操作人/时间</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="recordTableBody">
+              <tr id="row-REC-009">
+                <td><input type="checkbox" class="pool-row-check" onchange="updatePoolSelectedCount()" /></td>
+                <td><span style="font-family:"Microsoft YaHei",sans-serif;font-size:11.5px;color:var(--blue);">C20260705001</span></td>
+                <td><span class="record-type type-brand">品牌发放</span></td>
+                <td>
+                  <div class="coupon-info">
+                    <div class="coupon-avatar fullminus">减</div>
+                    <div>
+                      <div class="coupon-name">大客户专享满减券<span style="color:var(--text-muted);font-weight:400;">（满100减20券）</span></div>
+                      <div class="coupon-spec">满100减20元 × 500张</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="user-cell">
+                    <div class="user-mini-avatar">多</div>
+                    <div class="user-name">多用户</div>
+                  </div>
+                </td>
+                <td><span style="font-weight:500;">500 张</span></td>
+                <td><span style="color:var(--text-muted);">—</span></td>
+                <td><span class="points-cell points-consumed">-8,000</span></td>
+                <td><span class="points-cell">98,500</span></td>
+                <td><span class="status-tag status-success">成功</span></td>
+                <td><span style="color:var(--text-secondary);font-size:12px;">大客户促销活动定向发放</span></td>
+                <td><span style="color:var(--text-secondary);">晓琳</span><br/><span style="color:var(--text-muted);font-size:12px;">2026-07-05 10:00</span></td>
+                <td>
+                  <div class="actions">
+                    <span class="action-link" onclick="viewDetail('REC-009')">查看详情</span>
+                    <span class="action-link" style="color:var(--orange);" onclick="freezeRecord('REC-009','大客户专享满减券',500,0,16)">冻结</span>
+                    <span class="action-link" style="color:var(--red);" onclick="revokeRecord('REC-009','大客户专享满减券',500,0,16)">作废</span>
+                  </div>
+                </td>
+              </tr>
+              <tr id="row-REC-101">
+                <td><input type="checkbox" class="pool-row-check" onchange="updatePoolSelectedCount()" /></td>
+                <td><span style="font-family:"Microsoft YaHei",sans-serif;font-size:11.5px;color:var(--blue);">J20260701001</span></td>
+                <td><span class="record-type type-points">平台充值</span></td>
+                <td>
+                  <div class="coupon-info">
+                    <div class="coupon-avatar points">积</div>
+                    <div>
+                      <div class="coupon-name">积分充值到池</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="user-cell">
+                    <div class="user-mini-avatar">苏</div>
+                    <div class="user-name">苏银商城</div>
+                  </div>
+                </td>
+                <td><span style="font-weight:500;">—</span></td>
+                <td><span class="points-cell points-income">+100,000</span></td>
+                <td><span style="color:var(--text-muted);">—</span></td>
+                <td><span class="points-cell">106,500</span></td>
+                <td><span class="status-tag status-success">成功</span></td>
+                <td><span style="color:var(--text-secondary);font-size:12px;">三季度营销预算 · 充值</span></td>
+                <td><span style="color:var(--text-secondary);">运营中心-道馨</span><br/><span style="color:var(--text-muted);font-size:12px;">2026-07-01 10:18</span></td>
+                <td>
+                  <div class="actions">
+                    <span class="action-link" onclick="viewDetail('REC-101')">查看详情</span>
+                  </div>
+                </td>
+              </tr>
+              <tr id="row-REC-001">
+                <td><input type="checkbox" class="pool-row-check" onchange="updatePoolSelectedCount()" /></td>
+                <td><span style="font-family:"Microsoft YaHei",sans-serif;font-size:11.5px;color:var(--blue);">C20260628001</span></td>
+                <td><span class="record-type type-brand">品牌发放</span></td>
+                <td>
+                  <div class="coupon-info">
+                    <div class="coupon-avatar points">积</div>
+                    <div>
+                      <div class="coupon-name">员工生日福利卡<span style="color:var(--text-muted);font-weight:400;">（专属积分卡）</span></div>
+                      <div class="coupon-spec">100积分 × 500张</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="user-cell">
+                    <div class="user-mini-avatar">王</div>
+                    <div class="user-name">王五</div>
+                  </div>
+                </td>
+                <td><span style="font-weight:500;">500 张</span></td>
+                <td><span style="color:var(--text-muted);">—</span></td>
+                <td><span class="points-cell points-consumed">-50,000</span></td>
+                <td><span class="points-cell">6,500</span></td>
+                <td><span class="status-tag status-success">成功</span></td>
+                <td><span style="color:var(--text-secondary);font-size:12px;">员工生日福利定向发放</span></td>
+                <td><span style="color:var(--text-secondary);">晓琳</span><br/><span style="color:var(--text-muted);font-size:12px;">2026-06-28 14:30</span></td>
+                <td>
+                  <div class="actions">
+                    <span class="action-link" onclick="viewDetail('REC-001')">查看详情</span>
+                    <span class="action-link" style="color:var(--orange);" onclick="freezeRecord('REC-001','专属积分卡',500,120,100)">冻结</span>
+                    <span class="action-link" style="color:var(--red);" onclick="revokeRecord('REC-001','专属积分卡',500,120,100)">作废</span>
+                  </div>
+                </td>
+              </tr>
+              <tr id="row-REC-002">
+                <td><input type="checkbox" class="pool-row-check" onchange="updatePoolSelectedCount()" /></td>
+                <td><span style="font-family:"Microsoft YaHei",sans-serif;font-size:11.5px;color:var(--blue);">C20260627001</span></td>
+                <td><span class="record-type type-brand">品牌发放</span></td>
+                <td>
+                  <div class="coupon-info">
+                    <div class="coupon-avatar coupon">券</div>
+                    <div>
+                      <div class="coupon-name">VIP专享满减券<span style="color:var(--text-muted);font-weight:400;">（满200减50券）</span></div>
+                      <div class="coupon-spec">满200减50元 × 100张</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="user-cell">
+                    <div class="user-mini-avatar">张</div>
+                    <div class="user-name">张三</div>
+                  </div>
+                </td>
+                <td><span style="font-weight:500;">100 张</span></td>
+                <td><span style="color:var(--text-muted);">—</span></td>
+                <td><span class="points-cell points-consumed">-4,500</span></td>
+                <td><span class="points-cell">56,500</span></td>
+                <td><span class="status-tag status-success">成功</span></td>
+                <td><span style="color:var(--text-secondary);font-size:12px;">VIP客户定向发放</span></td>
+                <td><span style="color:var(--text-secondary);">晓琳</span><br/><span style="color:var(--text-muted);font-size:12px;">2026-06-27 09:15</span></td>
+                <td>
+                  <div class="actions">
+                    <span class="action-link" onclick="viewDetail('REC-002')">查看详情</span>
+                    <span class="action-link" style="color:var(--orange);" onclick="freezeRecord('REC-002','满200减50券',100,30,45)">冻结</span>
+                    <span class="action-link" style="color:var(--red);" onclick="revokeRecord('REC-002','满200减50券',100,30,45)">作废</span>
+                  </div>
+                </td>
+              </tr>
+              <tr id="row-REC-003">
+                <td><input type="checkbox" class="pool-row-check" onchange="updatePoolSelectedCount()" /></td>
+                <td><span style="font-family:"Microsoft YaHei",sans-serif;font-size:11.5px;color:var(--blue);">C20260626001</span></td>
+                <td><span class="record-type type-brand">品牌发放</span></td>
+                <td>
+                  <div class="coupon-info">
+                    <div class="coupon-avatar fullminus">减</div>
+                    <div>
+                      <div class="coupon-name">员工福利满减券</div>
+                      <div class="coupon-spec">满100减20元 × 200张</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="user-cell">
+                    <div class="user-mini-avatar">李</div>
+                    <div class="user-name">李四</div>
+                  </div>
+                </td>
+                <td><span style="font-weight:500;">200 张</span></td>
+                <td><span style="color:var(--text-muted);">—</span></td>
+                <td><span class="points-cell points-consumed">-3,600</span></td>
+                <td><span class="points-cell">61,000</span></td>
+                <td><span class="status-tag status-success">成功</span></td>
+                <td><span style="color:var(--text-secondary);font-size:12px;">员工福利发放</span></td>
+                <td><span style="color:var(--text-secondary);">晓琳</span><br/><span style="color:var(--text-muted);font-size:12px;">2026-06-26 16:45</span></td>
+                <td>
+                  <div class="actions">
+                    <span class="action-link" onclick="viewDetail('REC-003')">查看详情</span>
+                    <span class="action-link" style="color:var(--orange);" onclick="freezeRecord('REC-003','员工福利满减券',200,80,18)">冻结</span>
+                    <span class="action-link" style="color:var(--red);" onclick="revokeRecord('REC-003','员工福利满减券',200,80,18)">作废</span>
+                  </div>
+                </td>
+              </tr>
+              <tr id="row-REC-004">
+                <td><input type="checkbox" class="pool-row-check" onchange="updatePoolSelectedCount()" /></td>
+                <td><span style="font-family:"Microsoft YaHei",sans-serif;font-size:11.5px;color:var(--blue);">C20260625001</span></td>
+                <td><span class="record-type type-brand">品牌发放</span></td>
+                <td>
+                  <div class="coupon-info">
+                    <div class="coupon-avatar coupon">券</div>
+                    <div>
+                      <div class="coupon-name">手机专属折扣券</div>
+                      <div class="coupon-spec">8折券 × 50张</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="user-cell">
+                    <div class="user-mini-avatar">赵</div>
+                    <div class="user-name">赵六</div>
+                  </div>
+                </td>
+                <td><span style="font-weight:500;">50 张</span></td>
+                <td><span style="color:var(--text-muted);">—</span></td>
+                <td><span class="points-cell points-consumed">-4,000</span></td>
+                <td><span class="points-cell">64,600</span></td>
+                <td><span class="status-tag status-success">成功</span></td>
+                <td><span style="color:var(--text-secondary);font-size:12px;">手机品类促销</span></td>
+                <td><span style="color:var(--text-secondary);">晓琳</span><br/><span style="color:var(--text-muted);font-size:12px;">2026-06-25 11:20</span></td>
+                <td>
+                  <div class="actions">
+                    <span class="action-link" onclick="viewDetail('REC-004')">查看详情</span>
+                    <span class="action-link" style="color:var(--orange);" onclick="freezeRecord('REC-004','手机专属折扣券',50,0,80)">冻结</span>
+                    <span class="action-link" style="color:var(--red);" onclick="revokeRecord('REC-004','手机专属折扣券',50,0,80)">作废</span>
+                  </div>
+                </td>
+              </tr>
+              <tr id="row-REC-005">
+                <td><input type="checkbox" class="pool-row-check" onchange="updatePoolSelectedCount()" /></td>
+                <td><span style="font-family:"Microsoft YaHei",sans-serif;font-size:11.5px;color:var(--blue);">C20260624001</span></td>
+                <td><span class="record-type type-brand">品牌发放</span></td>
+                <td>
+                  <div class="coupon-info">
+                    <div class="coupon-avatar points">积</div>
+                    <div>
+                      <div class="coupon-name">新用户积分礼包</div>
+                      <div class="coupon-spec">50积分 × 1000张</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="user-cell">
+                    <div class="user-mini-avatar">多</div>
+                    <div class="user-name">多用户</div>
+                  </div>
+                </td>
+                <td><span style="font-weight:500;">1000 张</span></td>
+                <td><span style="color:var(--text-muted);">—</span></td>
+                <td><span class="points-cell points-consumed">-50,000</span></td>
+                <td><span class="points-cell">68,600</span></td>
+                <td><span class="status-tag status-success">成功</span></td>
+                <td><span style="color:var(--text-secondary);font-size:12px;">新用户拉新活动</span></td>
+                <td><span style="color:var(--text-secondary);">晓琳</span><br/><span style="color:var(--text-muted);font-size:12px;">2026-06-24 08:30</span></td>
+                <td>
+                  <div class="actions">
+                    <span class="action-link" onclick="viewDetail('REC-005')">查看详情</span>
+                    <span class="action-link" style="color:var(--orange);" onclick="freezeRecord('REC-005','新用户积分礼包',1000,650,50)">冻结</span>
+                    <span class="action-link" style="color:var(--red);" onclick="revokeRecord('REC-005','新用户积分礼包',1000,650,50)">作废</span>
+                  </div>
+                </td>
+              </tr>
+              <tr id="row-REC-006">
+                <td><input type="checkbox" class="pool-row-check" onchange="updatePoolSelectedCount()" /></td>
+                <td><span style="font-family:"Microsoft YaHei",sans-serif;font-size:11.5px;color:var(--blue);">C20260623001</span></td>
+                <td><span class="record-type type-brand">品牌发放</span></td>
+                <td>
+                  <div class="coupon-info">
+                    <div class="coupon-avatar fullminus">减</div>
+                    <div>
+                      <div class="coupon-name">电影票次卡</div>
+                      <div class="coupon-spec">观影3次 × 30张</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="user-cell">
+                    <div class="user-mini-avatar">张</div>
+                    <div class="user-name">张三</div>
+                  </div>
+                </td>
+                <td><span style="font-weight:500;">30 张</span></td>
+                <td><span style="color:var(--text-muted);">—</span></td>
+                <td><span style="color:var(--text-muted);">—</span></td>
+                <td><span class="points-cell">118,600</span></td>
+                <td><span class="status-tag status-failed">失败</span></td>
+                <td><span style="color:var(--text-secondary);font-size:12px;">发放失败：用户手机号格式错误</span></td>
+                <td><span style="color:var(--text-secondary);">晓琳</span><br/><span style="color:var(--text-muted);font-size:12px;">2026-06-23 13:50</span></td>
+                <td>
+                  <div class="actions">
+                    <span class="action-link" onclick="viewDetail('REC-006')">查看详情</span>
+                    <span class="action-link" style="color:var(--red);" onclick="retrySend('REC-006')">重新发放</span>
+                    <span class="action-link" style="color:var(--red);" onclick="revokeRecord('REC-006','电影票次卡',30,0,90)">作废</span>
+                  </div>
+                </td>
+              </tr>
+              <tr id="row-REC-007">
+                <td><input type="checkbox" class="pool-row-check" onchange="updatePoolSelectedCount()" /></td>
+                <td><span style="font-family:"Microsoft YaHei",sans-serif;font-size:11.5px;color:var(--blue);">C20260618001</span></td>
+                <td><span class="record-type type-brand">品牌发放</span></td>
+                <td>
+                  <div class="coupon-info">
+                    <div class="coupon-avatar fullminus">减</div>
+                    <div>
+                      <div class="coupon-name">满50减10福利券<span style="color:var(--text-muted);font-weight:400;">（满50减10券）</span></div>
+                      <div class="coupon-spec">满50减10元 × 200张</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="user-cell">
+                    <div class="user-mini-avatar">多</div>
+                    <div class="user-name">多用户</div>
+                  </div>
+                </td>
+                <td><span style="font-weight:500;">200 张</span></td>
+                <td><span style="color:var(--text-muted);">—</span></td>
+                <td><span class="points-cell points-consumed">-200</span></td>
+                <td><span class="points-cell">118,600</span></td>
+                <td><span class="status-tag status-revoked">已作废</span></td>
+                <td><span style="color:var(--text-secondary);font-size:12px;">原200张核销20张，作废未使用180张已返还积分池</span></td>
+                <td><span style="color:var(--text-secondary);">晓琳</span><br/><span style="color:var(--text-muted);font-size:12px;">2026-06-18 16:20</span></td>
+                <td>
+                  <div class="actions">
+                    <span class="action-link" onclick="viewDetail('REC-007')">查看详情</span>
+                  </div>
+                </td>
+              </tr>
+              <tr id="row-REC-010">
+                <td><input type="checkbox" class="pool-row-check" onchange="updatePoolSelectedCount()" /></td>
+                <td><span style="font-family:"Microsoft YaHei",sans-serif;font-size:11.5px;color:var(--blue);">C20260617001</span></td>
+                <td><span class="record-type type-brand">品牌发放</span></td>
+                <td>
+                  <div class="coupon-info">
+                    <div class="coupon-avatar fullminus">减</div>
+                    <div>
+                      <div class="coupon-name">满50减10福利券<span style="color:var(--text-muted);font-weight:400;">（满50减10券）</span></div>
+                      <div class="coupon-spec">满50减10元 × 100张</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="user-cell">
+                    <div class="user-mini-avatar">多</div>
+                    <div class="user-name">多用户</div>
+                  </div>
+                </td>
+                <td><span style="font-weight:500;">100 张</span></td>
+                <td><span style="color:var(--text-muted);">—</span></td>
+                <td><span style="color:var(--text-muted);">—</span></td>
+                <td><span class="points-cell">118,800</span></td>
+                <td><span class="status-tag status-failed">失败</span></td>
+                <td><span style="color:var(--text-secondary);font-size:12px;">发放失败：部分用户账户已注销</span></td>
+                <td><span style="color:var(--text-secondary);">晓琳</span><br/><span style="color:var(--text-muted);font-size:12px;">2026-06-17 11:30</span></td>
+                <td>
+                  <div class="actions">
+                    <span class="action-link" onclick="viewDetail('REC-010')">查看详情</span>
+                    <span class="action-link" style="color:var(--red);" onclick="retrySend('REC-010')">重新发放</span>
+                    <span class="action-link" style="color:var(--red);" onclick="revokeRecord('REC-010','满50减10福利券',100,0,10)">作废</span>
+                  </div>
+                </td>
+              </tr>
+              <tr id="row-REC-011">
+                <td><input type="checkbox" class="pool-row-check" onchange="updatePoolSelectedCount()" /></td>
+                <td><span style="font-family:"Microsoft YaHei",sans-serif;font-size:11.5px;color:var(--blue);">C20260616001</span></td>
+                <td><span class="record-type type-brand">品牌发放</span></td>
+                <td>
+                  <div class="coupon-info">
+                    <div class="coupon-avatar fullminus">减</div>
+                    <div>
+                      <div class="coupon-name">员工节日福利券<span style="color:var(--text-muted);font-weight:400;">（满200减30券）</span></div>
+                      <div class="coupon-spec">满200减30元 × 300张</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="user-cell">
+                    <div class="user-mini-avatar">多</div>
+                    <div class="user-name">多用户</div>
+                  </div>
+                </td>
+                <td><span style="font-weight:500;">300 张</span></td>
+                <td><span style="color:var(--text-muted);">—</span></td>
+                <td><span class="points-cell points-consumed">-5,400</span></td>
+                <td><span class="points-cell">118,800</span></td>
+                <td><span class="status-tag status-frozen">已冻结</span></td>
+                <td><span style="color:var(--text-secondary);font-size:12px;">活动规则配置有误，冻结待处理</span></td>
+                <td><span style="color:var(--text-secondary);">晓琳</span><br/><span style="color:var(--text-muted);font-size:12px;">2026-06-16 14:00</span></td>
+                <td>
+                  <div class="actions">
+                    <span class="action-link" onclick="viewDetail('REC-011')">查看详情</span>
+                    <span class="action-link" style="color:var(--green);" onclick="unfreezeRecord('REC-011')">解冻</span>
+                    <span class="action-link" style="color:var(--red);" onclick="revokeRecord('REC-011','员工节日福利券',300,0,18)">作废</span>
+                  </div>
+                </td>
+              </tr>
+              <tr id="row-REC-013">
+                <td><input type="checkbox" class="pool-row-check" onchange="updatePoolSelectedCount()" /></td>
+                <td><span style="font-family:"Microsoft YaHei",sans-serif;font-size:11.5px;color:var(--blue);">P20260615001</span></td>
+                <td><span class="record-type type-platform">平台代发</span></td>
+                <td>
+                  <div class="coupon-info">
+                    <div class="coupon-avatar points">积</div>
+                    <div>
+                      <div class="coupon-name">员工季度关怀积分</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="user-cell">
+                    <div class="user-mini-avatar">多</div>
+                    <div class="user-name">多用户</div>
+                  </div>
+                </td>
+                <td><span style="font-weight:500;">—</span></td>
+                <td><span style="color:var(--text-muted);">—</span></td>
+                <td><span class="points-cell points-consumed">-6,000</span></td>
+                <td><span class="points-cell">124,200</span></td>
+                <td><span class="status-tag status-success">成功</span></td>
+                <td><span style="color:var(--text-secondary);font-size:12px;">平台代发：员工季度关怀活动</span></td>
+                <td><span style="color:var(--text-secondary);">运营中心-道馨</span><br/><span style="color:var(--text-muted);font-size:12px;">2026-06-15 10:00</span></td>
+                <td>
+                  <div class="actions">
+                    <span class="action-link" onclick="viewDetail('REC-013')">查看详情</span>
+                  </div>
+                </td>
+              </tr>
+              <tr id="row-REC-012">
+                <td><input type="checkbox" class="pool-row-check" onchange="updatePoolSelectedCount()" /></td>
+                <td><span style="font-family:"Microsoft YaHei",sans-serif;font-size:11.5px;color:var(--blue);">C20260614001</span></td>
+                <td><span class="record-type type-brand">品牌发放</span></td>
+                <td>
+                  <div class="coupon-info">
+                    <div class="coupon-avatar fullminus">减</div>
+                    <div>
+                      <div class="coupon-name">大额满减券<span style="color:var(--text-muted);font-weight:400;">（满500减100券）</span></div>
+                      <div class="coupon-spec">满500减100元 × 50张</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="user-cell">
+                    <div class="user-mini-avatar">张</div>
+                    <div class="user-name">张三</div>
+                  </div>
+                </td>
+                <td><span style="font-weight:500;">50 张</span></td>
+                <td><span style="color:var(--text-muted);">—</span></td>
+                <td><span class="points-cell points-consumed">-4,000</span></td>
+                <td><span class="points-cell">130,200</span></td>
+                <td><span class="status-tag status-frozen">已冻结</span></td>
+                <td><span style="color:var(--text-secondary);font-size:12px;">发放对象圈选有误，冻结待作废</span></td>
+                <td><span style="color:var(--text-secondary);">晓琳</span><br/><span style="color:var(--text-muted);font-size:12px;">2026-06-14 09:45</span></td>
+                <td>
+                  <div class="actions">
+                    <span class="action-link" onclick="viewDetail('REC-012')">查看详情</span>
+                    <span class="action-link" style="color:var(--green);" onclick="unfreezeRecord('REC-012')">解冻</span>
+                    <span class="action-link" style="color:var(--red);" onclick="revokeRecord('REC-012','大额满减券',50,0,80)">作废</span>
+                  </div>
+                </td>
+              </tr>
+              <tr id="row-REC-008">
+                <td><input type="checkbox" class="pool-row-check" onchange="updatePoolSelectedCount()" /></td>
+                <td><span style="font-family:"Microsoft YaHei",sans-serif;font-size:11.5px;color:var(--blue);">C20260612001</span></td>
+                <td><span class="record-type type-brand">品牌发放</span></td>
+                <td>
+                  <div class="coupon-info">
+                    <div class="coupon-avatar discount">折</div>
+                    <div>
+                      <div class="coupon-name">会员专属折扣券<span style="color:var(--text-muted);font-weight:400;">（8折优惠券）</span></div>
+                      <div class="coupon-spec">8折 × 50张</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="user-cell">
+                    <div class="user-mini-avatar">多</div>
+                    <div class="user-name">多用户</div>
+                  </div>
+                </td>
+                <td><span style="font-weight:500;">50 张</span></td>
+                <td><span style="color:var(--text-muted);">—</span></td>
+                <td><span class="points-cell points-consumed">-1,600</span></td>
+                <td><span class="points-cell">134,200</span></td>
+                <td><span class="status-tag status-revoked">已作废</span></td>
+                <td><span style="color:var(--text-secondary);font-size:12px;">活动提前终止，作废未使用30张已返还积分池</span></td>
+                <td><span style="color:var(--text-secondary);">晓琳</span><br/><span style="color:var(--text-muted);font-size:12px;">2026-06-12 14:30</span></td>
+                <td>
+                  <div class="actions">
+                    <span class="action-link" onclick="viewDetail('REC-008')">查看详情</span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 页面底部固定操作栏 -->
+  <div class="page-footer-fixed">
+    <div class="page-footer-left">
+      <button class="btn btn-outline btn-sm" onclick="exportSelectedData()">导出勾选</button>
+      <div style="font-size:12px;color:var(--text-muted);" id="selectedCount">已选 0 项</div>
+    </div>
+    <div class="page-footer-right">
+      <div style="font-size:12px;color:var(--text-muted);margin-right:16px;" id="recordTableInfo">共 17 条记录</div>
+      <div class="pagination" id="recordPagination"></div>
+      <div style="display:flex;align-items:center;gap:8px;margin-left:16px;">
+        <span style="font-size:12px;color:var(--text-muted);">每页</span>
+        <select id="pageSizeSelect" onchange="changePageSize()" style="height:28px;padding:0 8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:inherit;background:var(--bg-surface);color:var(--text-primary);cursor:pointer;">
+          <option value="10">10条</option>
+          <option value="20" selected>20条</option>
+          <option value="50">50条</option>
+          <option value="100">100条</option>
+        </select>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;margin-left:16px;">
+        <span style="font-size:12px;color:var(--text-muted);">跳转至</span>
+        <input type="number" id="jumpPageInput" min="1" max="8" value="1" style="width:56px;height:28px;padding:0 8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:inherit;background:var(--bg-surface);color:var(--text-primary);text-align:center;" onkeydown="if(event.key==='Enter')jumpToPage()"/>
+        <span style="font-size:12px;color:var(--text-muted);">页</span>
+        <button onclick="jumpToPage()" style="height:28px;padding:0 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:inherit;background:var(--bg-surface);color:var(--text-primary);cursor:pointer;">跳转</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 重新发放确认弹窗 -->
+<div class="modal-overlay" id="retrySendModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>重新发放卡券</h3>
+      <button class="modal-close" onclick="closeRetrySendModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div style="background:var(--green-bg);border:1px solid var(--green-border);border-radius:var(--radius-sm);padding:12px;margin-bottom:16px;">
+        <div style="font-size:13px;font-weight:500;color:var(--green);margin-bottom:4px;">重新发放提醒</div>
+        <div style="font-size:12px;color:var(--text-secondary);">将重新向目标用户发放卡券，请确认发放信息无误。</div>
+      </div>
+
+      <div class="form-group">
+        <label>失败记录编号</label>
+        <input type="text" id="retryRecordId" readonly />
+      </div>
+      <div class="form-group">
+        <label>卡券名称</label>
+        <input type="text" id="retryCouponName" readonly />
+      </div>
+      <div class="form-group">
+        <label>发放数量</label>
+        <input type="text" id="retryCouponCount" readonly />
+      </div>
+      <div class="form-group">
+        <label>消耗积分</label>
+        <input type="text" id="retryPointsCost" readonly style="font-family:"Microsoft YaHei",sans-serif;font-weight:600;" />
+      </div>
+      <div class="form-group">
+        <label>目标用户</label>
+        <input type="text" id="retryTargetUser" readonly />
+      </div>
+      <div class="form-group">
+        <label>失败原因 <span id="retryFailTypeTag" style="font-size:11px;font-weight:600;padding:1px 8px;border-radius:100px;margin-left:6px;"></span></label>
+        <input type="text" id="retryFailReason" readonly style="color:var(--red);" />
+      </div>
+
+      <!-- 用户数据问题提示 -->
+      <div id="retryDataFixBlock" style="display:none;">
+        <div style="background:var(--orange-bg);border:1px solid var(--orange-border);border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;color:var(--orange);line-height:1.6;">
+          该失败由用户数据问题导致，直接重发仍会失败。请点击下方"返回发放页修改"修正发放信息后再提交。
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>重发原因（必填）</label>
+        <textarea id="retryReason" placeholder="请填写重发原因，如：系统故障已修复、用户信息已更正等"></textarea>
+        <div class="form-hint">重发原因将记录在操作日志中</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeRetrySendModal()">取消</button>
+      <button class="btn btn-outline" onclick="backToEditSend()" style="color:var(--blue);border-color:var(--blue-border);">返回发放页修改</button>
+      <button class="btn btn-green" onclick="confirmRetrySend()">确认重发</button>
+    </div>
+  </div>
+</div>
+
+<!-- 冻结确认弹窗 -->
+<div class="modal-overlay" id="freezeModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>冻结发放</h3>
+      <button class="modal-close" onclick="closeFreezeModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div style="background:var(--orange-bg);border:1px solid var(--orange-border);border-radius:var(--radius-sm);padding:12px;margin-bottom:16px;">
+        <div style="font-size:13px;font-weight:500;color:var(--orange);margin-bottom:4px;">冻结说明</div>
+        <div style="font-size:12px;color:var(--text-secondary);line-height:1.6;">冻结后，该批发放的<strong>卡券/积分将无法继续核销/使用</strong>（含已兑换未使用）；冻结为作废的前置步骤，如需返还积分请在冻结后再发起作废。</div>
+      </div>
+      <div class="form-group"><label>记录编号</label><input type="text" id="freezeRecordId" readonly style="background:var(--bg-input);" /></div>
+      <div class="form-group"><label>卡券/积分名称</label><input type="text" id="freezeCouponName" readonly style="background:var(--bg-input);" /></div>
+      <div class="form-row" style="display:flex;gap:12px;">
+        <div class="form-group" style="flex:1;"><label>已发放</label><input type="text" id="freezeIssued" readonly style="background:var(--bg-input);" /></div>
+        <div class="form-group" style="flex:1;"><label>已使用</label><input type="text" id="freezeUsed" readonly style="background:var(--bg-input);color:var(--text-muted);" /></div>
+        <div class="form-group" style="flex:1;"><label>未使用</label><input type="text" id="freezeUnused" readonly style="background:var(--bg-input);color:var(--green);font-weight:600;" /></div>
+      </div>
+      <div class="form-group"><label>冻结原因（必填）</label><textarea id="freezeReason" placeholder="请填写冻结原因，如：活动配置错误、发放对象有误、卡券规则调整等"></textarea><div class="form-hint">冻结原因将记录在操作日志中</div></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeFreezeModal()">取消</button>
+      <button class="btn" style="background:var(--orange);color:#fff;" onclick="confirmFreeze()">确认冻结</button>
+    </div>
+  </div>
+</div>
+
+<!-- 作废确认弹窗 -->
+<div class="modal-overlay" id="revokeModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>作废发放</h3>
+      <button class="modal-close" onclick="closeRevokeModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div style="background:var(--red-bg);border:1px solid var(--red-border);border-radius:var(--radius-sm);padding:12px;margin-bottom:16px;">
+        <div style="font-size:13px;font-weight:500;color:var(--red);margin-bottom:4px;">作废说明</div>
+        <div style="font-size:12px;color:var(--text-secondary);line-height:1.6;">作废后，<strong>未核销/未使用</strong>的卡券或积分将从用户账户作废，对应积分返还至品牌商城积分池；<strong>已核销/已使用的部分无法作废，不予返还</strong>。作废前需先冻结该批次。</div>
+      </div>
+      <div class="form-group"><label>记录编号</label><input type="text" id="revokeRecordId" readonly style="background:var(--bg-input);" /></div>
+      <div class="form-group"><label>卡券/积分名称</label><input type="text" id="revokeCouponName" readonly style="background:var(--bg-input);" /></div>
+      <div class="form-row" style="display:flex;gap:12px;">
+        <div class="form-group" style="flex:1;"><label>已发放</label><input type="text" id="revokeIssued" readonly style="background:var(--bg-input);" /></div>
+        <div class="form-group" style="flex:1;"><label>已使用（不可作废）</label><input type="text" id="revokeUsed" readonly style="background:var(--bg-input);color:var(--text-muted);" /></div>
+        <div class="form-group" style="flex:1;"><label>未使用（可返还）</label><input type="text" id="revokeUnused" readonly style="background:var(--bg-input);color:var(--green);font-weight:600;" /></div>
+      </div>
+      <div class="form-group"><label>预计返还积分</label><input type="text" id="revokeReturnPoints" readonly style="background:var(--bg-input);font-family:"Microsoft YaHei",sans-serif;font-weight:600;color:var(--green);" /></div>
+      <div class="form-group"><label>作废原因（必填）</label><textarea id="revokeReason" placeholder="请填写作废原因，如：活动配置错误、发放对象有误、卡券规则调整等"></textarea><div class="form-hint">作废原因将记录在操作日志中</div></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeRevokeModal()">取消</button>
+      <button class="btn btn-red" onclick="confirmRevoke()">确认作废</button>
+    </div>
+  </div>
+</div>
+
+<!-- 积分名称与比例设置 弹窗 -->
+<div class="modal-overlay" id="pointsSettingModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>积分名称与比例设置</h3>
+      <button class="modal-close" onclick="closePointsSetting()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>品牌商城</label>
+        <input type="text" id="psMallName" readonly style="background:var(--bg-input);" />
+      </div>
+      <div class="form-group">
+        <label>积分名称 *</label>
+        <input type="text" id="psPointsName" placeholder="如：苏银豆" oninput="updatePsRatioUnit()" />
+        <div class="form-hint">本商城积分对外的展示名称，用户在商城内会看到它</div>
+      </div>
+      <div class="form-group">
+        <label>兑换比例 *</label>
+        <div class="amount-input-group">
+          <span class="unit" style="padding-left:12px;">1 平台积分 =</span>
+          <select id="psPointsRatio">
+            <option value="1">1</option>
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+            <option value="500">500</option>
+            <option value="1000">1000</option>
+          </select>
+          <span class="unit" id="psRatioUnit" style="padding-right:12px;">积分</span>
+        </div>
+        <div class="form-hint">积分池余额、收支明细及用户持有积分，均按此名称与比例展示</div>
+      </div>
+      <div style="background:var(--blue-bg);border:1px solid var(--blue-border);border-radius:var(--radius-sm);padding:12px;font-size:12px;color:var(--blue);line-height:1.6;">
+        积分名称与比例默认由平台配置并同步至本商城；品牌运营可在此自助修改，保存后即时生效，平台与用户侧同步更新。
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closePointsSetting()">取消</button>
+      <button class="btn btn-primary" onclick="savePointsSetting()">保存设置</button>
+    </div>
+  </div>
+</div>
+
+<!-- 购买积分指引弹窗 -->
+<div class="modal-overlay" id="purchasePointsModal">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header">
+      <h3>购买积分指引</h3>
+      <button class="modal-close" onclick="closePurchasePoints()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <!-- 累计充值获取 -->
+      <div style="background:var(--blue-bg);border:1px solid var(--blue-border);border-radius:var(--radius);padding:16px;margin-bottom:16px;display:flex;align-items:center;gap:14px;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" style="flex-shrink:0;">
+          <line x1="12" y1="1" x2="12" y2="23"/>
+          <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
+        </svg>
+        <div>
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:2px;">累计充值获取</div>
+          <div style="font-size:22px;font-weight:600;color:var(--blue);letter-spacing:-.02em;">260,000 <span style="font-size:13px;font-weight:400;color:var(--text-secondary);">积分</span></div>
+        </div>
+      </div>
+
+      <!-- 购买说明 -->
+      <div style="font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:10px;">积分购买说明</div>
+      <div style="background:var(--orange-bg);border:1px solid var(--orange-border);border-radius:var(--radius-sm);padding:12px;font-size:12.5px;color:var(--orange);line-height:1.6;margin-bottom:14px;display:flex;gap:8px;align-items:flex-start;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span>暂时仅支持线下对公转账，线上支付暂未开放。</span>
+      </div>
+
+      <div style="font-size:12.5px;color:var(--text-secondary);line-height:1.8;">
+        <div style="margin-bottom:6px;">购买流程：</div>
+        <div>① 联系平台运营，确认充值金额与积分到账比例</div>
+        <div>② 对公转账至平台指定账户，转账备注商城编码</div>
+        <div>③ 平台核实到账后，手动为本商城积分池充值</div>
+        <div>④ 充值到账后可在「积分池明细」查看充值记录</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="closePurchasePoints()">知道了</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// 积分池预警（月均消耗口径：近3个月平均）
+var POINTS_POOL = { balance: 98500, monthlyAvg: 55000 };
+function renderPointsAlert() {
+  var el = document.getElementById('pointsAlert');
+  if (!el) return;
+  var bal = POINTS_POOL.balance, avg = POINTS_POOL.monthlyAvg;
+  var desc = el.querySelector('.alert-desc');
+  var title = el.querySelector('.alert-title');
+  if (bal <= avg) {
+    el.className = 'points-alert alert-danger';
+    title.textContent = '积分池预警';
+    desc.innerHTML = '当前余额 <em>' + bal.toLocaleString() + '</em> 积分，不足 1 个月消耗（月均 ' + avg.toLocaleString() + ' 积分），请立即充值以免影响发放';
+    el.style.display = 'flex';
+  } else if (bal <= avg * 2) {
+    el.className = 'points-alert alert-warning';
+    title.textContent = '积分池预警';
+    var months = (bal / avg).toFixed(1);
+    desc.innerHTML = '当前余额 <em>' + bal.toLocaleString() + '</em> 积分，预计可支撑约 ' + months + ' 个月消耗（月均 ' + avg.toLocaleString() + ' 积分），建议尽快补充积分';
+    el.style.display = 'flex';
+  } else {
+    el.style.display = 'none';
+  }
+}
+renderPointsAlert();
+
+// 关闭预警条（本次会话不再提示）
+function dismissPointsAlert() { document.getElementById('pointsAlert').style.display = 'none'; }
+
+function showToast(type, message) {
+  var container = document.getElementById('toastContainer');
+  var toast = document.createElement('div');
+  toast.className = 'toast ' + type;
+  toast.textContent = message;
+  container.appendChild(toast);
+  setTimeout(function() {
+    toast.remove();
+  }, 3000);
+}
+
+// 积分名称与比例设置
+function showPointsSetting(mallId, mallName, curName, curRatio) {
+  document.getElementById('psMallName').value = mallName + '（' + mallId + '）';
+  document.getElementById('psMallName').dataset.mallId = mallId;
+  document.getElementById('psPointsName').value = curName || '';
+  document.getElementById('psPointsRatio').value = curRatio || 1;
+  updatePsRatioUnit();
+  document.getElementById('pointsSettingModal').classList.add('open');
+}
+function closePointsSetting() { document.getElementById('pointsSettingModal').classList.remove('open'); }
+
+// 购买积分指引
+function showPurchasePoints() { document.getElementById('purchasePointsModal').classList.add('open'); }
+function closePurchasePoints() { document.getElementById('purchasePointsModal').classList.remove('open'); }
+function updatePsRatioUnit() {
+  var name = document.getElementById('psPointsName').value.trim() || '积分';
+  document.getElementById('psRatioUnit').textContent = name;
+}
+function savePointsSetting() {
+  var name = document.getElementById('psPointsName').value.trim();
+  var ratio = document.getElementById('psPointsRatio').value;
+  var mallName = document.getElementById('psMallName').value;
+  if (!name) { showToast('warning', '请输入积分名称'); return; }
+  if (!ratio || parseInt(ratio) <= 0) { showToast('warning', '请输入有效的兑换比例'); return; }
+  closePointsSetting();
+  showToast('success', '已为 ' + mallName + ' 保存：1 平台积分 = ' + ratio + ' ' + name);
+}
+
+function exportSelectedData() {
+  var checked = document.querySelectorAll('.pool-row-check:checked');
+  if (checked.length === 0) {
+    showToast('warning', '请先勾选要导出的明细记录');
+    return;
+  }
+  showToast('success', '演示：开始导出勾选的 ' + checked.length + ' 条明细记录');
+}
+
+// 列表勾选：全选/反选
+function togglePoolAll(master) {
+  document.querySelectorAll('#recordTableBody > tr:not(.pg-hide) .pool-row-check').forEach(function(cb) {
+    cb.checked = master.checked;
+  });
+  updatePoolSelectedCount();
+}
+
+// 更新底部"已选 N 项"计数
+function updatePoolSelectedCount() {
+  var count = document.querySelectorAll('.pool-row-check:checked').length;
+  var el = document.getElementById('selectedCount');
+  if (el) el.textContent = '已选 ' + count + ' 项';
+}
+
+function changePageSize() {
+  pageSize = parseInt(document.getElementById('pageSizeSelect').value, 10) || 20;
+  currentPage = 1;
+  renderPagination();
+}
+
+/* === 真分页：静态行 DOM 切片 === */
+var pageSize = 20, currentPage = 1;
+var st = document.createElement('style');
+st.textContent = '.pg-hide{display:none!important;}';
+document.head.appendChild(st);
+
+function renderPager(elId, page, pages, gotoFn) {
+  var el = document.getElementById(elId); if (!el) return;
+  var h = '<button class="page-btn' + (page <= 1 ? ' disabled' : '') + '" onclick="' + gotoFn + '(' + (page - 1) + ')">‹</button>';
+  var nums = [];
+  if (pages <= 7) { for (var i = 1; i <= pages; i++) nums.push(i); }
+  else {
+    nums.push(1);
+    if (page > 3) nums.push('…');
+    for (var j = Math.max(2, page - 1); j <= Math.min(pages - 1, page + 1); j++) nums.push(j);
+    if (page < pages - 2) nums.push('…');
+    nums.push(pages);
+  }
+  nums.forEach(function (n) {
+    h += n === '…' ? '<span style="padding:0 4px;font-size:12px;color:var(--text-muted);">…</span>' : '<button class="page-btn' + (n === page ? ' active' : '') + '" onclick="' + gotoFn + '(' + n + ')">' + n + '</button>';
+  });
+  h += '<button class="page-btn' + (page >= pages ? ' disabled' : '') + '" onclick="' + gotoFn + '(' + (page + 1) + ')">›</button>';
+  el.innerHTML = h;
+}
+
+function getRecordRows() { return Array.prototype.slice.call(document.querySelectorAll('#recordTableBody > tr')); }
+function renderPagination() {
+  var rows = getRecordRows(), pages = Math.max(1, Math.ceil(rows.length / pageSize));
+  if (currentPage > pages) currentPage = pages;
+  rows.forEach(function (r, i) { r.classList.toggle('pg-hide', i < (currentPage - 1) * pageSize || i >= currentPage * pageSize); });
+  document.getElementById('recordTableInfo').textContent = '共 ' + rows.length + ' 条记录';
+  var ji = document.getElementById('jumpPageInput');
+  if (ji) { ji.setAttribute('max', pages); ji.value = currentPage; }
+  renderPager('recordPagination', currentPage, pages, 'goPage');
+}
+function goPage(p) {
+  var rows = getRecordRows(), pages = Math.max(1, Math.ceil(rows.length / pageSize));
+  currentPage = Math.min(Math.max(1, p), pages);
+  renderPagination();
+}
+
+function jumpToPage() {
+  var input = document.getElementById('jumpPageInput');
+  var page = parseInt(input.value) || 1;
+  goPage(page);
+}
+
+// 初始化
+renderPagination();
+
+function viewDetail(recordId) {
+  // 跳转到发放记录详情页面，传递记录ID
+  window.location.href = '06a.积分池明细详情-原型页面.html?recordId=' + encodeURIComponent(recordId);
+}
+
+// 失败记录元数据（区分系统问题/用户数据问题，决定是否提供修改入口）
+var retryDataMap = {
+  'REC-006': { couponName:'电影票次卡', count:'30 张', pointsCost:'-2,700 积分', targetUser:'张三（138****5678）', failReason:'用户手机号格式错误', failType:'data' },
+  'REC-010': { couponName:'满50减10福利券', count:'100 张', pointsCost:'-1,000 积分', targetUser:'多用户（含5个异常账户）', failReason:'部分用户账户已注销', failType:'data' }
+};
+
+function retrySend(recordId) {
+  var d = retryDataMap[recordId] || { couponName:'', count:'', pointsCost:'', targetUser:'', failReason:'', failType:'system' };
+  document.getElementById('retryRecordId').value = recordId;
+  document.getElementById('retryCouponName').value = d.couponName;
+  document.getElementById('retryCouponCount').value = d.count;
+  document.getElementById('retryPointsCost').value = d.pointsCost;
+  document.getElementById('retryTargetUser').value = d.targetUser;
+  document.getElementById('retryFailReason').value = d.failReason;
+  document.getElementById('retryReason').value = '';
+
+  // 失败类型标签 + 数据问题提示
+  var tag = document.getElementById('retryFailTypeTag');
+  var fixBlock = document.getElementById('retryDataFixBlock');
+  if (d.failType === 'data') {
+    tag.textContent = '用户数据问题';
+    tag.style.background = 'var(--orange-bg)';
+    tag.style.color = 'var(--orange)';
+    fixBlock.style.display = 'block';
+  } else {
+    tag.textContent = '系统问题';
+    tag.style.background = 'var(--gray-bg)';
+    tag.style.color = 'var(--gray)';
+    fixBlock.style.display = 'none';
+  }
+
+  document.getElementById('retrySendModal').classList.add('open');
+}
+
+// 返回发放页修改（携带失败记录编号，便于回填）
+function backToEditSend() {
+  var rid = document.getElementById('retryRecordId').value;
+  closeRetrySendModal();
+  window.location.href = '06b.用户权益发放-原型页面.html?retryFrom=' + encodeURIComponent(rid);
+}
+
+function closeRetrySendModal() {
+  document.getElementById('retrySendModal').classList.remove('open');
+}
+
+// 冻结/作废：作废前需先冻结（含已兑换未使用），仅未使用部分返还积分池
+var frozenMap = { 'REC-011': true, 'REC-012': true };
+// 记录元数据（用于冻结后重建操作列、解冻后恢复操作列）
+var recordMeta = {
+  'REC-001': {name:'专属积分卡', issued:500, used:120, unitCost:100},
+  'REC-002': {name:'满200减50券', issued:100, used:30, unitCost:45},
+  'REC-003': {name:'员工福利满减券', issued:200, used:80, unitCost:18},
+  'REC-005': {name:'新用户积分礼包', issued:1000, used:650, unitCost:50},
+  'REC-006': {name:'电影票次卡', issued:30, used:0, unitCost:90},
+  'REC-010': {name:'满50减10福利券', issued:100, used:0, unitCost:10},
+  'REC-011': {name:'员工节日福利券', issued:300, used:0, unitCost:18},
+  'REC-012': {name:'大额满减券', issued:50, used:0, unitCost:80},
+  'REC-004': {name:'手机专属折扣券', issued:50, used:0, unitCost:80},
+  'REC-009': {name:'大客户专享满减券', issued:500, used:0, unitCost:16}
+};
+// 生成成功状态下的操作列（查看详情/冻结/作废）
+function buildSuccessActions(rid){
+  var m = recordMeta[rid];
+  if(!m){ return '<div class="actions"><span class="action-link" onclick="viewDetail(\''+rid+'\')">查看详情</span></div>'; }
+  return '<div class="actions">' +
+    '<span class="action-link" onclick="viewDetail(\''+rid+'\')">查看详情</span>' +
+    '<span class="action-link" style="color:var(--orange);" onclick="freezeRecord(\''+rid+'\',\''+m.name+'\','+m.issued+','+m.used+','+m.unitCost+')">冻结</span>' +
+    '<span class="action-link" style="color:var(--red);" onclick="revokeRecord(\''+rid+'\',\''+m.name+'\','+m.issued+','+m.used+','+m.unitCost+')">作废</span>' +
+    '</div>';
+}
+// 生成冻结状态下的操作列（解冻/作废）
+function buildFrozenActions(rid){
+  var m = recordMeta[rid];
+  if(!m){ return '<div class="actions"><span class="action-link" style="color:var(--green);" onclick="unfreezeRecord(\''+rid+'\')">解冻</span></div>'; }
+  return '<div class="actions">' +
+    '<span class="action-link" style="color:var(--green);" onclick="unfreezeRecord(\''+rid+'\')">解冻</span>' +
+    '<span class="action-link" style="color:var(--red);" onclick="revokeRecord(\''+rid+'\',\''+m.name+'\','+m.issued+','+m.used+','+m.unitCost+')">作废</span>' +
+    '</div>';
+}
+function freezeRecord(recordId, name, issued, used, unitCost) {
+  var unused = issued - used;
+  document.getElementById('freezeRecordId').value = recordId;
+  document.getElementById('freezeCouponName').value = name;
+  document.getElementById('freezeIssued').value = issued + ' 张/人';
+  document.getElementById('freezeUsed').value = used + ' 张/人（已使用）';
+  document.getElementById('freezeUnused').value = unused + ' 张/人';
+  document.getElementById('freezeReason').value = '';
+  document.getElementById('freezeModal').classList.add('open');
+}
+function closeFreezeModal() {
+  document.getElementById('freezeModal').classList.remove('open');
+}
+function confirmFreeze() {
+  var reason = document.getElementById('freezeReason').value;
+  if (!reason.trim()) {
+    showToast('warning', '请填写冻结原因');
+    return;
+  }
+  var rid = document.getElementById('freezeRecordId').value;
+  frozenMap[rid] = true;
+  closeFreezeModal();
+  // 更新该行：状态改为"已冻结"，操作列改为"解冻/作废"
+  var row = document.getElementById('row-' + rid);
+  if (row) {
+    row.cells[9].innerHTML = '<span class="status-tag status-frozen">已冻结</span>';
+    row.cells[12].innerHTML = buildFrozenActions(rid);
+  }
+  showToast('success', '已冻结，未核销/未使用部分暂停使用；如需返还积分请发起作废');
+}
+
+// 解冻：状态回"成功"，操作列恢复"查看详情/冻结/作废"
+function unfreezeRecord(rid) {
+  delete frozenMap[rid];
+  var row = document.getElementById('row-' + rid);
+  if (row) {
+    row.cells[9].innerHTML = '<span class="status-tag status-success">成功</span>';
+    row.cells[12].innerHTML = buildSuccessActions(rid);
+  }
+  showToast('success', '已解冻，该批次恢复正常使用');
+}
+
+function revokeRecord(recordId, name, issued, used, unitCost) {
+  if (!frozenMap[recordId]) {
+    showToast('warning', '请先冻结该批次再发起作废');
+    return;
+  }
+  var unused = issued - used;
+  if (unused <= 0) {
+    showToast('warning', '该批发放已全部使用，无可作废/返还部分');
+    return;
+  }
+  var returnPoints = unused * unitCost;
+  document.getElementById('revokeRecordId').value = recordId;
+  document.getElementById('revokeCouponName').value = name;
+  document.getElementById('revokeIssued').value = issued + ' 张/人';
+  document.getElementById('revokeUsed').value = used + ' 张/人（已使用，不可作废）';
+  document.getElementById('revokeUnused').value = unused + ' 张/人';
+  document.getElementById('revokeReturnPoints').value = '+' + returnPoints.toLocaleString() + ' 积分';
+  document.getElementById('revokeReason').value = '';
+  document.getElementById('revokeModal').classList.add('open');
+}
+
+function closeRevokeModal() {
+  document.getElementById('revokeModal').classList.remove('open');
+}
+
+function confirmRevoke() {
+  var reason = document.getElementById('revokeReason').value;
+  if (!reason.trim()) {
+    showToast('warning', '请填写作废原因');
+    return;
+  }
+  var rid = document.getElementById('revokeRecordId').value;
+  delete frozenMap[rid];
+  closeRevokeModal();
+  // 更新该行：状态改为"已作废"，操作列清空（无操作）
+  var row = document.getElementById('row-' + rid);
+  if (row) {
+    row.cells[9].innerHTML = '<span class="status-tag status-revoked">已作废</span>';
+    row.cells[12].innerHTML = '<span style="color:var(--text-muted);font-size:12px;">-</span>';
+  }
+  showToast('success', '作废成功，未使用部分积分已返还至品牌商城积分池');
+}
+
+function confirmRetrySend() {
+  var reason = document.getElementById('retryReason').value;
+  if (!reason.trim()) {
+    showToast('warning', '请填写重发原因');
+    return;
+  }
+  closeRetrySendModal();
+  // 重发成功后该行 status 改"成功"，操作列恢复为成功态（查看详情/冻结/作废）
+  var rid = document.getElementById('retryRecordId').value;
+  var row = document.getElementById('row-' + rid);
+  if (row) {
+    row.cells[9].innerHTML = '<span class="status-tag status-success">成功</span>';
+    row.cells[12].innerHTML = buildSuccessActions(rid);
+  }
+  showToast('success', '重新发放成功，卡券已发送至目标用户');
+}
+
+function filterRecords() {
+  showToast('info', '演示：执行筛选操作');
+}
+
+function resetFilter() {
+  showToast('info', '演示：重置筛选条件');
+}
+</script>
+
+</body>
+</html>

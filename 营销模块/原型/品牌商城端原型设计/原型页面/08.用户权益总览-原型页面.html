@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>用户权益总览 - 品牌商城后台</title>
+<style>
+:root {
+  --bg-app:#f4f3f0; --bg-sidebar:#1e1e22; --bg-surface:#ffffff; --bg-hover:#f7f6f4; --bg-input:#f9f8f7;
+  --border:#e6e4e0; --border-light:#f0eeeb;
+  --text-primary:#1a1a1c; --text-secondary:#6b6b70; --text-muted:#99999d; --text-sidebar:#c4c4c9;
+  --accent:#2d2d33; --accent-soft:#f0eeeb;
+  --blue:#2563eb; --blue-bg:#f5f8ff; --blue-border:#d4e0fc;
+  --red:#da3e3a; --red-bg:#fef4f3; --red-border:#fcd9d7;
+  --green:#16a34a; --green-bg:#f4fdf6; --green-border:#c6f0d4;
+  --orange:#d97706; --orange-bg:#fffbf0; --orange-border:#fde8c4;
+  --purple:#7c3aed; --purple-bg:#faf8ff; --purple-border:#e4dcfc;
+  --gray:#6b7280; --gray-bg:#f8f8f7; --gray-border:#e8e6e3;
+  --radius-sm:4px; --radius:8px; --radius-lg:12px;
+  --shadow:0 1px 3px rgba(0,0,0,.06); --shadow-lg:0 4px 16px rgba(0,0,0,.10);
+  --transition:160ms ease;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:"Microsoft YaHei",sans-serif;background:var(--bg-app);color:var(--text-primary);display:flex;min-height:100vh;-webkit-font-smoothing:antialiased;}
+.sidebar{width:232px;min-width:232px;background:var(--bg-sidebar);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;z-index:10;}
+.sidebar-brand{padding:20px 20px 28px;border-bottom:1px solid rgba(255,255,255,.06);}
+.sidebar-brand .logo{font-size:17px;font-weight:600;color:#fff;letter-spacing:-.02em;display:flex;align-items:center;gap:10px;}
+.sidebar-brand .sub{font-size:11px;color:var(--text-sidebar);margin-top:2px;}
+.sidebar-nav{flex:1;padding:12px 10px;display:flex;flex-direction:column;gap:2px;}
+.nav-section-label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.25);padding:14px 10px 6px;display:flex;align-items:center;gap:4px;cursor:pointer;user-select:none;}
+.section-arrow{font-size:8px;transition:transform .2s ease;flex-shrink:0;}
+.nav-section.collapsed .section-arrow{transform:rotate(-90deg);}
+.nav-section.collapsed .nav-section-items{display:none;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:6px;color:var(--text-sidebar);font-size:13.5px;cursor:pointer;transition:all var(--transition);text-decoration:none;letter-spacing:.01em;}
+.nav-item:hover{background:rgba(255,255,255,.05);color:#fff;}
+.nav-item.active{background:rgba(255,255,255,.10);color:#fff;font-weight:500;}
+.nav-icon{width:18px;height:18px;opacity:.55;flex-shrink:0;}
+.nav-item.active .nav-icon{opacity:1;}
+.main{flex:1;display:flex;flex-direction:column;min-width:0;}
+.topbar{height:52px;min-height:52px;background:var(--bg-surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 28px;gap:16px;z-index:5;}
+.topbar .breadcrumb{font-size:12.5px;color:var(--text-muted);letter-spacing:.01em;}
+.topbar .breadcrumb span{color:var(--text-primary);font-weight:500;}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:16px;}
+.user-avatar{width:30px;height:30px;border-radius:50%;background:#e6e4e0;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);}
+.content{flex:1;display:flex;flex-direction:column;padding:24px 28px;padding-bottom:70px;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;gap:16px;}
+.page-header h1{font-size:22px;font-weight:600;letter-spacing:-.02em;}
+.page-header p{font-size:13px;color:var(--text-muted);margin-top:4px;}
+
+/* ===== 统计卡 ===== */
+.stats-row{display:flex;gap:14px;margin-bottom:20px;}
+.stat-card{flex:1;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;display:flex;align-items:center;gap:14px;min-width:0;}
+.stat-icon{width:42px;height:42px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.stat-icon.blue{background:var(--blue-bg);color:var(--blue);}
+.stat-icon.green{background:var(--green-bg);color:var(--green);}
+.stat-icon.orange{background:var(--orange-bg);color:var(--orange);}
+.stat-icon.purple{background:var(--purple-bg);color:var(--purple);}
+.stat-icon svg{width:20px;height:20px;}
+.stat-value{font-size:22px;font-weight:600;color:var(--text-primary);letter-spacing:-.02em;line-height:1.2;font-family:"Microsoft YaHei",sans-serif;}
+.stat-label{font-size:12px;color:var(--text-muted);margin-top:1px;}
+
+/* ===== Filter Bar ===== */
+.filter-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:12px 16px;background:var(--bg-surface);}
+.table-panel>.filter-bar{margin-bottom:0;border:none;border-bottom:1px solid var(--border);}
+.filter-bar input,.filter-bar select{height:36px;padding:0 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;background:var(--bg-surface);color:var(--text-primary);outline:none;transition:border-color var(--transition);}
+.filter-bar input[type="text"]{width:220px;}
+.filter-bar input::placeholder{color:var(--text-muted);}
+.filter-bar select{min-width:130px;}
+.filter-bar>input:focus,.filter-bar>select:focus{border-color:var(--accent);}
+.filter-ck{display:inline-flex;align-items:center;gap:5px;font-size:13px;color:var(--text-secondary);cursor:pointer;white-space:nowrap;user-select:none;}
+.filter-ck input{margin:0;cursor:pointer;}
+.btn-filter{height:36px;padding:0 16px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);font-size:13px;font-family:inherit;cursor:pointer;font-weight:500;transition:opacity var(--transition);}
+.btn-filter:hover{opacity:.88;}
+.btn-reset{height:36px;padding:0 14px;background:transparent;color:var(--text-secondary);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;cursor:pointer;transition:all var(--transition);}
+.btn-reset:hover{border-color:var(--text-muted);color:var(--text-primary);}
+
+/* ===== Table ===== */
+.table-panel{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-lg);display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;box-shadow:var(--shadow);}
+.table-wrap{flex:1;display:flex;flex-direction:column;min-height:0;}
+.table-scroll{overflow-x:auto;flex:1;}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:1000px;}
+.checkbox{width:16px;height:16px;accent-color:var(--accent);cursor:pointer;flex-shrink:0;}
+thead th{background:#fafaf9;text-align:left;padding:11px 14px;font-weight:500;font-size:12px;color:var(--text-muted);letter-spacing:.02em;border-bottom:1px solid var(--border);white-space:nowrap;}
+thead th:first-child,tbody td:first-child{padding-left:20px;}
+tbody td{padding:12px 14px;border-bottom:1px solid var(--border-light);vertical-align:middle;}
+tbody tr:hover{background:var(--bg-hover);}
+.user-cell{display:flex;align-items:center;gap:9px;}
+.uc-avatar{width:28px;height:28px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.uc-name{font-size:13px;font-weight:500;color:var(--text-primary);}
+.phone-cell{font-family:"Microsoft YaHei",sans-serif;font-size:12px;color:var(--text-secondary);}
+.time-cell{font-family:"Microsoft YaHei",sans-serif;font-size:12px;color:var(--text-secondary);white-space:nowrap;}
+.amount-cell{font-family:"Microsoft YaHei",sans-serif;font-size:13px;font-weight:600;color:var(--text-primary);}
+.exp-num{font-family:"Microsoft YaHei",sans-serif;font-size:12.5px;font-weight:600;color:var(--orange);}
+.exp-num.zero{color:var(--text-muted);font-weight:400;}
+.coupon-num{font-size:13px;color:var(--text-primary);}
+.coupon-num.zero{color:var(--text-muted);}
+.actions{display:flex;align-items:center;gap:8px;white-space:nowrap;}
+.action-link{color:var(--blue);font-size:12.5px;cursor:pointer;}
+.action-link:hover{text-decoration:underline;}
+.empty-row{text-align:center;padding:40px;color:var(--text-muted);font-size:13px;}
+
+/* ===== Footer ===== */
+.page-footer-fixed{position:fixed;bottom:0;left:232px;right:0;display:flex;align-items:center;justify-content:space-between;padding:12px 28px;background:#fafaf9;border-top:1px solid var(--border);z-index:100;box-shadow:0 -2px 8px rgba(0,0,0,.06);}
+.page-footer-left{display:flex;align-items:center;gap:12px;}
+.page-footer-right{display:flex;align-items:center;}
+.pagination{display:flex;align-items:center;gap:4px;}
+.pagination .page-btn{min-width:32px;width:32px;height:32px;padding:0;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-surface);cursor:pointer;font-size:12px;color:var(--text-primary);font-family:inherit;transition:all var(--transition);}
+.pagination .page-btn:hover{border-color:var(--text-muted);}
+.pagination .page-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.pagination .page-btn.disabled{opacity:.35;pointer-events:none;}
+
+/* ===== Buttons ===== */
+.btn{display:inline-flex;align-items:center;padding:5px 12px;border-radius:var(--radius-sm);font-size:12px;font-family:inherit;cursor:pointer;border:1px solid transparent;transition:all var(--transition);white-space:nowrap;font-weight:500;gap:5px;}
+.btn-outline{border-color:var(--border);color:var(--text-primary);background:var(--bg-surface);}
+.btn-outline:hover{border-color:var(--text-muted);background:var(--bg-hover);}
+.btn-sm{padding:4px 10px;}
+
+/* ===== Toast ===== */
+.toast-container{position:fixed;top:24px;right:24px;z-index:400;display:flex;flex-direction:column;gap:8px;}
+.toast{background:var(--bg-sidebar);color:#fff;padding:12px 18px;border-radius:var(--radius);font-size:13px;box-shadow:var(--shadow-lg);}
+.toast.success{border-left:3px solid var(--green);}
+.toast.warning{border-left:3px solid var(--orange);}
+</style>
+</head>
+<body>
+
+<aside class="sidebar" id="app-sidebar" data-nav-active="user-equity-overview"></aside>
+<script src="../assets/common-sidebar.js"></script>
+
+<div class="main">
+  <div class="topbar">
+    <div class="breadcrumb">营销管理 / <span>用户权益总览</span></div>
+    <div class="topbar-right">
+      <span style="font-size:12px;color:var(--text-muted);">品牌运营 晓琳</span>
+      <div class="user-avatar">晓</div>
+    </div>
+  </div>
+  <div class="content">
+    <div class="page-header">
+      <div>
+        <h1>用户权益总览</h1>
+        <p>查看本商城 C 端用户的权益持有总览（积分余额、即将过期、卡券持有）；点击"查看权益流水"下钻到单用户的积分与卡券统一流水明细</p>
+      </div>
+    </div>
+
+    <!-- 统计卡 -->
+    <div class="stats-row" id="statsRow"></div>
+
+    <!-- 表格 -->
+    <div class="table-panel">
+      <div class="filter-bar">
+        <input type="text" id="fKw" placeholder="搜索昵称 / 手机号" oninput="filterTable()">
+        <select id="fPoints" onchange="filterTable()">
+          <option value="">全部积分余额</option>
+          <option value="2000">≥2000</option>
+          <option value="1000-2000">1000~2000</option>
+          <option value="0-1000">&lt;1000</option>
+        </select>
+        <label class="filter-ck"><input type="checkbox" id="fExpiring" onchange="filterTable()"> 仅看即将过期</label>
+        <label class="filter-ck"><input type="checkbox" id="fUnusedCoupon" onchange="filterTable()"> 仅看有未使用卡券</label>
+        <button class="btn-filter" onclick="filterTable()">查询</button>
+        <button class="btn-reset" onclick="resetFilter()">重置</button>
+      </div>
+      <div class="table-wrap">
+        <div class="table-scroll">
+          <table>
+            <thead id="tableHead"></thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 页脚固定操作栏 -->
+<div class="page-footer-fixed">
+  <div class="page-footer-left">
+    <button class="btn btn-outline btn-sm" onclick="exportData()">导出勾选</button>
+    <div style="font-size:12px;color:var(--text-muted);" id="selectedInfo">已选 0 项</div>
+  </div>
+  <div class="page-footer-right">
+    <div style="font-size:12px;color:var(--text-muted);margin-right:16px;" id="tableInfo">共 0 条</div>
+    <div class="pagination" id="pagination"></div>
+    <div style="display:flex;align-items:center;gap:8px;margin-left:16px;">
+      <span style="font-size:12px;color:var(--text-muted);">每页</span>
+      <select id="pageSizeSelect" onchange="changePageSize()" style="height:28px;padding:0 8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:inherit;background:var(--bg-surface);color:var(--text-primary);cursor:pointer;">
+        <option value="10">10条</option>
+        <option value="20" selected>20条</option>
+        <option value="50">50条</option>
+      </select>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;margin-left:16px;">
+      <span style="font-size:12px;color:var(--text-muted);">跳转至</span>
+      <input type="number" id="jumpPageInput" min="1" max="1" value="1" style="width:56px;height:28px;padding:0 8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:inherit;background:var(--bg-surface);color:var(--text-primary);text-align:center;" onkeydown="if(event.key==='Enter')jumpToPage()"/>
+      <span style="font-size:12px;color:var(--text-muted);">页</span>
+      <button onclick="jumpToPage()" style="height:28px;padding:0 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:inherit;background:var(--bg-surface);color:var(--text-primary);cursor:pointer;">跳转</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ===== 数据（与 08a.用户权益流水 同源，保证总览数字与下钻明细一致） =====
+var USERS = [
+  {uid:'SY-USER-0001',name:'张三',phone:'138****8888',regTime:'2025-03-15 09:20',
+    terms:[
+      {t:'1年期',batch:'2025-07-31',amt:200,expireDate:'2026-07-31',expiring:true},
+      {t:'1年期',batch:'2026-06-15',amt:300,expireDate:'2027-06-15'},
+      {t:'不限',batch:'2026-06-15',amt:500,expireDate:'-'},
+      {t:'2年期',batch:'2026-06-20',amt:2450,expireDate:'2028-06-20'},
+      {t:'3年期',batch:'2026-06-20',amt:100,expireDate:'2029-06-20'}
+    ]},
+  {uid:'SY-USER-0004',name:'赵六',phone:'135****1234',regTime:'2025-04-20 11:00',
+    terms:[
+      {t:'1年期',batch:'2026-06-15',amt:80,expireDate:'2027-06-15'},
+      {t:'1年期',batch:'2026-06-22',amt:800,expireDate:'2027-06-22'},
+      {t:'不限',batch:'2026-06-15',amt:500,expireDate:'-'},
+      {t:'3年期',batch:'2026-05-10',amt:2000,expireDate:'2029-05-10'}
+    ]},
+  {uid:'SY-USER-0002',name:'李四',phone:'139****6666',regTime:'2025-05-22 14:00',
+    terms:[
+      {t:'1年期',batch:'2025-07-15',amt:200,expireDate:'2026-07-15',expiring:true},
+      {t:'2年期',batch:'2026-05-20',amt:260,expireDate:'2028-05-20'},
+      {t:'2年期',batch:'2026-06-26',amt:1500,expireDate:'2028-06-26'}
+    ]},
+  {uid:'SY-USER-0003',name:'王五',phone:'137****2222',regTime:'2025-08-10 11:30',
+    terms:[
+      {t:'1年期',batch:'2026-06-28',amt:500,expireDate:'2027-06-28'},
+      {t:'2年期',batch:'2026-06-28',amt:980,expireDate:'2028-06-28'}
+    ]},
+  {uid:'SY-USER-0005',name:'孙七',phone:'136****5555',regTime:'2025-06-18 10:00',
+    terms:[
+      {t:'1年期',batch:'2026-06-21',amt:560,expireDate:'2026-07-20',expiring:true},
+      {t:'2年期',batch:'2026-06-21',amt:1200,expireDate:'2028-06-21'}
+    ]},
+  {uid:'SY-USER-0006',name:'周八',phone:'133****7777',regTime:'2025-09-01 15:00',
+    terms:[{t:'1年期',batch:'2026-06-30',amt:0,expireDate:'2026-07-02'}]}
+];
+
+var COUPON_HOLDINGS = [
+  {uid:'SY-USER-0001',name:'满200减50券',status:'已核销'},
+  {uid:'SY-USER-0001',name:'手机专属8折券',status:'已核销'},
+  {uid:'SY-USER-0001',name:'咖啡兑换次卡',status:'已核销'},
+  {uid:'SY-USER-0001',name:'满500减50券',status:'已作废'},
+  {uid:'SY-USER-0001',name:'标准积分卡',status:'已使用'},
+  {uid:'SY-USER-0001',name:'满500减100券',status:'已过期'},
+  {uid:'SY-USER-0001',name:'满100减20券',status:'未使用'},
+  {uid:'SY-USER-0004',name:'满100减20券',status:'已核销'},
+  {uid:'SY-USER-0004',name:'洗车兑换次卡',status:'未使用'},
+  {uid:'SY-USER-0004',name:'满50减10券',status:'未使用'},
+  {uid:'SY-USER-0002',name:'5元购物券',status:'已核销'},
+  {uid:'SY-USER-0002',name:'10元购物券',status:'未使用'},
+  {uid:'SY-USER-0003',name:'手机专属8折券',status:'已核销'},
+  {uid:'SY-USER-0003',name:'满200减30券',status:'未使用'},
+  {uid:'SY-USER-0005',name:'满100减20券',status:'已核销'},
+  {uid:'SY-USER-0005',name:'满100减20券',status:'未使用'}
+];
+
+// ===== 聚合：每用户一行权益总览 =====
+function pointsTotal(u){return u.terms.reduce(function(s,t){return s+t.amt;},0);}
+function expiringTotal(u){return u.terms.filter(function(t){return t.expiring;}).reduce(function(s,t){return s+t.amt;},0);}
+function unusedCount(uid){return COUPON_HOLDINGS.filter(function(c){return c.uid===uid&&c.status==='未使用';}).length;}
+function usedCount(uid){return COUPON_HOLDINGS.filter(function(c){return c.uid===uid&&c.status!=='未使用';}).length;}
+function buildRows(){
+  return USERS.map(function(u){
+    return {uid:u.uid,name:u.name,phone:u.phone,regTime:u.regTime,
+      points:pointsTotal(u),expiring:expiringTotal(u),unused:unusedCount(u.uid),used:usedCount(u.uid)};
+  });
+}
+
+var page=1,pageSize=20;
+
+function showToast(type,msg){var c=document.getElementById('toastContainer'),t=document.createElement('div');t.className='toast '+type;t.textContent=msg;c.appendChild(t);setTimeout(function(){t.remove();},3000);}
+
+function getFiltered(){
+  var fp=document.getElementById('fPoints').value;
+  var exp=document.getElementById('fExpiring').checked;
+  var unc=document.getElementById('fUnusedCoupon').checked;
+  var kw=(document.getElementById('fKw').value||'').trim().toLowerCase();
+  var rows=buildRows().filter(function(r){
+    if(fp){
+      if(fp==='2000'&&r.points<2000)return false;
+      if(fp==='1000-2000'&&(r.points<1000||r.points>=2000))return false;
+      if(fp==='0-1000'&&r.points>=1000)return false;
+    }
+    if(exp&&r.expiring<=0)return false;
+    if(unc&&r.unused<=0)return false;
+    if(kw){
+      var ph=r.phone.replace(/\*/g,'');
+      if(r.name.toLowerCase().indexOf(kw)<0&&r.phone.toLowerCase().indexOf(kw)<0&&ph.indexOf(kw.replace(/\*/g,''))<0)return false;
+    }
+    return true;
+  });
+  // 默认排序：即将过期倒序 → 积分余额倒序
+  rows.sort(function(a,b){if(b.expiring!==a.expiring)return b.expiring-a.expiring;return b.points-a.points;});
+  return rows;
+}
+
+function renderStats(list){
+  var totalUser=list.length;
+  var totalPoints=list.reduce(function(s,r){return s+r.points;},0);
+  var totalExpiring=list.reduce(function(s,r){return s+r.expiring;},0);
+  var totalUnused=list.reduce(function(s,r){return s+r.unused;},0);
+  var icons={
+    blue:'<circle cx="9" cy="7" r="4"/><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>',
+    green:'<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/>',
+    orange:'<path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>',
+    purple:'<rect x="2" y="4" width="20" height="16" rx="2"/><line x1="12" y1="4" x2="12" y2="10"/>'
+  };
+  function card(cls,label,val){
+    return '<div class="stat-card"><div class="stat-icon '+cls+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+icons[cls]+'</svg></div>'+
+      '<div><div class="stat-value">'+val+'</div><div class="stat-label">'+label+'</div></div></div>';
+  }
+  document.getElementById('statsRow').innerHTML=
+    card('blue','C端用户数',totalUser.toLocaleString())+
+    card('green','积分总余额',totalPoints.toLocaleString())+
+    card('orange','即将过期积分',totalExpiring.toLocaleString())+
+    card('purple','未使用卡券',totalUnused.toLocaleString());
+}
+
+function filterTable(){page=1;renderTable();}
+function resetFilter(){
+  document.getElementById('fPoints').value='';
+  document.getElementById('fExpiring').checked=false;
+  document.getElementById('fUnusedCoupon').checked=false;
+  document.getElementById('fKw').value='';
+  page=1;renderTable();
+}
+
+function renderTable(){
+  var list=getFiltered();
+  renderStats(list);
+  var totalPages=Math.max(1,Math.ceil(list.length/pageSize));
+  if(page>totalPages)page=totalPages;
+  var start=(page-1)*pageSize;
+  var pageData=list.slice(start,start+pageSize);
+  var head='<tr>'+
+    '<th style="width:48px;"><input type="checkbox" class="checkbox" onchange="toggleAll(this)"></th>'+
+    '<th style="width:170px;">用户</th>'+
+    '<th style="width:130px;">手机号</th>'+
+    '<th style="width:120px;">积分总余额</th>'+
+    '<th style="width:130px;">即将过期</th>'+
+    '<th style="width:110px;">未使用卡券</th>'+
+    '<th style="width:130px;">已使用/失效卡券</th>'+
+    '<th style="width:150px;">注册时间</th>'+
+    '<th style="width:110px;">操作</th>'+
+  '</tr>';
+  document.getElementById('tableHead').innerHTML=head;
+  var html='',colspan=9;
+  if(!pageData.length){
+    html='<tr><td colspan="'+colspan+'" class="empty-row">暂无匹配的用户权益记录</td></tr>';
+  }else{
+    pageData.forEach(function(r){
+      var expCell=r.expiring>0?'<span class="exp-num">'+r.expiring.toLocaleString()+' 分</span>':'<span class="exp-num zero">-</span>';
+      var unusedCell='<span class="coupon-num'+(r.unused===0?' zero':'')+'">'+r.unused+' 张</span>';
+      var usedCell='<span class="coupon-num'+(r.used===0?' zero':'')+'">'+r.used+' 张</span>';
+      html+='<tr>'+
+        '<td><input type="checkbox" class="checkbox" onchange="updateSelectedInfo()"></td>'+
+        '<td><div class="user-cell"><div class="uc-avatar">'+r.name.charAt(0)+'</div><span class="uc-name">'+r.name+'</span></div></td>'+
+        '<td><span class="phone-cell">'+r.phone+'</span></td>'+
+        '<td><span class="amount-cell">'+r.points.toLocaleString()+'</span></td>'+
+        '<td>'+expCell+'</td>'+
+        '<td>'+unusedCell+'</td>'+
+        '<td>'+usedCell+'</td>'+
+        '<td><span class="time-cell">'+r.regTime.substring(0,16)+'</span></td>'+
+        '<td><div class="actions"><span class="action-link" onclick="viewFlow(\''+r.uid+'\')">查看权益流水</span></div></td>'+
+      '</tr>';
+    });
+  }
+  document.getElementById('tableBody').innerHTML=html;
+  document.getElementById('tableInfo').textContent='共 '+list.length+' 条';
+  document.getElementById('jumpPageInput').max=totalPages;
+  document.getElementById('selectedInfo').textContent='已选 0 项';
+  renderPagination('pagination',page,totalPages,function(p){page=p;renderTable();});
+}
+
+function renderPagination(containerId,pg,totalPages,cb){
+  var html='';
+  html+='<button class="page-btn '+(pg<=1?'disabled':'')+'" data-p="'+(pg-1)+'">‹</button>';
+  var ms=5,sp=Math.max(1,pg-Math.floor(ms/2)),ep=Math.min(totalPages,sp+ms-1);
+  if(ep-sp<ms-1)sp=Math.max(1,ep-ms+1);
+  for(var i=sp;i<=ep;i++)html+='<button class="page-btn '+(i===pg?'active':'')+'" data-p="'+i+'">'+i+'</button>';
+  html+='<button class="page-btn '+(pg>=totalPages?'disabled':'')+'" data-p="'+(pg+1)+'">›</button>';
+  var c=document.getElementById(containerId);c.innerHTML=html;
+  c.querySelectorAll('.page-btn[data-p]').forEach(function(b){b.addEventListener('click',function(){var p=parseInt(this.getAttribute('data-p'));if(p>=1&&p<=totalPages)cb(p);});});
+}
+
+// 勾选：全选/单选均实时同步"已选 N 项"，并联动表头全选框
+function toggleAll(master){
+  document.querySelectorAll('#tableBody .checkbox').forEach(function(cb){cb.checked=master.checked;});
+  updateSelectedInfo();
+}
+function updateSelectedInfo(){
+  var boxes=document.querySelectorAll('#tableBody .checkbox');
+  var n=0,all=boxes.length>0;
+  boxes.forEach(function(cb){if(cb.checked)n++;else all=false;});
+  document.getElementById('selectedInfo').textContent='已选 '+n+' 项';
+  var head=document.querySelector('#tableHead .checkbox');
+  if(head)head.checked=all;
+}
+
+// 导出勾选
+function exportData(){
+  var checked=document.querySelectorAll('#tableBody .checkbox:checked');
+  if(!checked.length){showToast('warning','请先勾选要导出的用户');return;}
+  showToast('success','演示：导出勾选的 '+checked.length+' 个用户权益数据');
+}
+
+// 下钻到单用户权益流水（08a 接收 ?userId= 预选）
+function viewFlow(uid){
+  window.location.href='08a.用户权益流水-原型页面.html?userId='+encodeURIComponent(uid);
+}
+
+function changePageSize(){
+  pageSize=parseInt(document.getElementById('pageSizeSelect').value)||10;
+  page=1;renderTable();
+}
+
+function jumpToPage(){
+  var input=document.getElementById('jumpPageInput');
+  var p=parseInt(input.value)||1;
+  var maxPage=parseInt(input.getAttribute('max'))||1;
+  if(p<1)p=1;
+  if(p>maxPage)p=maxPage;
+  page=p;renderTable();
+}
+
+renderTable();
+</script>
+
+</body>
+</html>

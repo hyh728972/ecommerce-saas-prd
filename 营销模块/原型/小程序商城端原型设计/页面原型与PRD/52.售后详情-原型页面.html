@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>售后详情 - 苏银豆商城</title>
+<link rel="stylesheet" href="../assets/common.css">
+<style>
+  /* Fix: page-scroll 的 min-height:100vh 会撑高 phone-frame，导致 absolute 的底部栏被顶出视口。
+     锁定 phone-frame 为一屏、让 page-scroll 吃掉中间空间，底部栏即可正常贴底。 */
+  .phone-frame {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .page-scroll {
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* Status header */
+  .refund-status-header {
+    background: linear-gradient(135deg, var(--warning-color), var(--warning-dark));
+    padding: var(--space-xl) 16px;
+    color: var(--card-bg);
+  }
+  .refund-status-header.completed {
+    background: linear-gradient(135deg, var(--success-color), var(--success-dark));
+  }
+  .refund-status-header.rejected {
+    background: linear-gradient(135deg, var(--error-light), var(--price-color));
+  }
+  .status-main {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    margin-bottom: var(--space-sm);
+  }
+  .status-main svg { width: 24px; height: 24px; }
+  .status-main .text { font-size: var(--font-lg); font-weight: 700; }
+  .status-desc { font-size: var(--font-sm); opacity: 0.9; margin-left: 34px; }
+
+  /* Amount card */
+  .amount-card {
+    background: var(--card-bg);
+    margin: -16px var(--space-md) var(--space-md);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    position: relative;
+    z-index: 1;
+    box-shadow: var(--shadow-md);
+  }
+  .amount-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .amount-label {
+    font-size: var(--font-base);
+    color: var(--text-secondary);
+  }
+  .amount-value {
+    font-size: var(--font-2xl);
+    font-weight: 700;
+    color: var(--price-color);
+  }
+  .amount-value small {
+    font-size: var(--font-base);
+    font-weight: 400;
+  }
+  .amount-type {
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+    margin-top: var(--space-sm);
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+  }
+  .amount-type span {
+    background: var(--bg-color);
+    padding: 2px var(--space-sm);
+    border-radius: var(--radius-xs);
+  }
+  .points-row {
+    margin-top: var(--space-sm);
+    font-size: var(--font-sm);
+    color: var(--text-secondary);
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .points-row b {
+    color: var(--primary-start);
+    font-size: var(--font-md);
+  }
+
+  /* Timeline */
+  .timeline-section {
+    background: var(--card-bg);
+    margin: 0 var(--space-md) var(--space-md);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+  }
+  .section-title {
+    font-size: var(--font-md);
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: var(--space-lg);
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+  .section-title svg { width: 18px; height: 18px; color: var(--primary-start); }
+
+  .timeline-list {
+    position: relative;
+    padding-left: var(--space-xl);
+  }
+  .timeline-list::before {
+    content: '';
+    position: absolute;
+    left: 7px;
+    top: 12px;
+    bottom: 12px;
+    width: 2px;
+    background: var(--border-color);
+  }
+  .timeline-item {
+    position: relative;
+    padding-bottom: var(--space-xl);
+  }
+  .timeline-item:last-child { padding-bottom: 0; }
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -20px;
+    top: 4px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--text-disabled);
+    border: 2px solid var(--card-bg);
+  }
+  .timeline-item.done::before {
+    background: var(--success-color);
+  }
+  .timeline-item.active::before {
+    background: var(--primary-start);
+    box-shadow: 0 0 0 4px rgba(255, 96, 52, 0.2);
+  }
+  .timeline-item.rejected::before {
+    background: var(--error-light);
+  }
+  .timeline-title {
+    font-size: var(--font-base);
+    color: var(--text-color);
+    font-weight: 500;
+    margin-bottom: var(--space-xs);
+  }
+  .timeline-item.active .timeline-title { color: var(--primary-start); }
+  .timeline-item.rejected .timeline-title { color: var(--error-light); }
+  .timeline-desc {
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+    line-height: 1.6;
+  }
+  .timeline-time {
+    font-size: var(--font-sm);
+    color: var(--text-muted);
+    margin-top: var(--space-xs);
+  }
+
+  /* Product card */
+  .product-section {
+    background: var(--card-bg);
+    margin: 0 var(--space-md) var(--space-md);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+  .product-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-md);
+    border-bottom: 1px solid var(--bg-color);
+  }
+  .product-header .order-no {
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+  }
+  .product-list {
+    display: flex;
+    flex-direction: column;
+  }
+  .product-item {
+    display: flex;
+    padding: var(--space-md);
+    gap: var(--space-md);
+    border-bottom: 1px solid var(--bg-color);
+  }
+  .product-item:last-child { border-bottom: none; }
+  .product-img {
+    width: 72px;
+    height: 72px;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    flex-shrink: 0;
+    background: var(--bg-input);
+  }
+  .product-img img { width: 100%; height: 100%; object-fit: cover; }
+  .product-info {
+    flex: 1;
+    min-width: 0;
+  }
+  .product-name {
+    font-size: var(--font-sm);
+    color: var(--text-color);
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: var(--space-xs);
+  }
+  .product-spec {
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+    margin-bottom: var(--space-sm);
+  }
+  .product-price {
+    font-size: var(--font-base);
+    color: var(--text-color);
+    font-weight: 600;
+  }
+  .product-extra {
+    font-size: var(--font-sm);
+    color: var(--text-secondary);
+    margin-top: var(--space-sm);
+  }
+  .product-merchant-box {
+    margin-top: var(--space-sm);
+    background: var(--hover-bg);
+    border: 1px solid var(--border-divider);
+    border-radius: var(--radius-sm);
+    padding: var(--space-sm) 10px;
+    font-size: var(--font-sm);
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+  .product-merchant-box b {
+    color: var(--text-color);
+    font-weight: 600;
+  }
+  .product-actions {
+    margin-top: var(--space-sm);
+    display: flex;
+    justify-content: flex-end;
+  }
+  .product-logistics-box {
+    margin-top: var(--space-sm);
+    background: var(--card-bg)7f2;
+    border: 1px solid var(--selected-bg);
+    border-radius: var(--radius-sm);
+    padding: var(--space-sm) 10px;
+    font-size: var(--font-sm);
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  /* Info section */
+  .info-section {
+    background: var(--card-bg);
+    margin: 0 var(--space-md) var(--space-md);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+  }
+  .info-item {
+    display: flex;
+    align-items: flex-start;
+    padding: var(--space-sm) 0;
+  }
+  .info-label {
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+    width: 80px;
+    flex-shrink: 0;
+  }
+  .info-value {
+    font-size: var(--font-sm);
+    color: var(--text-color);
+    flex: 1;
+  }
+  .info-value.reason {
+    background: var(--hover-bg);
+    padding: var(--space-md);
+    border-radius: var(--radius-sm);
+    line-height: 1.6;
+  }
+
+  /* Images */
+  .evidence-images {
+    display: flex;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+  }
+  .evidence-img {
+    width: 60px;
+    height: 60px;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    cursor: pointer;
+  }
+  .evidence-img img { width: 100%; height: 100%; object-fit: cover; }
+
+  /* Bottom actions */
+  .bottom-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--card-bg);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--space-sm);
+    height: 56px;
+    border-top: 1px solid var(--border-color);
+    z-index: 200;
+    padding: 0 var(--space-md) var(--space-sm);
+  }
+  .btn-sm {
+    padding: var(--space-sm) var(--space-xl);
+    border-radius: var(--radius-lg);
+    font-size: var(--font-sm);
+    cursor: pointer;
+    border: 1px solid var(--text-disabled);
+    background: var(--card-bg);
+    color: var(--text-secondary);
+  }
+  .btn-sm:active { opacity: 0.7; }
+  .btn-sm.primary {
+    border-color: var(--primary-start);
+    color: var(--primary-start);
+  }
+  .btn-sm.danger {
+    border-color: var(--price-color);
+    color: var(--price-color);
+  }
+
+  /* Contact section */
+  .contact-section {
+    background: var(--card-bg);
+    margin: 0 var(--space-md) 80px;
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+  }
+  .contact-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-start), var(--price-color));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .contact-icon svg { width: 20px; height: 20px; color: var(--card-bg); }
+  .contact-info { flex: 1; }
+  .contact-title { font-size: var(--font-base); color: var(--text-color); font-weight: 500; }
+  .contact-desc { font-size: var(--font-sm); color: var(--text-tertiary); margin-top: 2px; }
+  .contact-btn {
+    font-size: var(--font-sm);
+    color: var(--primary-start);
+    padding: var(--space-sm) 12px;
+    border: 1px solid var(--primary-start);
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+  }
+  .modal-mask {
+    position: fixed;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    padding: var(--space-xl);
+    box-sizing: border-box;
+  }
+  .modal-card {
+    width: 100%;
+    max-width: 320px;
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    padding: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+  }
+  .modal-title {
+    font-size: var(--font-md);
+    font-weight: 600;
+    color: var(--text-color);
+    padding: var(--space-lg) 16px 12px;
+    border-bottom: 1px solid var(--bg-color);
+  }
+  .modal-body {
+    padding: 0 var(--space-lg) var(--space-md);
+  }
+  .modal-body .form-row {
+    padding: var(--space-lg) 0;
+  }
+  .modal-body .form-row label {
+    width: 72px;
+    color: var(--text-secondary);
+  }
+  .modal-body .form-row input {
+    height: 34px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 0 var(--space-md);
+    background: var(--card-bg);
+    box-sizing: border-box;
+  }
+  .modal-body .form-row input:focus {
+    border-color: var(--warning-light);
+    background: var(--card-bg);
+  }
+  .modal-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-md);
+    padding-top: var(--space-md);
+  }
+  .modal-actions .btn-sm {
+    height: 36px;
+    border-radius: var(--radius-sm);
+    padding: 0;
+    font-size: var(--font-sm);
+  }
+  .modal-actions #cancelLogisticsBtn {
+    border-color: var(--border-color);
+    color: var(--text-secondary);
+    background: var(--bg-color);
+  }
+  .modal-actions #confirmLogisticsBtn {
+    border-color: var(--primary-start);
+    color: var(--card-bg);
+    background: linear-gradient(135deg, var(--primary-start), var(--price-color));
+  }
+</style>
+</head>
+<body>
+<div class="phone-frame">
+
+  <!-- Sub-page Navigation -->
+  <div class="sub-nav">
+    <div class="status-bar dark">
+      <span class="time">09:41</span>
+      <div class="icons">
+        <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+      </div>
+    </div>
+    <div class="nav-bar">
+      <div class="back-btn" onclick="history.back()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <span class="nav-title">售后详情</span>
+      <div class="capsule-btn"><img src="../assets/icons/小程序按钮.svg" alt=""></div>
+    </div>
+  </div>
+
+  <!-- Scrollable Content -->
+  <div class="page-scroll" style="padding-bottom: 64px;">
+
+    <!-- Status Header -->
+    <div class="refund-status-header" id="statusHeader">
+      <div class="status-main">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span class="text" id="statusText">商家审核中</span>
+      </div>
+      <div class="status-desc" id="statusDesc">您的退款申请正在审核中，请耐心等待</div>
+    </div>
+
+    <!-- Amount Card -->
+    <div class="amount-card">
+      <div class="amount-type" id="amountTypeWrap">
+        售后类型：<span id="refundTypeTag">退货退款</span>
+      </div>
+      <div class="amount-row">
+        <span class="amount-label" id="amountLabel">退款金额</span>
+        <span class="amount-value" id="amountValue"><small>&yen;</small>68.00</span>
+      </div>
+      <div class="points-row" id="pointsRow">
+        <span>可退积分</span>
+        <b id="pointsValue">0积分</b>
+      </div>
+    </div>
+
+    <!-- Timeline -->
+    <div class="timeline-section">
+      <div class="section-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        处理进度
+      </div>
+      <div class="timeline-list" id="timelineList"></div>
+    </div>
+
+    <!-- Product -->
+    <div class="product-section">
+      <div class="product-header">
+        <span class="order-no" id="orderNoText">订单编号：SY2026040888001</span>
+      </div>
+      <div class="product-list" id="productList"></div>
+      <div id="orderLogisticsArea" style="padding: var(--space-md); border-top: 1px solid var(--bg-color);"></div>
+    </div>
+
+    <!-- Refund Info -->
+    <div class="info-section">
+      <div class="info-item">
+        <span class="info-label">退款单号</span>
+        <span class="info-value" id="refundNoText">RF202604080001</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">申请时间</span>
+        <span class="info-value" id="applyTimeText">2026-04-08 15:30:22</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">退款原因</span>
+        <span class="info-value" id="reasonText">不喜欢/不想要</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">问题描述</span>
+        <span class="info-value reason" id="descText">商品收到后感觉不太合适，想申请退货退款，商品完好未使用，包装齐全。</span>
+      </div>
+      <div class="info-item" id="rejectRemarkItem" style="display:none;">
+        <span class="info-label">拒绝备注</span>
+        <span class="info-value reason" id="rejectRemarkText">--</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">凭证图片</span>
+        <div class="info-value">
+          <div class="evidence-images" id="evidenceImages"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contact -->
+    <div class="contact-section">
+      <div class="contact-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+      </div>
+      <div class="contact-info">
+        <div class="contact-title">联系商家</div>
+        <div class="contact-desc">如需帮助，请联系商家客服</div>
+      </div>
+      <div class="contact-btn" onclick="location.href='91.在线客服-原型页面.html'">联系客服</div>
+    </div>
+
+  </div>
+
+  <!-- Bottom Actions -->
+  <div class="bottom-bar" id="bottomBar">
+    <button class="btn-sm danger" id="cancelBtn" style="display:none;">撤销申请</button>
+  </div>
+
+  <div class="modal-mask" id="logisticsModal">
+    <div class="modal-card">
+      <div class="modal-title">填写退回物流</div>
+      <div class="modal-body">
+        <div class="form-row">
+          <label>物流公司</label>
+          <input id="expressCompanyInput" type="text" list="expressCompanyOptions" placeholder="请选择或搜索物流公司">
+          <datalist id="expressCompanyOptions">
+            <option value="顺丰速运"></option>
+            <option value="中通快递"></option>
+            <option value="圆通速递"></option>
+            <option value="申通快递"></option>
+            <option value="韵达快递"></option>
+            <option value="邮政EMS"></option>
+            <option value="京东物流"></option>
+            <option value="极兔速递"></option>
+            <option value="德邦快递"></option>
+            <option value="菜鸟速递"></option>
+          </datalist>
+        </div>
+        <div class="form-row">
+          <label>物流单号</label>
+          <input id="expressNoInput" type="text" placeholder="请输入物流单号">
+        </div>
+        <div class="modal-actions">
+          <button class="btn-sm" id="cancelLogisticsBtn">取消</button>
+          <button class="btn-sm primary" id="confirmLogisticsBtn">确认提交</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+<script src="../assets/common.js"></script>
+<script>
+(function() {
+  var cases = {
+    'refund_only_reviewing': {
+      type: '仅退款',
+      status: 'processing',
+      statusText: '商家审核中',
+      statusDesc: '仅退款申请审核中，请耐心等待',
+      amountLabel: '退款金额',
+      amountValue: '¥0.00',
+      refundPoints: 68,
+      orderNo: 'SY202604110002',
+      refundNo: 'RF202604110002',
+      applyTime: '2026-04-11 10:18:36',
+      reason: '不想要了',
+      description: '未发货阶段申请仅退款。',
+      canCancel: true,
+      showLogisticsButton: false,
+      showMerchantInfo: false,
+      showLogisticsForm: false,
+      products: [
+        { name: '纯棉短袖T恤男女款 夏季宽松百搭潮流', spec: '白色 L码', price: '39.90', qty: 1, returnQty: 1, img: '../assets/unsplash/1521572163474-6864f9cf17ab.jpg' }
+      ],
+      evidence: ['../assets/unsplash/1521572163474-6864f9cf17ab.jpg'],
+      timeline: [
+        { title: '提交申请', desc: '用户已提交仅退款申请', time: '2026-04-11 10:18:36', state: 'done' },
+        { title: '待商家审核/商家已审核', desc: '当前状态：待商家审核', time: '2026-04-11 10:20:12', state: 'active' },
+        { title: '待退款/已退款', desc: '审核通过后进入待退款，完成后显示已退款', time: '', state: 'pending' },
+        { title: '完成', desc: '仅退款流程已完成', time: '', state: 'pending' }
+      ]
+    },
+    'refund_return_approved': {
+      type: '退货退款',
+      status: 'processing',
+      statusText: '审核通过，待填写物流',
+      statusDesc: '请尽快填写退回物流单号并寄回商品',
+      amountLabel: '退款金额',
+      amountValue: '¥68.00',
+      orderNo: 'SY2026040888001',
+      refundNo: 'RF202604080001',
+      applyTime: '2026-04-08 15:30:22',
+      reason: '商品信息描述不符',
+      description: '商品完好未使用，申请退货退款。',
+      canCancel: true,
+      showLogisticsButton: true,
+      showMerchantInfo: true,
+      showLogisticsForm: false,
+      merchant: {
+        name: '李仓管',
+        phone: '139****2277',
+        address: '江苏省南京市江宁区苏银路18号 苏银豆电商园A3仓 2楼售后中心'
+      },
+      products: [
+        { id: 'rr1', name: '日本进口保温杯 不锈钢真空便携水杯500ml', spec: '白色 500ml', price: '68.00', qty: 1, returnQty: 1, img: '../assets/unsplash/1602143407151-7111542de6e8.jpg', merchant: { name: '李仓管', phone: '139****2277', address: '江苏省南京市江宁区苏银路18号 苏银豆电商园A3仓 2楼售后中心' } },
+        { id: 'rr2', name: '便携式迷你充电宝 20000mAh大容量', spec: '白色', price: '59.00', qty: 2, returnQty: 2, img: '../assets/unsplash/1609091839311-d5365f9ff1c5.jpg', merchant: { name: '周仓管', phone: '136****4632', address: '江苏省无锡市滨湖区蠡湖大道98号 B2仓售后组' } }
+      ],
+      evidence: ['../assets/unsplash/1602143407151-7111542de6e8.jpg', '../assets/unsplash/1572635196237-14b3f281503f.jpg'],
+      timeline: [
+        { title: '提交申请', desc: '退货退款申请已提交', time: '2026-04-08 15:30:22', state: 'done' },
+        { title: '待商家审核/商家已审核', desc: '当前状态：商家已审核', time: '2026-04-08 17:10:01', state: 'done' },
+        { title: '待寄回商品/已寄回商品', desc: '请尽快寄回商品并填写物流信息', time: '', state: 'active' },
+        { title: '待商家收货/商家已收货', desc: '商家签收后进入退款处理', time: '', state: 'pending' },
+        { title: '待退款/已退款', desc: '商家确认收货后进入待退款，完成后显示已退款', time: '', state: 'pending' },
+        { title: '完成', desc: '退货退款流程已完成', time: '', state: 'pending' }
+      ]
+    },
+    'exchange_approved': {
+      type: '换货',
+      status: 'processing',
+      statusText: '审核通过，待填写物流',
+      statusDesc: '请填写物流并寄回原商品，商家验货后安排换新',
+      amountLabel: '换货金额',
+      amountValue: '¥0.00',
+      orderNo: 'SY202604130003',
+      refundNo: 'RF202604130003',
+      applyTime: '2026-04-13 12:08:31',
+      reason: '质量问题/故障',
+      description: '耳机左耳无声音，申请换货。',
+      canCancel: true,
+      showLogisticsButton: true,
+      showMerchantInfo: true,
+      showLogisticsForm: false,
+      merchant: {
+        name: '张售后',
+        phone: '137****1102',
+        address: '江苏省南京市秦淮区中山南路66号 苏银豆运营中心 售后换货组'
+      },
+      products: [
+        { id: 'ex1', name: '无线蓝牙降噪耳机 迷你入耳式超长续航', spec: '黑色 标准版', price: '89.00', qty: 1, returnQty: 1, img: '../assets/unsplash/1505740420928-5e560c06d30e.jpg', merchant: { name: '张售后', phone: '137****1102', address: '江苏省南京市秦淮区中山南路66号 苏银豆运营中心 售后换货组' } }
+      ],
+      evidence: ['../assets/unsplash/1505740420928-5e560c06d30e.jpg'],
+      timeline: [
+        { title: '提交申请', desc: '换货申请已提交', time: '2026-04-13 12:08:31', state: 'done' },
+        { title: '待商家审核/商家已审核', desc: '当前状态：商家已审核', time: '2026-04-13 13:26:10', state: 'done' },
+        { title: '待寄回商品/已寄回商品', desc: '请寄回原商品并填写物流信息', time: '', state: 'active' },
+        { title: '待商家收货/商家已收货', desc: '商家收货验货通过后进入重发流程', time: '', state: 'pending' },
+        { title: '待商家重新发货/商家已发货', desc: '商家将重新发出换货商品', time: '', state: 'pending' },
+        { title: '完成', desc: '换货流程已完成', time: '', state: 'pending' }
+      ]
+    },
+    'refund_return_rejected': {
+      type: '退货退款',
+      status: 'rejected',
+      statusText: '申请已拒绝',
+      statusDesc: '商家拒绝申请，请查看拒绝原因或联系客服',
+      amountLabel: '退款金额',
+      amountValue: '¥128.00',
+      orderNo: 'SY2026031011006',
+      refundNo: 'RF202603150003',
+      applyTime: '2026-03-15 09:25:16',
+      reason: '商品质量问题',
+      description: '商家反馈凭证不足，申请被拒绝。',
+      rejectRemark: '凭证图片无法清晰体现质量问题，请补充开箱视频或更清晰的故障照片后重新提交。',
+      canCancel: false,
+      showLogisticsButton: false,
+      showMerchantInfo: false,
+      showLogisticsForm: false,
+      products: [
+        { name: '精致蛋糕礼盒 手工制作生日庆典甜品', spec: '草莓味 8寸', price: '128.00', qty: 1, returnQty: 1, img: '../assets/unsplash/1578985545062-69928b1d9587.jpg' }
+      ],
+      evidence: ['../assets/unsplash/1578985545062-69928b1d9587.jpg'],
+      timeline: [
+        { title: '提交申请', desc: '退货退款申请已提交', time: '2026-03-15 09:25:16', state: 'done' },
+        { title: '商家审核', desc: '商家已拒绝该申请', time: '2026-03-15 14:40:09', state: 'rejected' }
+      ]
+    }
+  };
+
+  var params = new URLSearchParams(window.location.search);
+  var caseKey = params.get('case') || 'refund_return_approved';
+  var currentCase = cases[caseKey] || cases.refund_return_approved;
+
+  var header = document.getElementById('statusHeader');
+  var statusText = document.getElementById('statusText');
+  var statusDesc = document.getElementById('statusDesc');
+  header.className = 'refund-status-header';
+  if (currentCase.status === 'completed') header.classList.add('completed');
+  if (currentCase.status === 'rejected' || currentCase.status === 'cancelled') header.classList.add('rejected');
+  statusText.textContent = currentCase.statusText;
+  statusDesc.textContent = currentCase.statusDesc;
+
+  document.getElementById('amountLabel').textContent = currentCase.amountLabel;
+  document.getElementById('amountValue').innerHTML = '<small>&yen;</small>' + String(currentCase.amountValue).replace('¥', '');
+  document.getElementById('refundTypeTag').textContent = currentCase.type;
+  var pointsRow = document.getElementById('pointsRow');
+  var pointsValue = document.getElementById('pointsValue');
+  if (currentCase.refundPoints && Number(currentCase.refundPoints) > 0) {
+    pointsRow.style.display = 'flex';
+    pointsValue.textContent = currentCase.refundPoints + '积分';
+  } else {
+    pointsRow.style.display = 'none';
+  }
+  document.getElementById('orderNoText').textContent = '订单编号：' + currentCase.orderNo;
+  document.getElementById('refundNoText').textContent = currentCase.refundNo;
+  document.getElementById('applyTimeText').textContent = currentCase.applyTime;
+  document.getElementById('reasonText').textContent = currentCase.reason;
+  document.getElementById('descText').textContent = currentCase.description;
+  var rejectRemarkItem = document.getElementById('rejectRemarkItem');
+  var rejectRemarkText = document.getElementById('rejectRemarkText');
+  if (currentCase.status === 'rejected' && currentCase.rejectRemark) {
+    rejectRemarkItem.style.display = 'flex';
+    rejectRemarkText.textContent = currentCase.rejectRemark;
+  } else {
+    rejectRemarkItem.style.display = 'none';
+  }
+
+  var productList = document.getElementById('productList');
+  var orderLogisticsArea = document.getElementById('orderLogisticsArea');
+  function renderProductList() {
+    var productHtml = '';
+    currentCase.products.forEach(function(p) {
+      var isReturnRelated = currentCase.type === '退货退款' || currentCase.type === '换货';
+      var extraInfo = '';
+      var merchantInfo = '';
+      if (isReturnRelated) {
+        extraInfo = '<div class="product-extra">退货数量：' + (p.returnQty || p.qty || 1) + '</div>';
+      }
+      if (p.merchant && currentCase.showMerchantInfo) {
+        merchantInfo = '<div class="product-merchant-box">' +
+          '<div><b>商家收货信息</b></div>' +
+          '<div>联系人：' + p.merchant.name + '（' + p.merchant.phone + '）</div>' +
+          '<div>地址：' + p.merchant.address + '</div>' +
+        '</div>';
+      }
+
+      productHtml += '<div class="product-item">' +
+        '<div class="product-img"><img src="' + p.img + '" alt=""></div>' +
+        '<div class="product-info">' +
+          '<div class="product-name">' + p.name + '</div>' +
+          '<div class="product-spec">' + p.spec + '</div>' +
+          '<div class="product-price">&yen;' + p.price + ' x' + p.qty + '</div>' +
+          extraInfo +
+          merchantInfo +
+        '</div>' +
+      '</div>';
+    });
+    productList.innerHTML = productHtml;
+
+    // 整单一份退回物流：单一「填写/修改物流单号」入口
+    var logisticsHtml = '';
+    if (currentCase.showLogisticsButton) {
+      logisticsHtml += '<div class="product-actions">' +
+        '<button class="btn-sm primary" id="fillLogisticsBtn">' + (currentCase.logistics ? '修改物流单号' : '填写物流单号') + '</button>' +
+      '</div>';
+    }
+    if (currentCase.logistics) {
+      logisticsHtml += '<div class="product-logistics-box">' +
+        '<div><b>退回物流信息</b></div>' +
+        '<div>物流公司：' + currentCase.logistics.company + '</div>' +
+        '<div>物流单号：' + currentCase.logistics.no + '</div>' +
+        '<div>提交时间：' + currentCase.logistics.time + '</div>' +
+      '</div>';
+    }
+    orderLogisticsArea.innerHTML = logisticsHtml;
+    orderLogisticsArea.style.display = logisticsHtml ? 'block' : 'none';
+    bindLogisticsAction();
+  }
+
+  function bindLogisticsAction() {
+    var btn = document.getElementById('fillLogisticsBtn');
+    if (!btn) return;
+    btn.addEventListener('click', function() {
+      var existing = currentCase.logistics;
+      expressCompanyInput.value = existing ? existing.company : '';
+      expressNoInput.value = existing ? existing.no : '';
+      logisticsModal.style.display = 'flex';
+    });
+  }
+  renderProductList();
+
+  var evidenceImages = document.getElementById('evidenceImages');
+  evidenceImages.innerHTML = '';
+  currentCase.evidence.forEach(function(src) {
+    evidenceImages.innerHTML += '<div class="evidence-img"><img src="' + src + '" alt=""></div>';
+  });
+
+  var timelineList = document.getElementById('timelineList');
+  function getTimelineDisplayTitle(rawTitle, state) {
+    if (!rawTitle || rawTitle.indexOf('/') === -1) return rawTitle;
+    var parts = rawTitle.split('/');
+    var beforeText = (parts[0] || '').trim();
+    var afterText = (parts[1] || '').trim();
+    return state === 'done' ? (afterText || beforeText) : beforeText;
+  }
+  function renderTimeline() {
+    var timelineHtml = '';
+    currentCase.timeline.forEach(function(item) {
+      var cls = item.state === 'done' ? 'done' : (item.state === 'active' ? 'active' : (item.state === 'rejected' ? 'rejected' : ''));
+      var displayTitle = getTimelineDisplayTitle(item.title, item.state);
+      timelineHtml += '<div class="timeline-item ' + cls + '">' +
+        '<div class="timeline-title">' + displayTitle + '</div>' +
+        '<div class="timeline-desc">' + item.desc + '</div>' +
+        (item.time ? '<div class="timeline-time">' + item.time + '</div>' : '') +
+      '</div>';
+    });
+    timelineList.innerHTML = timelineHtml;
+  }
+  renderTimeline();
+
+  var cancelBtn = document.getElementById('cancelBtn');
+  var logisticsModal = document.getElementById('logisticsModal');
+  var cancelLogisticsBtn = document.getElementById('cancelLogisticsBtn');
+  var confirmLogisticsBtn = document.getElementById('confirmLogisticsBtn');
+  var expressCompanyInput = document.getElementById('expressCompanyInput');
+  var expressNoInput = document.getElementById('expressNoInput');
+  cancelBtn.style.display = currentCase.canCancel ? 'inline-block' : 'none';
+
+  cancelBtn.addEventListener('click', function() {
+    if (confirm('确定要撤销该售后申请吗？')) {
+      alert('已撤销申请');
+      history.back();
+    }
+  });
+
+  cancelLogisticsBtn.addEventListener('click', function() {
+    logisticsModal.style.display = 'none';
+  });
+
+  confirmLogisticsBtn.addEventListener('click', function() {
+    var company = expressCompanyInput.value.trim();
+    var no = expressNoInput.value.trim();
+    if (!company) {
+      alert('请输入物流公司');
+      return;
+    }
+    if (!no) {
+      alert('请输入物流单号');
+      return;
+    }
+
+    currentCase.statusText = '等待商家收货';
+    currentCase.statusDesc = '物流已提交，等待商家收货并验货';
+    statusText.textContent = currentCase.statusText;
+    statusDesc.textContent = currentCase.statusDesc;
+    // 已进入待商家收货阶段，不可再撤销申请
+    cancelBtn.style.display = 'none';
+
+    currentCase.timeline.forEach(function(item) {
+      if (item.title.indexOf('待寄回商品/已寄回商品') > -1) item.state = 'done';
+      if (item.title.indexOf('待商家收货/商家已收货') > -1) {
+        item.state = 'active';
+        item.time = new Date().toLocaleString('zh-CN', { hour12: false }).replace(/\//g, '-');
+      }
+    });
+    renderTimeline();
+    currentCase.logistics = {
+      company: company,
+      no: no,
+      time: new Date().toLocaleString('zh-CN', { hour12: false }).replace(/\//g, '-')
+    };
+    renderProductList();
+    logisticsModal.style.display = 'none';
+    alert('物流信息提交成功，等待商家收货');
+  });
+})();
+</script>
+<script src="../assets/theme-switcher.js"></script>
+</body>
+</html>

@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>我的评价 - 苏银豆商城</title>
+<link rel="stylesheet" href="../assets/common.css">
+<style>
+  /* Fix: page-scroll 的 min-height:100vh 未扣除顶栏+标签栏高度，产生约134px幽灵滚动，
+     列表尾部被顶到折叠线下。锁定 phone-frame 为一屏、让 page-scroll 吃掉中间空间。 */
+  .phone-frame {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .page-scroll {
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* Tab bar */
+  .review-tabs-bar {
+    display: flex;
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--border-divider);
+    position: sticky;
+    top: 88px;
+    z-index: 50;
+  }
+  .review-tab {
+    flex: 1;
+    text-align: center;
+    padding: var(--space-md) 0;
+    font-size: var(--font-base);
+    color: var(--text-secondary);
+    cursor: pointer;
+    position: relative;
+  }
+  .review-tab:active { background: var(--bg-input); }
+  .review-tab.active {
+    color: var(--text-color);
+    font-weight: 600;
+  }
+  .review-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 24px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--primary-start), var(--price-color));
+    border-radius: var(--radius-xs);
+  }
+  .review-tab .tab-badge {
+    display: inline-block;
+    background: var(--price-color);
+    color: var(--card-bg);
+    font-size: var(--font-xs);
+    min-width: 16px;
+    height: 16px;
+    border-radius: var(--radius-sm);
+    line-height: 16px;
+    margin-left: var(--space-xs);
+    padding: 0 var(--space-xs);
+  }
+
+  /* Review item */
+  .review-list {
+    padding: var(--space-md) 0;
+  }
+  .review-item {
+    background: var(--card-bg);
+    border-radius: 0;
+    margin-bottom: var(--space-md);
+    overflow: visible;
+  }
+  .review-item-header {
+    display: flex;
+    padding: 10px 12px;
+    gap: 10px;
+    border-bottom: 1px solid var(--bg-color);
+  }
+  .review-item .item-img {
+    width: 72px;
+    height: 72px;
+    border-radius: 6px;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: var(--bg-input);
+  }
+  .review-item .item-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .review-item .item-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .review-item .item-name {
+    font-size: 13px;
+    color: #262626;
+    line-height: 1.4;
+    font-weight: 400;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .review-item .item-spec {
+    font-size: 12px;
+    color: #999;
+    line-height: 1.35;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Pending review actions (对齐我的订单 .btn-sm) */
+  .review-item-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: var(--space-sm) 12px 12px;
+    gap: var(--space-sm);
+  }
+  .btn-review {
+    padding: 6px 14px;
+    border-radius: 4px;
+    font-size: var(--font-sm);
+    cursor: pointer;
+    border: none;
+    background: var(--bg-color);
+    color: var(--text-color);
+    text-decoration: none;
+    line-height: 1.2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .btn-review:active { opacity: 0.7; }
+  .btn-review.primary {
+    border: none;
+    background: var(--selected-bg);
+    color: var(--primary-start);
+    font-weight: 600;
+  }
+
+  /* Completed review content */
+  .review-content-area {
+    padding: var(--space-md);
+    background: var(--hover-bg);
+  }
+  .review-stars {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-bottom: var(--space-sm);
+  }
+  .review-stars .star {
+    font-size: var(--font-base);
+    color: var(--primary-start);
+  }
+  .review-stars .star.empty { color: var(--text-disabled); }
+  .review-text {
+    font-size: var(--font-sm);
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: var(--space-sm);
+  }
+  .review-images {
+    display: flex;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+  }
+  .review-images img {
+    width: 60px;
+    height: 60px;
+    border-radius: var(--radius-xs);
+    object-fit: cover;
+  }
+  .review-date {
+    font-size: var(--font-sm);
+    color: var(--text-muted);
+    margin-top: var(--space-sm);
+  }
+
+  /* Empty state */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px var(--space-xl);
+    color: var(--text-tertiary);
+  }
+  .empty-state svg {
+    width: 80px;
+    height: 80px;
+    color: var(--text-disabled);
+    margin-bottom: var(--space-lg);
+  }
+  .empty-state .empty-text {
+    font-size: var(--font-base);
+    margin-bottom: var(--space-lg);
+  }
+  .empty-state .go-shopping {
+    background: linear-gradient(135deg, var(--primary-start), var(--price-color));
+    color: var(--card-bg);
+    font-size: var(--font-sm);
+    padding: var(--space-sm) 24px;
+    border-radius: var(--radius-xl);
+    cursor: pointer;
+  }
+
+  /* Aftersale status on pending items (ref: PC评价中心) */
+  .review-item.muted .item-name,
+  .review-item.muted .item-spec { color: var(--text-tertiary); }
+  .aftersale-tag {
+    display: inline-block;
+    font-size: var(--font-xs);
+    color: var(--warning-color);
+    background: var(--bg-color);
+    border: 1px solid var(--warning-color);
+    border-radius: var(--radius-xs);
+    padding: 1px var(--space-xs);
+    margin-top: var(--space-xs);
+    align-self: flex-start;
+  }
+  .btn-review.disabled {
+    background: var(--bg-color);
+    color: var(--text-disabled);
+    cursor: not-allowed;
+  }
+
+  /* Completed review meta & append (原63.我的评价并入) */
+  .review-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: var(--space-sm);
+  }
+  .btn-append {
+    padding: 6px 14px;
+    border-radius: 4px;
+    font-size: var(--font-sm);
+    border: none;
+    background: var(--selected-bg);
+    color: var(--primary-start);
+    font-weight: 600;
+    line-height: 1.2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .btn-append:active { opacity: 0.7; }
+  .btn-append.disabled {
+    background: var(--bg-color);
+    color: var(--text-disabled);
+    font-weight: 400;
+    cursor: default;
+  }
+  .append-section {
+    border-top: 1px dashed var(--border-color);
+    padding: var(--space-md) 12px;
+    background: var(--hover-bg);
+  }
+  .append-label {
+    font-size: var(--font-sm);
+    color: var(--primary-start);
+    font-weight: 500;
+    margin-bottom: var(--space-xs);
+  }
+  .append-text {
+    font-size: var(--font-sm);
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+  .append-date {
+    font-size: var(--font-sm);
+    color: var(--text-muted);
+    margin-top: var(--space-xs);
+  }
+  .append-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 100;
+    justify-content: center;
+    align-items: flex-end;
+  }
+  .append-overlay.show { display: flex; }
+  .append-popup {
+    background: var(--card-bg);
+    width: 100%;
+    max-width: 430px;
+    border-radius: var(--radius-lg) 16px 0 0;
+    padding: var(--space-xl) 16px 24px;
+    animation: slideUp 0.3s ease;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  .append-popup-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-lg);
+  }
+  .append-popup-header .title {
+    font-size: var(--font-md);
+    font-weight: 600;
+    color: var(--text-color);
+  }
+  .append-popup-header .close-btn {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-tertiary);
+  }
+  .append-textarea {
+    width: 100%;
+    height: 100px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: var(--space-md);
+    font-size: var(--font-sm);
+    color: var(--text-color);
+    resize: none;
+    outline: none;
+    box-sizing: border-box;
+  }
+  .append-textarea:focus { border-color: var(--primary-start); }
+  .append-char-count {
+    text-align: right;
+    font-size: var(--font-sm);
+    color: var(--text-muted);
+    margin-top: var(--space-xs);
+  }
+  .append-submit {
+    display: block;
+    width: 100%;
+    padding: var(--space-md);
+    background: linear-gradient(135deg, var(--primary-start), var(--price-color));
+    color: var(--card-bg);
+    font-size: var(--font-base);
+    font-weight: 500;
+    border: none;
+    border-radius: var(--radius-xl);
+    margin-top: var(--space-lg);
+    cursor: pointer;
+  }
+  .append-submit:active { opacity: 0.8; }
+</style>
+</head>
+<body>
+<div class="phone-frame">
+
+  <!-- Sub-page Navigation -->
+  <div class="sub-nav">
+    <div class="status-bar dark">
+      <span class="time">09:41</span>
+      <div class="icons">
+        <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+      </div>
+    </div>
+    <div class="nav-bar">
+      <div class="back-btn" onclick="history.back()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <span class="nav-title">我的评价</span>
+      <div class="capsule-btn"><img src="../assets/icons/小程序按钮.svg" alt=""></div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="review-tabs-bar">
+    <div class="review-tab active" data-tab="pending">待评价<span class="tab-badge" id="pendingBadge">0</span></div>
+    <div class="review-tab" data-tab="done">已评价</div>
+  </div>
+
+  <!-- Scrollable Content -->
+  <div class="page-scroll" style="padding-bottom: 16px;">
+    <div class="review-list" id="reviewList"></div>
+  </div>
+
+  <!-- Append Review Popup (原63.我的评价并入) -->
+  <div class="append-overlay" id="appendOverlay">
+    <div class="append-popup">
+      <div class="append-popup-header">
+        <span class="title">追加评价</span>
+        <div class="close-btn" onclick="closeAppendPopup()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </div>
+      </div>
+      <textarea class="append-textarea" id="appendText" maxlength="200" placeholder="对之前的评价做补充..."></textarea>
+      <div class="append-char-count"><span id="appendCharCount">0</span>/200</div>
+      <button class="append-submit" onclick="submitAppend()">提交追加评价</button>
+    </div>
+  </div>
+
+</div>
+<script src="../assets/common.js"></script>
+<script>
+(function() {
+  // Pending reviews data
+  // aftersale 售后状态（与PC评价中心同一套规则）：null=无售后可评 / processing=售后处理中禁评 / success=售后成功不再展示待评 / closed=售后关闭可评
+  var pendingReviews = [
+    { id: 1, name: '日本进口保温杯 不锈钢真空便携水杯500ml', spec: '白色 500ml', price: '68.00', img: '../assets/unsplash/1602143407151-7111542de6e8.jpg', aftersale: null },
+    { id: 2, name: '无线蓝牙降噪耳机 迷你入耳式超长续航', spec: '黑色 标准版', price: '89.00', img: '../assets/unsplash/1505740420928-5e560c06d30e.jpg', aftersale: null },
+    { id: 3, name: '纯棉短袖T恤男女款 夏季宽松百搭潮流', spec: '白色 L码', price: '39.90', img: '../assets/unsplash/1521572163474-6864f9cf17ab.jpg', aftersale: 'processing' },
+    { id: 4, name: '潮流太阳眼镜 防紫外线偏光墨镜', spec: '黑色', price: '128.00', img: '../assets/unsplash/1572635196237-14b3f281503f.jpg', aftersale: 'closed' },
+    { id: 5, name: '智能手表 多功能运动健康监测手环', spec: '黑色 标准版', price: '199.00', img: '../assets/unsplash/1523275335684-37898b6baf30.jpg', aftersale: 'success' }
+  ];
+
+  // Completed reviews data（原63.我的评价并入）
+  var completedReviews = [
+    {
+      id: 11,
+      name: '纯棉短袖T恤男女款 夏季宽松百搭潮流',
+      spec: '白色 L码',
+      price: '39.90',
+      img: '../assets/unsplash/1521572163474-6864f9cf17ab.jpg',
+      stars: 5,
+      text: '面料很舒服，颜色和图片一样，尺码标准，物流也很快，下次还会回购！',
+      images: ['../assets/unsplash/1521572163474-6864f9cf17ab.jpg'],
+      date: '2026-03-25',
+      append: null
+    },
+    {
+      id: 12,
+      name: '时尚运动鞋 透气网面跑步鞋轻便缓震',
+      spec: '黑色 42码',
+      price: '159.00',
+      img: '../assets/unsplash/1542291026-7eec264c27ff.jpg',
+      stars: 4,
+      text: '鞋子很轻便，穿着舒服，透气性好，就是颜色稍微有点偏差。',
+      images: [],
+      date: '2026-03-18',
+      append: {
+        text: '穿了一周了，鞋底耐磨性不错，跑了3次步都很舒服，推荐购买。',
+        date: '2026-04-01'
+      }
+    },
+    {
+      id: 13,
+      name: '精致蛋糕礼盒 手工制作生日庆典甜品',
+      spec: '草莓味 8寸',
+      price: '168.00',
+      img: '../assets/unsplash/1578985545062-69928b1d9587.jpg',
+      stars: 5,
+      text: '蛋糕颜值超高，口感细腻不甜腻，朋友生日送的很有面子，包装也很精美！',
+      images: ['../assets/unsplash/1578985545062-69928b1d9587.jpg', '../assets/unsplash/product_cake_800x1200.jpg'],
+      date: '2026-03-10',
+      append: null
+    },
+    {
+      id: 14,
+      name: '日本进口保温杯 不锈钢真空便携水杯500ml',
+      spec: '白色 500ml',
+      price: '68.00',
+      img: '../assets/unsplash/1602143407151-7111542de6e8.jpg',
+      stars: 5,
+      text: '保温效果非常好，早上装的热水到晚上还是温的，外观有质感，值得购买！',
+      images: ['../assets/unsplash/product_watch_800x1200.jpg'],
+      date: '2026-02-28',
+      append: {
+        text: '用了两个月依然保温很好，盖子密封性也没问题，质量靠谱。',
+        date: '2026-04-15'
+      }
+    },
+    {
+      id: 15,
+      name: '潮流太阳眼镜 防紫外线偏光墨镜',
+      spec: '黑色',
+      price: '128.00',
+      img: '../assets/unsplash/1572635196237-14b3f281503f.jpg',
+      stars: 3,
+      text: '镜片质量还行，但是镜框有点松，戴久了会往下滑，性价比一般。',
+      images: [],
+      date: '2026-02-15',
+      append: null
+    },
+    {
+      id: 16,
+      name: '无线蓝牙降噪耳机 迷你入耳式超长续航',
+      spec: '黑色 标准版',
+      price: '89.00',
+      img: '../assets/unsplash/1505740420928-5e560c06d30e.jpg',
+      stars: 2,
+      text: '降噪效果不明显，续航也没有宣传的那么长，有点失望。',
+      images: [],
+      date: '2026-02-01',
+      append: {
+        text: '用了几天左耳接触不良，已联系客服申请售后处理。',
+        date: '2026-02-10'
+      }
+    },
+    {
+      id: 17,
+      name: '智能手表 多功能运动健康监测手环',
+      spec: '黑色 标准版',
+      price: '199.00',
+      img: '../assets/unsplash/1523275335684-37898b6baf30.jpg',
+      stars: 5,
+      text: '功能很全，心率监测和睡眠分析都比较准，运动模式丰富，续航大概5天。',
+      images: ['../assets/unsplash/product_sneaker_800x1200.jpg', '../assets/unsplash/product_headphone_800x1200.jpg'],
+      date: '2026-01-20',
+      append: null
+    }
+  ];
+
+  var currentTab = 'pending';
+  var appendingId = null;
+
+  // 售后处理中 → 禁评
+  function isReviewBlocked(item) {
+    return item.aftersale === 'processing';
+  }
+
+  // 售后成功 → 不再出现在待评价
+  function visiblePending() {
+    return pendingReviews.filter(function(item) { return item.aftersale !== 'success'; });
+  }
+
+  function updatePendingBadge() {
+    var el = document.getElementById('pendingBadge');
+    if (el) el.textContent = visiblePending().length;
+  }
+
+  function renderStars(count) {
+    var html = '';
+    for (var i = 0; i < 5; i++) {
+      html += '<span class="star ' + (i < count ? '' : 'empty') + '">★</span>';
+    }
+    return html;
+  }
+
+  function renderList() {
+    var list = document.getElementById('reviewList');
+    var html = '';
+
+    if (currentTab === 'pending') {
+      var data = visiblePending();
+
+      if (data.length === 0) {
+        list.innerHTML = '<div class="empty-state">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>' +
+          '<div class="empty-text">暂无待评价商品</div>' +
+          '<a href="10.首页-原型页面.html" class="go-shopping">去逛逛</a>' +
+        '</div>';
+        updatePendingBadge();
+        return;
+      }
+
+      data.forEach(function(item) {
+        var blocked = isReviewBlocked(item);
+        var tagHtml = blocked ? '<span class="aftersale-tag">售后处理中</span>' : '';
+        var reviewBtn = blocked
+          ? '<span class="btn-review disabled" onclick="alert(\'售后处理中，完成后可评价\')">去评价</span>'
+          : '<a href="61.发表评价-原型页面.html" class="btn-review primary">去评价</a>';
+        html += '<div class="review-item' + (blocked ? ' muted' : '') + '">' +
+          '<div class="review-item-header">' +
+            '<a href="21.商品详情-原型页面.html" class="item-img"><img src="' + item.img + '" alt=""></a>' +
+            '<div class="item-info">' +
+              '<div class="item-name">' + item.name + '</div>' +
+              '<div class="item-spec">' + item.spec + '</div>' +
+              tagHtml +
+            '</div>' +
+          '</div>' +
+          '<div class="review-item-footer">' +
+            '<a href="21.商品详情-原型页面.html" class="btn-review">再次购买</a>' +
+            reviewBtn +
+          '</div>' +
+        '</div>';
+      });
+    } else {
+      if (completedReviews.length === 0) {
+        list.innerHTML = '<div class="empty-state">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>' +
+          '<div class="empty-text">暂无已评价商品</div>' +
+        '</div>';
+        list.innerHTML = html;
+        return;
+      }
+
+      completedReviews.forEach(function(item) {
+        var imagesHtml = '';
+        if (item.images && item.images.length > 0) {
+          imagesHtml = '<div class="review-images">';
+          item.images.forEach(function(img) {
+            imagesHtml += '<img src="' + img + '" alt="">';
+          });
+          imagesHtml += '</div>';
+        }
+
+        var appendHtml = '';
+        if (item.append) {
+          appendHtml = '<div class="append-section">' +
+            '<div class="append-label">追加评价</div>' +
+            '<div class="append-text">' + item.append.text + '</div>' +
+            '<div class="append-date">' + item.append.date + '</div>' +
+          '</div>';
+        }
+
+        html += '<div class="review-item">' +
+          '<div class="review-item-header">' +
+            '<a href="21.商品详情-原型页面.html" class="item-img"><img src="' + item.img + '" alt=""></a>' +
+            '<div class="item-info">' +
+              '<div class="item-name">' + item.name + '</div>' +
+              '<div class="item-spec">' + item.spec + '</div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="review-content-area">' +
+            '<div class="review-stars">' + renderStars(item.stars) + '</div>' +
+            '<div class="review-text">' + item.text + '</div>' +
+            imagesHtml +
+            '<div class="review-meta">' +
+              '<span class="review-date">评价时间：' + item.date + '</span>' +
+              '<span class="btn-append' + (item.append ? ' disabled' : '') + '" data-id="' + item.id + '">' +
+                (item.append ? '已追评' : '追加评价') +
+              '</span>' +
+            '</div>' +
+          '</div>' +
+          appendHtml +
+        '</div>';
+      });
+
+      list.innerHTML = html;
+      bindAppendButtons();
+      updatePendingBadge();
+      return;
+    }
+
+    list.innerHTML = html;
+    updatePendingBadge();
+  }
+
+  // Append review popup（原63.我的评价并入）
+  function bindAppendButtons() {
+    document.querySelectorAll('.btn-append').forEach(function(btn) {
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        var id = parseInt(this.dataset.id);
+        var review = completedReviews.find(function(r) { return r.id === id; });
+        if (review && !review.append) {
+          openAppendPopup(id);
+        }
+      });
+    });
+  }
+
+  function openAppendPopup(id) {
+    appendingId = id;
+    document.getElementById('appendText').value = '';
+    document.getElementById('appendCharCount').textContent = '0';
+    document.getElementById('appendOverlay').classList.add('show');
+  }
+
+  window.closeAppendPopup = function() {
+    document.getElementById('appendOverlay').classList.remove('show');
+    appendingId = null;
+  };
+
+  document.getElementById('appendText').addEventListener('input', function() {
+    document.getElementById('appendCharCount').textContent = this.value.length;
+  });
+
+  window.submitAppend = function() {
+    var text = document.getElementById('appendText').value.trim();
+    if (!text) {
+      alert('请输入追加评价内容');
+      return;
+    }
+    var review = completedReviews.find(function(r) { return r.id === appendingId; });
+    if (review) {
+      var today = new Date();
+      var dateStr = today.getFullYear() + '-' +
+        String(today.getMonth() + 1).padStart(2, '0') + '-' +
+        String(today.getDate()).padStart(2, '0');
+      review.append = { text: text, date: dateStr };
+    }
+    closeAppendPopup();
+    renderList();
+    alert('追加评价成功！');
+  };
+
+  document.getElementById('appendOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeAppendPopup();
+  });
+
+  // Tab switching
+  document.querySelectorAll('.review-tab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      document.querySelectorAll('.review-tab').forEach(function(t) { t.classList.remove('active'); });
+      this.classList.add('active');
+      currentTab = this.dataset.tab;
+      renderList();
+    });
+  });
+
+  renderList();
+})();
+</script>
+<script src="../assets/theme-switcher.js"></script>
+</body>
+</html>

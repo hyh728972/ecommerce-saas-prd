@@ -1,0 +1,1998 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>商品详情 - 苏银豆商城</title>
+<link rel="stylesheet" href="../assets/common.css">
+<style>
+  /* Fix phone-frame to viewport for absolute popups */
+  .phone-frame {
+    height: 100vh;
+    overflow: hidden;
+  }
+  .page-scroll {
+    height: 100%;
+    overflow-y: auto;
+  }
+
+  /* Product image swiper */
+  .detail-swiper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1;
+    background: var(--bg-input);
+    overflow: hidden;
+  }
+  .detail-swiper-wrapper {
+    display: flex;
+    transition: transform 0.3s ease;
+    height: 100%;
+  }
+  .detail-swiper-slide {
+    min-width: 100%;
+    height: 100%;
+  }
+  .detail-swiper-slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+  .detail-swiper-indicator {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    background: rgba(0,0,0,0.4);
+    color: var(--card-bg);
+    font-size: var(--font-sm);
+    padding: 2px var(--space-sm);
+    border-radius: var(--radius-md);
+    z-index: 3;
+  }
+  .phone-frame.is-soldout .spec-thumbs img {
+    opacity: 0.5;
+    filter: grayscale(0.35);
+  }
+  .phone-frame.is-soldout .btn-buy-now { display: none; }
+  .phone-frame.is-soldout .btn-add-cart {
+    background: linear-gradient(135deg, var(--primary-start), var(--price-color));
+  }
+  .spec-confirm-btn.soldout-disabled,
+  .spec-confirm-btn:disabled {
+    background: #c8c8c8;
+    cursor: not-allowed;
+  }
+
+  /* Price area */
+  .price-area {
+    background: var(--card-bg);
+    padding: var(--space-lg) var(--space-md);
+  }
+  .price-row {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-sm);
+  }
+  .price-row .current-price {
+    color: var(--price-color);
+    font-size: var(--font-2xl);
+    font-weight: 700;
+  }
+  .price-row .current-price .symbol { font-size: var(--font-base); }
+  .price-row .original-price {
+    font-size: var(--font-sm);
+    color: var(--text-muted);
+    text-decoration: line-through;
+  }
+  .price-row .discount-tag {
+    background: linear-gradient(135deg, var(--primary-start), var(--price-color));
+    color: var(--card-bg);
+    font-size: var(--font-xs);
+    padding: 2px var(--space-sm);
+    border-radius: var(--radius-xs);
+    font-weight: 600;
+  }
+  .price-area .sold-info {
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+  }
+  .product-title-area {
+    background: var(--card-bg);
+    padding: 0 var(--space-md) var(--space-lg);
+  }
+  .product-title-area .title {
+    font-size: var(--font-md);
+    font-weight: 600;
+    color: var(--text-color);
+    line-height: 1.5;
+    margin-bottom: var(--space-sm);
+  }
+  .product-title-area .sub-info {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+  }
+  .product-title-area .sub-info .tag-small {
+    background: var(--selected-bg);
+    color: var(--primary-start);
+    padding: 1px var(--space-sm);
+    border-radius: var(--radius-xs);
+    font-size: var(--font-xs);
+  }
+
+  /* Meta panel: 规格 / 参数 / 配送 / 服务 — 细调对齐参考图 */
+  .meta-panel {
+    background: var(--card-bg);
+    margin-top: var(--space-sm);
+  }
+  .meta-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 12px;
+    border-bottom: 1px solid #f2f2f2;
+    cursor: pointer;
+  }
+  .meta-row:last-child { border-bottom: none; }
+  .meta-row:active { background: var(--hover-bg); }
+  /* 覆盖 common.css 地址区橙色虚线与多余间距 */
+  .meta-panel .address-section {
+    margin-bottom: 0;
+    padding: 12px;
+  }
+  .meta-panel .address-section::after { display: none; }
+  .meta-icon {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    margin-top: 0;
+    color: #999;
+  }
+  .meta-icon svg { width: 16px; height: 16px; display: block; }
+  .meta-body { flex: 1; min-width: 0; }
+  .meta-arrow {
+    flex-shrink: 0;
+    align-self: flex-start;
+    margin-top: 1px;
+    color: #ccc;
+  }
+  .meta-arrow svg { width: 12px; height: 12px; display: block; }
+
+  /* Specs */
+  .meta-row.specs-section .meta-icon {
+    margin-top: 8px; /* 与 32px 缩略图垂直居中 */
+  }
+  .meta-row.specs-section .meta-arrow {
+    margin-top: 10px; /* 与第一行缩略图 / 共N款 对齐 */
+    margin-left: -2px;
+  }
+  .spec-thumbs {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    height: 32px;
+  }
+  .spec-thumbs img {
+    width: 32px;
+    height: 32px;
+    border-radius: 2px;
+    object-fit: cover;
+    background: var(--bg-input);
+    border: 1px solid #f0f0f0;
+    flex-shrink: 0;
+    display: block;
+  }
+  .spec-thumbs .spec-count {
+    display: inline-flex;
+    align-items: center;
+    height: 32px;
+    margin-left: auto;
+    padding-left: 8px;
+    font-size: 12px;
+    font-weight: 400;
+    color: #666;
+    line-height: 32px;
+    white-space: nowrap;
+  }
+  .spec-selected {
+    margin-top: 6px;
+    font-size: 12px;
+    font-weight: 400;
+    color: #262626;
+    line-height: 16px;
+    height: 16px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Params — 左对齐三列 */
+  .meta-row.param-row {
+    align-items: flex-start;
+  }
+  .meta-row.param-row .meta-icon {
+    margin-top: 1px;
+  }
+  .meta-row.param-row .meta-arrow {
+    margin-top: 3px; /* 与数值行对齐，非整块居中 */
+  }
+  .param-cols {
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+  }
+  .param-col {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 4px;
+    padding: 0 10px;
+    text-align: left;
+    position: relative;
+  }
+  .param-col:first-child { padding-left: 0; }
+  .param-col:last-child { padding-right: 0; }
+  .param-col + .param-col::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 1px;
+    bottom: 1px;
+    width: 1px;
+    background: #eee;
+  }
+  .param-col .pq-val {
+    display: block;
+    width: 100%;
+    font-size: 13px;
+    font-weight: 400;
+    color: #262626;
+    line-height: 17px;
+    height: 17px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: left;
+  }
+  .param-col .pq-label {
+    display: block;
+    width: 100%;
+    font-size: 10px;
+    font-weight: 400;
+    color: #999;
+    line-height: 12px;
+    height: 12px;
+    text-align: left;
+  }
+
+  /* Address */
+  .meta-panel .address-section .meta-icon {
+    margin-top: 0;
+  }
+  .meta-panel .address-section .meta-arrow {
+    margin-top: 2px;
+  }
+  .addr-lines { display: flex; flex-direction: column; gap: 3px; }
+  .addr-line {
+    font-size: 12px;
+    color: #262626;
+    line-height: 17px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .addr-line#addrHint,
+  .addr-line.addr-hint {
+    color: #999;
+  }
+  .addr-line.warn { color: var(--price-color); }
+
+  /* Service */
+  #serviceEntry .meta-icon { margin-top: 0; }
+  #serviceEntry .meta-arrow { margin-top: 2px; }
+  .service-tags {
+    font-size: 12px;
+    color: #262626;
+    line-height: 17px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .service-tags .sep { color: #ddd; margin: 0 6px; }
+
+  /* Out of stock */
+  .out-of-stock-bar {
+    display: none;
+    background: var(--card-bg);
+    padding: var(--space-md) 12px;
+    font-size: var(--font-sm);
+    color: var(--price-color);
+    font-weight: 500;
+  }
+  .out-of-stock-bar.show { display: flex; align-items: center; gap: var(--space-sm); }
+  .out-of-stock-bar svg { width: 16px; height: 16px; color: var(--price-color); flex-shrink: 0; }
+
+  /* Address popup */
+  .addr-overlay {
+    display: none;
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 300;
+  }
+  .addr-overlay.show { display: block; }
+  .addr-popup {
+    display: none;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--card-bg);
+    border-radius: var(--radius-lg) 16px 0 0;
+    z-index: 301;
+    max-height: 60vh;
+    overflow-y: auto;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0));
+  }
+  .addr-popup.show { display: block; }
+  .addr-popup-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-lg) 12px 8px;
+    border-bottom: 1px solid var(--bg-color);
+  }
+  .addr-popup-header .title { font-size: var(--font-md); font-weight: 600; color: var(--text-color); }
+  .addr-popup-header .close-btn {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .addr-popup-header .close-btn svg { width: 18px; height: 18px; color: var(--text-tertiary); }
+  .addr-list-item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-md);
+    padding: var(--space-md);
+    border-bottom: 1px solid var(--bg-color);
+    cursor: pointer;
+  }
+  .addr-list-item:active { background: var(--hover-bg); }
+  .addr-list-item .addr-radio {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid var(--text-disabled);
+    flex-shrink: 0;
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .addr-list-item .addr-radio.checked {
+    background: var(--primary-start);
+    border-color: var(--primary-start);
+  }
+  .addr-list-item .addr-radio.checked::after {
+    content: '';
+    width: 5px;
+    height: 9px;
+    border: 2px solid var(--card-bg);
+    border-top: none;
+    border-left: none;
+    transform: rotate(45deg) translateY(-1px);
+  }
+  .addr-list-item .addr-detail { flex: 1; }
+  .addr-list-item .addr-name-phone { font-size: var(--font-base); color: var(--text-color); font-weight: 500; margin-bottom: 2px; }
+  .addr-list-item .addr-full { font-size: var(--font-sm); color: var(--text-tertiary); line-height: 1.4; }
+  .addr-list-item .addr-tag {
+    font-size: var(--font-xs);
+    color: var(--primary-start);
+    background: var(--selected-bg);
+    padding: 1px var(--space-xs);
+    border-radius: var(--radius-xs);
+    margin-left: var(--space-sm);
+  }
+
+
+  /* Reviews */
+  .review-section {
+    background: var(--card-bg);
+    margin-top: var(--space-sm);
+    padding: var(--space-md);
+  }
+  .review-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-md);
+  }
+  .review-header .title { font-size: var(--font-base); font-weight: 600; color: var(--text-color); }
+  .review-header .count { font-size: var(--font-sm); color: var(--text-tertiary); }
+  .review-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-md);
+  }
+  .review-tag {
+    padding: var(--space-xs) var(--space-md);
+    background: var(--selected-bg);
+    border: 1px solid #ffe0d6;
+    border-radius: var(--radius-xl);
+    font-size: var(--font-xs);
+    color: #c45a2c;
+    cursor: pointer;
+  }
+  .review-tag:active { opacity: 0.8; }
+  .review-item {
+    padding: var(--space-md) 0;
+    border-bottom: 1px solid var(--bg-color);
+  }
+  .review-item:last-child { border-bottom: none; }
+  .review-user {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-sm);
+  }
+  .review-user .avatar-text {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-start), var(--price-color));
+    color: var(--card-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-sm);
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .review-user .name { font-size: var(--font-sm); color: var(--text-secondary); }
+  .review-user .stars { margin-left: auto; color: #ffb400; font-size: var(--font-sm); letter-spacing: 1px; }
+  .review-content { font-size: var(--font-sm); color: var(--text-color); line-height: 1.6; }
+  .review-imgs { display: flex; gap: var(--space-sm); margin-top: var(--space-sm); }
+  .review-imgs img { width: 72px; height: 72px; border-radius: var(--radius-xs); object-fit: cover; background: var(--bg-input); }
+  .review-date { font-size: var(--font-sm); color: var(--text-muted); margin-top: var(--space-xs); }
+  .review-more {
+    text-align: center;
+    padding: var(--space-sm) 0 var(--space-xs);
+  }
+  .review-more a {
+    font-size: 13px;
+    color: var(--primary-start);
+    text-decoration: none;
+  }
+
+  /* Spec params table */
+  .param-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--font-sm);
+  }
+  .param-table th,
+  .param-table td {
+    padding: var(--space-sm) var(--space-md);
+    border: 1px solid var(--border-divider);
+    text-align: left;
+    line-height: 1.5;
+  }
+  .param-table th {
+    width: 90px;
+    background: var(--bg-light);
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+  .param-table td { color: var(--text-color); }
+
+
+  /* Param drawer */
+  .param-drawer-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 300;
+    display: none;
+  }
+  .param-drawer-overlay.show { display: block; }
+  .param-drawer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--card-bg);
+    border-radius: var(--radius-lg) 16px 0 0;
+    z-index: 301;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+    max-height: 75vh;
+    overflow-y: auto;
+  }
+  .param-drawer.show { transform: translateY(0); }
+  .param-drawer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-lg);
+    border-bottom: 1px solid var(--bg-color);
+  }
+  .param-drawer-header .title { font-size: var(--font-base); font-weight: 600; color: var(--text-color); }
+  .param-drawer-close {
+    width: 24px; height: 24px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    color: var(--text-tertiary);
+  }
+  .param-drawer-close svg { width: 18px; height: 18px; }
+  .param-drawer-body { padding: var(--space-lg); }
+  .param-drawer-body .param-table th { width: 100px; }
+  .param-drawer-footer {
+    position: sticky;
+    bottom: 0;
+    padding: var(--space-md) var(--space-lg);
+    background: var(--card-bg);
+    border-top: 1px solid var(--bg-color);
+  }
+  .param-drawer-ok {
+    width: 100%;
+    height: 44px;
+    background: linear-gradient(135deg, var(--primary-start), var(--price-color));
+    color: var(--card-bg);
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: var(--font-base);
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .param-drawer-ok:active { opacity: 0.85; }
+
+  /* ===== Combo Sub-items Drawer ===== */
+  .combo-list-overlay { position: absolute; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.5); z-index: 400; display: none; }
+  .combo-list-overlay.show { display: block; }
+  .combo-list-drawer { position: absolute; bottom:0; left:0; right:0; background: var(--card-bg); border-radius: var(--radius-lg) 16px 0 0; z-index: 401; transform: translateY(100%); transition: transform 0.3s ease; max-height: 75vh; overflow-y: auto; }
+  .combo-list-drawer.show { transform: translateY(0); }
+  .combo-list-header { display: flex; align-items: center; justify-content: space-between; padding: var(--space-lg); border-bottom: 1px solid var(--bg-color); position: sticky; top: 0; background: var(--card-bg); }
+  .combo-list-header .title { font-size: var(--font-base); font-weight: 600; color: var(--text-color); }
+  .combo-list-header .sub { font-size: var(--font-sm); color: var(--text-muted); margin-left: var(--space-sm); font-weight: 400; }
+  .combo-list-close { width:24px; height:24px; display:flex; align-items:center; justify-content:center; cursor: pointer; color: var(--text-tertiary); }
+  .combo-list-close svg { width: 18px; height: 18px; }
+  .combo-list-body { padding: 0 var(--space-lg); }
+  .combo-item { display: flex; gap: var(--space-md); padding: var(--space-md) 0; border-bottom: 1px solid var(--bg-color); align-items: center; cursor: pointer; }
+  .combo-item:last-child { border-bottom: none; }
+  .combo-item .ci-thumb { width: 56px; height: 56px; border-radius: var(--radius-sm); flex-shrink: 0; overflow: hidden; background: var(--bg-color); }
+  .combo-item .ci-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .combo-item .ci-thumb.ci-placeholder { display: flex; align-items: center; justify-content: center; color: var(--text-tertiary); }
+  .combo-item .ci-thumb.ci-placeholder svg { width: 26px; height: 26px; }
+  .combo-item .ci-info { flex: 1; min-width: 0; }
+  .combo-item .ci-name { font-size: var(--font-base); color: var(--text-color); font-weight: 500; }
+  .combo-item .ci-meta { font-size: var(--font-sm); color: var(--text-muted); margin-top: 2px; }
+  .combo-item .ci-role { font-size: 11px; padding: 1px 6px; border-radius: 4px; flex-shrink: 0; }
+  .combo-item .ci-role-main { background: rgba(46,125,50,0.1); color: var(--price-color); }
+  .combo-item .ci-role-fit { background: var(--bg-light); color: var(--text-secondary); }
+  .combo-item .ci-arrow { color: var(--text-tertiary); flex-shrink: 0; display: flex; align-items: center; }
+  .combo-item .ci-arrow svg { width: 16px; height: 16px; }
+  .combo-list-footer { position: sticky; bottom: 0; padding: var(--space-md) var(--space-lg); background: var(--card-bg); border-top: 1px solid var(--bg-color); }
+  .combo-list-ok { width: 100%; height: 44px; background: linear-gradient(135deg, var(--primary-start), var(--price-color)); color: var(--card-bg); border: none; border-radius: var(--radius-md); font-size: var(--font-base); font-weight: 600; cursor: pointer; }
+  .combo-list-ok:active { opacity: 0.85; }
+  /* Combo spec-popup entry */
+  .spec-combo-entry { display: flex; align-items: center; justify-content: space-between; padding: var(--space-md) 0; border-top: 1px solid var(--bg-color); margin-top: var(--space-sm); cursor: pointer; }
+  .spec-combo-entry .sce-label { font-size: var(--font-sm); color: var(--text-secondary); }
+  .spec-combo-entry .sce-value { font-size: var(--font-sm); color: var(--price-color); font-weight: 500; display: inline-flex; align-items: center; gap: 2px; white-space: nowrap; flex-shrink: 0; }
+  .spec-combo-entry .sce-value svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+  /* Service drawer body */
+  .service-drawer-list {
+    font-size: var(--font-base);
+    line-height: 2;
+    color: var(--text-secondary);
+  }
+  .service-drawer-list p { margin: 0 0 4px; }
+  .service-drawer-list strong { color: var(--text-color); font-weight: 600; }
+
+  /* Detail images */
+  .detail-images {
+    background: var(--card-bg);
+    margin-top: var(--space-sm);
+    padding: var(--space-md) 0;
+  }
+  .detail-images .title {
+    font-size: var(--font-base);
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: var(--space-md);
+    text-align: center;
+  }
+  .detail-images img {
+    width: 100%;
+    display: block;
+  }
+
+  /* Bottom action bar */
+  .detail-action-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--card-bg);
+    display: flex;
+    align-items: center;
+    height: 56px;
+    border-top: 1px solid var(--border-color);
+    z-index: 200;
+    padding-bottom: var(--space-sm);
+  }
+  .soldout-action-tip {
+    display: none;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 56px;
+    z-index: 199;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    font-size: 12px;
+    line-height: 18px;
+    color: #8a5a32;
+    background: #fff6ee;
+    border-top: 1px solid #f3e4d6;
+  }
+  .phone-frame.is-soldout .soldout-action-tip {
+    display: flex;
+    justify-content: center;
+    text-align: center;
+  }
+  .soldout-action-tip svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    color: #c4783a;
+  }
+  .action-icons {
+    display: flex;
+    gap: 0;
+  }
+  .action-icon-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: var(--space-xs) 14px;
+    cursor: pointer;
+    font-size: var(--font-xs);
+    color: var(--text-secondary);
+  }
+  .action-icon-item svg { width: 20px; height: 20px; }
+  .action-icon-item .cart-badge-icon {
+    position: relative;
+  }
+  .action-icon-item .cart-badge-icon .badge {
+    position: absolute;
+    top: -4px;
+    right: -6px;
+    background: var(--price-color);
+    color: var(--card-bg);
+    font-size: var(--font-xs);
+    min-width: 14px;
+    height: 14px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 var(--space-xs);
+  }
+  .action-buttons {
+    display: flex;
+    flex: 1;
+    gap: 0;
+  }
+  .btn-add-cart {
+    flex: 1;
+    height: 40px;
+    background: linear-gradient(135deg, var(--warning-light), var(--warning-color));
+    color: var(--card-bg);
+    border: none;
+    font-size: var(--font-base);
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .btn-buy-now {
+    flex: 1;
+    height: 40px;
+    background: linear-gradient(135deg, var(--primary-start), var(--price-color));
+    color: var(--card-bg);
+    border: none;
+    font-size: var(--font-base);
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .btn-add-cart:active, .btn-buy-now:active { opacity: 0.85; }
+
+  /* ===== Spec Popup ===== */
+  .spec-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 300;
+    display: none;
+  }
+  .spec-overlay.show { display: block; }
+
+  .spec-popup {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--card-bg);
+    border-radius: var(--radius-lg) 16px 0 0;
+    z-index: 301;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+    max-height: 75vh;
+    overflow-y: auto;
+  }
+  .spec-popup.show { transform: translateY(0); }
+
+  .spec-popup-header {
+    display: flex;
+    gap: var(--space-md);
+    padding: var(--space-lg);
+    border-bottom: 1px solid var(--bg-color);
+    position: relative;
+  }
+  .spec-popup-header .thumb {
+    width: 90px;
+    height: 90px;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    flex-shrink: 0;
+    background: var(--bg-input);
+    box-shadow: var(--shadow-md);
+  }
+  .spec-popup-header .thumb img { width: 100%; height: 100%; object-fit: contain; }
+  .spec-popup-header .info { flex: 1; display: flex; flex-direction: column; justify-content: flex-start; padding-top: 2px; padding-right: 28px; }
+  .spec-popup-header .popup-price {
+    color: var(--price-color);
+    font-size: var(--font-xl);
+    font-weight: 700;
+  }
+  .spec-popup-header .popup-price .symbol { font-size: var(--font-sm); }
+  .spec-popup-header .popup-stock { font-size: var(--font-sm); color: var(--text-tertiary); margin-top: var(--space-xs); }
+  .spec-popup-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-tertiary);
+  }
+  .spec-popup-close svg { width: 18px; height: 18px; }
+
+  .spec-popup-body { padding: var(--space-lg); }
+
+  .spec-group { margin-bottom: var(--space-lg); }
+  .spec-group-title { font-size: var(--font-sm); color: var(--text-color); font-weight: 600; margin-bottom: var(--space-md); }
+  .spec-options { display: flex; flex-wrap: wrap; gap: var(--space-sm); }
+  .spec-option {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-xs);
+    padding-right: 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--text-disabled);
+    background: var(--card-bg);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .spec-option:active { opacity: 0.8; }
+  .spec-option img {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-xs);
+    object-fit: cover;
+    flex-shrink: 0;
+    background: var(--bg-input);
+  }
+  .spec-option span { font-size: var(--font-sm); color: var(--text-color); }
+  .spec-option.selected {
+    border-color: var(--primary-start);
+    background: var(--selected-bg);
+  }
+  .spec-option.selected span { color: var(--primary-start); }
+  .spec-option.soldout {
+    position: relative;
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .spec-option.soldout::after {
+    content: '售罄';
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    padding: 1px 5px;
+    background: linear-gradient(135deg, #999, #666);
+    color: #fff;
+    font-size: 10px;
+    border-radius: 2px;
+    white-space: nowrap;
+    line-height: 16px;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .spec-qty-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: var(--space-sm);
+    border-top: 1px solid var(--bg-color);
+  }
+  .spec-qty-row .qty-label { font-size: var(--font-sm); color: var(--text-color); font-weight: 600; }
+  .spec-qty-control {
+    display: flex;
+    align-items: center;
+  }
+  .spec-qty-btn {
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--text-disabled);
+    background: var(--card-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-md);
+    color: var(--text-secondary);
+    cursor: pointer;
+  }
+  .spec-qty-btn:first-child { border-radius: var(--radius-xs) 0 0 var(--radius-xs); }
+  .spec-qty-btn:last-child { border-radius: 0 var(--radius-xs) var(--radius-xs) 0; }
+  .spec-qty-btn:active { background: var(--bg-color); }
+  .spec-qty-btn.disabled { color: var(--text-disabled); pointer-events: none; }
+  .spec-qty-num {
+    width: 40px;
+    height: 28px;
+    border-top: 1px solid var(--text-disabled);
+    border-bottom: 1px solid var(--text-disabled);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-base);
+    color: var(--text-color);
+  }
+
+  .spec-popup-footer {
+    padding: var(--space-md) 16px 20px;
+  }
+  .spec-confirm-btn {
+    width: 100%;
+    height: 44px;
+    border: none;
+    border-radius: var(--radius-xl);
+    font-size: var(--font-md);
+    font-weight: 600;
+    color: var(--card-bg);
+    cursor: pointer;
+  }
+  .spec-confirm-btn:active { opacity: 0.85; }
+  .spec-confirm-btn.cart { background: linear-gradient(135deg, var(--warning-light), var(--warning-color)); }
+  .spec-confirm-btn.buy { background: linear-gradient(135deg, var(--primary-start), var(--price-color)); }
+
+  /* 演示场景切换条（原型演示控件，固定于手机界面外左上角） */
+  .scene-bar {
+    position: fixed;
+    top: 8px;
+    left: 8px;
+    z-index: 99999;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background: var(--card-bg);
+    padding: 8px 8px 10px;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    width: 88px;
+  }
+  .scene-bar-label {
+    font-size: 10px;
+    color: var(--text-light);
+    text-align: center;
+    line-height: 1.2;
+  }
+  .scene-tab {
+    width: 100%;
+    padding: 8px 0;
+    font-size: 12px;
+    color: var(--text-secondary);
+    background: var(--bg-color);
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-family: inherit;
+    transition: all .15s;
+  }
+  .scene-tab.scene-tab--active {
+    color: var(--card-bg);
+    background: linear-gradient(135deg, var(--primary-start), var(--price-color));
+    font-weight: 600;
+  }
+
+  /* 商品不可用兜底场景（实物/组合商品详情共用） */
+  .unavail-page {
+    min-height: calc(100vh - 88px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-xl) var(--space-lg);
+    background: var(--bg-color);
+    text-align: center;
+  }
+  .unavail-icon {
+    width: 88px;
+    height: 88px;
+    margin-bottom: var(--space-lg);
+    color: var(--text-disabled);
+  }
+  .unavail-title {
+    font-size: var(--font-lg);
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: var(--space-sm);
+  }
+  .unavail-desc {
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+    line-height: 1.6;
+    max-width: 260px;
+    margin-bottom: var(--space-xl);
+  }
+  .unavail-actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    width: 100%;
+    max-width: 240px;
+  }
+  .btn-primary-shop {
+    display: block;
+    width: 100%;
+    padding: 12px 0;
+    border: none;
+    border-radius: var(--radius-lg);
+    font-size: var(--font-base);
+    font-weight: 600;
+    color: var(--card-bg);
+    background: linear-gradient(135deg, var(--primary-start), var(--price-color));
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .btn-ghost-back {
+    display: block;
+    width: 100%;
+    padding: 12px 0;
+    border: 1px solid var(--border-divider);
+    border-radius: var(--radius-lg);
+    font-size: var(--font-base);
+    color: var(--text-secondary);
+    background: var(--card-bg);
+    cursor: pointer;
+    font-family: inherit;
+  }
+</style>
+</head>
+<body>
+<!-- 演示场景切换条（原型演示控件，位于手机界面外） -->
+<div class="scene-bar">
+  <span class="scene-bar-label">演示</span>
+  <button type="button" class="scene-tab scene-tab--active" data-scene="single">实物商品</button>
+  <button type="button" class="scene-tab" data-scene="combo">组合商品</button>
+  <button type="button" class="scene-tab" data-scene="soldout">在架售罄</button>
+  <button type="button" class="scene-tab" data-scene="offshelf">下架失效</button>
+</div>
+
+<div class="phone-frame">
+
+  <!-- Sub-page Navigation -->
+  <div class="sub-nav">
+    <div class="status-bar dark">
+      <span class="time">09:41</span>
+      <div class="icons">
+        <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+      </div>
+    </div>
+    <div class="nav-bar">
+      <div class="back-btn" onclick="history.back()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <span class="nav-title">商品详情</span>
+      <div class="capsule-btn"><img src="../assets/icons/小程序按钮.svg" alt=""></div>
+    </div>
+  </div>
+
+  <!-- Scrollable Content -->
+  <div class="page-scroll" style="padding-bottom: 64px;">
+
+    <!-- ===== 单品场景 ===== -->
+    <div id="scene-single">
+
+    <!-- Image Swiper -->
+    <div class="detail-swiper" id="detailSwiper">
+      <div class="detail-swiper-wrapper" id="detailSwiperWrapper"></div>
+      <div class="detail-swiper-indicator"><span id="currentSlide">1</span>/<span id="totalSlide">8</span></div>
+    </div>
+
+    <!-- Price Area -->
+    <div class="price-area">
+      <div class="price-row">
+        <span class="current-price"><span class="symbol">&yen;</span>5999</span>
+        <span class="original-price">&yen;6499</span>
+        <span class="discount-tag">已补贴 &yen;500</span>
+      </div>
+      <div class="sold-info" id="soldInfo">已售10万+ &middot; 好评率99%</div>
+    </div>
+
+    <!-- Title Area -->
+    <div class="product-title-area">
+      <div class="title" id="productTitle">【OPPO】Find X9 Ultra 10倍光变天眼长焦 长续航 游戏 5G 摄影旗舰 绒砂峡谷 16GB+512GB</div>
+      <div class="sub-info">
+        <span class="tag-small">正品保障</span>
+        <span class="tag-small">7天无理由</span>
+        <span class="tag-small">全国联保</span>
+      </div>
+    </div>
+
+    <!-- 规格 / 参数 / 配送 / 服务 -->
+    <div class="meta-panel">
+      <!-- Specs -->
+      <div class="meta-row specs-section" id="specsEntry">
+        <div class="meta-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h5"/><path d="M8 16l1.5 1.5L13 14"/></svg>
+        </div>
+        <div class="meta-body">
+          <div class="spec-thumbs">
+            <img src="../assets/products/oppo-x9/sku01-大地苔原.jpg" alt="">
+            <img src="../assets/products/oppo-x9/sku02-绒砂峡谷.jpg" alt="">
+            <img src="../assets/products/oppo-x9/sku03-极地冰川.jpg" alt="">
+            <span class="spec-count">共3款</span>
+          </div>
+          <div class="spec-selected" id="specsSelected">已选：绒砂峡谷 16GB+512GB</div>
+        </div>
+        <div class="meta-arrow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </div>
+
+      <!-- Params -->
+      <div class="meta-row param-row" id="paramQuick">
+        <div class="meta-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="12" y2="17"/></svg>
+        </div>
+        <div class="meta-body">
+          <div class="param-cols">
+            <div class="param-col">
+              <span class="pq-val">2025-11-25</span>
+              <span class="pq-label">上市日期</span>
+            </div>
+            <div class="param-col">
+              <span class="pq-val">天玑9400 旗舰版</span>
+              <span class="pq-label">处理器型号</span>
+            </div>
+            <div class="param-col">
+              <span class="pq-val">6.78英寸</span>
+              <span class="pq-label">屏幕尺寸</span>
+            </div>
+          </div>
+        </div>
+        <div class="meta-arrow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </div>
+
+      <!-- Delivery / Address -->
+      <div class="meta-row address-section" id="addressEntry" onclick="openAddrPopup()">
+        <div class="meta-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 4v4h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+        </div>
+        <div class="meta-body">
+          <div class="addr-lines">
+            <div class="addr-line" id="addrText">张三  138****8888  江苏省南京市建邺区江东中路369号</div>
+            <div class="addr-line addr-hint" id="addrHint">现货，预计明天18:00前发货 · 免邮</div>
+          </div>
+        </div>
+        <div class="meta-arrow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </div>
+
+      <!-- Service -->
+      <div class="meta-row" id="serviceEntry">
+        <div class="meta-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+        </div>
+        <div class="meta-body">
+          <div class="service-tags">正品保障<span class="sep">|</span>7天无理由<span class="sep">|</span>全国联保<span class="sep">|</span>积分规则</div>
+        </div>
+        <div class="meta-arrow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Out of stock notice -->
+    <div class="out-of-stock-bar" id="outOfStockBar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+      <span>该商品不支持配送至所选地址</span>
+    </div>
+
+    <!-- Reviews -->
+    <div class="review-section" id="reviewSection">
+      <div class="review-header">
+        <span class="title">买家评价 (10万+)</span>
+        <span class="count">好评率 99% &gt;</span>
+      </div>
+      <div class="review-tags">
+        <span class="review-tag">拍照清晰 2.1万+</span>
+        <span class="review-tag">长焦给力 1.6万+</span>
+        <span class="review-tag">续航持久 1.3万+</span>
+        <span class="review-tag">屏幕震撼 9800+</span>
+        <span class="review-tag">游戏流畅 7600+</span>
+      </div>
+      <div class="review-item">
+        <div class="review-user">
+          <div class="avatar-text">张</div>
+          <span class="name">j***8</span>
+          <span class="stars">★★★★★</span>
+        </div>
+        <div class="review-content">大地苔原配色很有质感，10倍长焦拍远景很清晰，企业积分换机比官方便宜，顺丰次日达，正品无疑。</div>
+        <div class="review-imgs">
+          <img src="../assets/products/oppo-x9/main03.jpg" alt="">
+          <img src="../assets/products/oppo-x9/main02.jpg" alt="">
+        </div>
+        <div class="review-date">2026-07-18</div>
+      </div>
+      <div class="review-item">
+        <div class="review-user">
+          <div class="avatar-text">李</div>
+          <span class="name">w***2</span>
+          <span class="stars">★★★★★</span>
+        </div>
+        <div class="review-content">16+512 大内存玩游戏很稳，影像旗舰名不虚传，续航一天没问题，非常满意。</div>
+        <div class="review-date">2026-07-09</div>
+      </div>
+      <div class="review-more">
+        <a href="62.商品评价-原型页面.html">查看全部评价 &gt;</a>
+      </div>
+    </div>
+
+    <!-- Detail Images -->
+    <div class="detail-images">
+      <div class="title">—— 商品详情 ——</div>
+      <div id="detailImgContainer"></div>
+    </div>
+
+    </div><!-- /scene-single -->
+
+    <!-- ===== 组合商品场景 ===== -->
+    <div id="scene-combo" style="display:none">
+
+    <!-- Image Swiper (static, combo cover) -->
+    <div class="detail-swiper">
+      <div class="detail-swiper-wrapper">
+        <img id="comboCoverImg" src="../assets/products/oppo-x9/cp main01.jpg" alt="" style="width:100%;display:block;object-fit:cover;">
+      </div>
+    </div>
+
+    <!-- Combo Price Area -->
+    <div class="price-area">
+      <div class="price-row">
+        <span class="current-price" id="comboPrice"><span class="symbol">&yen;</span>6999</span>
+        <span class="original-price">&yen;7397</span>
+        <span class="discount-tag" id="comboDiscount">立省 &yen;398</span>
+      </div>
+      <div class="sold-info">已售5万+ &middot; 好评率97%</div>
+    </div>
+
+    <!-- Title Area -->
+    <div class="product-title-area">
+      <div class="title" id="comboTitle">【OPPO】Find X9 Ultra 12GB+512GB 极地冰川 10倍光变长焦 哈苏联名专业影像配件套装</div>
+      <div class="sub-info">
+        <span class="tag-small">正品保障</span>
+        <span class="tag-small">7天无理由</span>
+        <span class="tag-small">全国联保</span>
+      </div>
+    </div>
+
+    <!-- 规格 / 子件 / 参数 / 配送 / 服务 -->
+    <div class="meta-panel">
+      <!-- Specs -->
+      <div class="meta-row specs-section" id="comboSpecsEntry">
+        <div class="meta-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h5"/><path d="M8 16l1.5 1.5L13 14"/></svg>
+        </div>
+        <div class="meta-body">
+          <div class="spec-thumbs">
+            <img src="../assets/products/oppo-x9/cp SKU_01_极地冰川.jpg" alt="">
+            <img src="../assets/products/oppo-x9/cp SKU_02_绒砂峡谷.jpg" alt="">
+            <img src="../assets/products/oppo-x9/cp SKU_03_大地苔原.jpg" alt="">
+            <span class="spec-count">共3款</span>
+          </div>
+          <div class="spec-selected" id="comboSpecSelected">已选：极地冰川 · 12GB+512GB · 哈苏专业摄影套装</div>
+        </div>
+        <div class="meta-arrow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </div>
+
+      <!-- Combo Sub-items (主体入口) -->
+      <div class="meta-row" id="comboItemsEntry">
+        <div class="meta-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+        </div>
+        <div class="meta-body">
+          <div class="spec-selected" style="margin:0;white-space:nowrap;">套装子件：含 3 件（手机 / 增距镜 / 摄影配件）</div>
+        </div>
+        <div class="meta-arrow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </div>
+
+      <!-- Params -->
+      <div class="meta-row param-row" id="comboParamEntry">
+        <div class="meta-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="12" y2="17"/></svg>
+        </div>
+        <div class="meta-body">
+          <div class="param-cols">
+            <div class="param-col"><span class="pq-val">2025-11-25</span><span class="pq-label">上市日期</span></div>
+            <div class="param-col"><span class="pq-val">天玑9400</span><span class="pq-label">处理器</span></div>
+            <div class="param-col"><span class="pq-val">6.78英寸</span><span class="pq-label">屏幕尺寸</span></div>
+          </div>
+        </div>
+        <div class="meta-arrow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </div>
+
+      <!-- Delivery / Address -->
+      <div class="meta-row address-section" id="comboAddrEntry">
+        <div class="meta-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 4v4h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+        </div>
+        <div class="meta-body">
+          <div class="addr-lines">
+            <div class="addr-line">张三  138****8888  江苏省南京市建邺区江东中路369号</div>
+            <div class="addr-line addr-hint">套装含多个包裹，预计明天陆续发出 · 免邮</div>
+          </div>
+        </div>
+        <div class="meta-arrow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </div>
+
+      <!-- Service -->
+      <div class="meta-row" id="comboServiceEntry">
+        <div class="meta-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+        </div>
+        <div class="meta-body">
+          <div class="service-tags">正品保障<span class="sep">|</span>7天无理由<span class="sep">|</span>全国联保<span class="sep">|</span>积分规则</div>
+        </div>
+        <div class="meta-arrow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reviews -->
+    <div class="review-section">
+      <div class="review-header">
+        <span class="title">买家评价 (5万+)</span>
+        <span class="count">好评率 97% &gt;</span>
+      </div>
+      <div class="review-tags">
+        <span class="review-tag">增距镜给力 1.2万+</span>
+        <span class="review-tag">哈苏色彩 9800+</span>
+        <span class="review-tag">套装划算 8500+</span>
+        <span class="review-tag">长焦出片 7600+</span>
+        <span class="review-tag">顺丰速达 6400+</span>
+      </div>
+      <div class="review-item">
+        <div class="review-user">
+          <div class="avatar-text">王</div>
+          <span class="name">t***9</span>
+          <span class="stars">★★★★★</span>
+        </div>
+        <div class="review-content">套装一次配齐很划算，增距镜长焦出片稳，哈苏色彩讨喜，比单买省了好几百，顺丰发货快。</div>
+        <div class="review-date">2026-07-21</div>
+      </div>
+      <div class="review-more">
+        <a href="62.商品评价-原型页面.html">查看全部评价 &gt;</a>
+      </div>
+    </div>
+
+    <!-- Detail Images -->
+    <div class="detail-images">
+      <div class="title">—— 商品详情 ——</div>
+      <img src="../assets/products/oppo-x9/cp detail01.jpg" alt="" style="width:100%;display:block;">
+      <img src="../assets/products/oppo-x9/cp detail02.jpg" alt="" style="width:100%;display:block;">
+      <img src="../assets/products/oppo-x9/cp detail03.jpg" alt="" style="width:100%;display:block;">
+    </div>
+
+    </div><!-- /scene-combo -->
+
+    <!-- ===== 商品不可用兜底场景（实物/组合商品详情共用） ===== -->
+    <div id="scene-unavail" style="display:none">
+      <div class="unavail-page">
+        <svg class="unavail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round">
+          <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
+          <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+          <line x1="12" y1="22.08" x2="12" y2="12"/>
+          <line x1="8" y1="12" x2="16" y2="12"/>
+        </svg>
+        <div class="unavail-title" id="unavailTitle">该商品已下架</div>
+        <div class="unavail-desc" id="unavailDesc">商品已下架，暂时无法购买，去看看其他好物吧</div>
+        <div class="unavail-actions">
+          <button type="button" class="btn-primary-shop" onclick="location.href='10.首页-原型页面.html'">去逛逛</button>
+          <button type="button" class="btn-ghost-back" onclick="history.back()">返回上一页</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end page-scroll -->
+
+  <div class="soldout-action-tip" id="soldoutActionTip">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <span>所选地区已售罄/无货，可加入购物车等补货后购买</span>
+  </div>
+
+  <!-- Bottom Action Bar -->
+  <div class="detail-action-bar">
+    <div class="action-icons">
+      <a href="10.首页-原型页面.html" class="action-icon-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>首页</span>
+      </a>
+      <a href="91.在线客服-原型页面.html" class="action-icon-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13h3a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4Z"/><path d="M21 13h-3a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-4Z"/><path d="M3 13v-2a9 9 0 0 1 18 0v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-4"/></svg>
+        <span>客服</span>
+      </a>
+      <a href="30.购物车-原型页面.html" class="action-icon-item">
+        <div class="cart-badge-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
+          <span class="badge">3</span>
+        </div>
+        <span>购物车</span>
+      </a>
+    </div>
+    <div class="action-buttons">
+      <button class="btn-add-cart" id="addCartBtn">加入购物车</button>
+      <button class="btn-buy-now" id="buyNowBtn">立即购买</button>
+    </div>
+  </div>
+
+  <!-- Spec Popup Overlay -->
+  <div class="spec-overlay" id="specOverlay"></div>
+  <div class="spec-popup" id="specPopup">
+    <div class="spec-popup-header">
+      <div class="thumb"><img id="popupThumb" src="../assets/products/oppo-x9/sku01-大地苔原.jpg" alt=""></div>
+      <div class="info">
+        <div class="popup-price" id="popupPrice"><span class="symbol">&yen;</span>5999</div>
+        <div class="popup-stock" id="popupStock">库存 569件</div>
+        <div class="popup-selected" style="font-size:12px;color:var(--text-secondary);margin-top:2px;">已选：大地苔原 16GB+512GB</div>
+      </div>
+      <div class="spec-popup-close" id="specClose">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+      </div>
+    </div>
+    <div class="spec-popup-body">
+      <div class="spec-combo-entry" id="specComboEntry" style="display:none">
+        <span class="sce-label">套装子件清单</span>
+        <span class="sce-value">含3件<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+      </div>
+      <div class="spec-group">
+        <div class="spec-group-title">规格</div>
+        <div class="spec-options" data-group="color">
+          <div class="spec-option soldout" data-value="大地苔原"><img src="../assets/products/oppo-x9/sku01-大地苔原.jpg" alt=""><span>大地苔原 16GB+512GB</span></div>
+          <div class="spec-option selected" data-value="绒砂峡谷"><img src="../assets/products/oppo-x9/sku02-绒砂峡谷.jpg" alt=""><span>绒砂峡谷 16GB+512GB</span></div>
+          <div class="spec-option" data-value="极地冰川"><img src="../assets/products/oppo-x9/sku03-极地冰川.jpg" alt=""><span>极地冰川 16GB+512GB</span></div>
+        </div>
+      </div>
+      <div class="spec-qty-row">
+        <span class="qty-label">数量</span>
+        <div class="spec-qty-control">
+          <div class="spec-qty-btn disabled" data-action="minus">-</div>
+          <div class="spec-qty-num" id="specQty">1</div>
+          <div class="spec-qty-btn" data-action="plus">+</div>
+        </div>
+      </div>
+    </div>
+    <div class="spec-popup-footer">
+      <button class="spec-confirm-btn cart" id="specConfirmBtn">加入购物车</button>
+    </div>
+  </div>
+
+  <!-- Address Popup -->
+  <div class="addr-overlay" id="addrOverlay"></div>
+  <div class="addr-popup" id="addrPopup">
+    <div class="addr-popup-header">
+      <span class="title">选择收货地址</span>
+      <div class="close-btn" id="addrCloseBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </div>
+    </div>
+    <div id="addrList"></div>
+  </div>
+
+  <!-- Param Drawer -->
+  <div class="param-drawer-overlay" id="paramOverlay"></div>
+  <div class="param-drawer" id="paramDrawer">
+    <div class="param-drawer-header">
+      <span class="title">规格参数</span>
+      <div class="param-drawer-close" id="paramClose">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+      </div>
+    </div>
+    <div class="param-drawer-body">
+      <table class="param-table">
+        <tr><th>品牌</th><td>OPPO</td></tr>
+        <tr><th>型号</th><td>Find X9 Ultra</td></tr>
+        <tr><th>上市日期</th><td>2025-11-25</td></tr>
+        <tr><th>处理器型号</th><td>天玑9400 旗舰版</td></tr>
+        <tr><th>屏幕尺寸</th><td>6.78 英寸</td></tr>
+        <tr><th>电池容量</th><td>5800mAh</td></tr>
+        <tr><th>网络制式</th><td>5G 全网通</td></tr>
+      </table>
+    </div>
+    <div class="param-drawer-footer">
+      <button class="param-drawer-ok" id="paramOk">我知道了</button>
+    </div>
+  </div>
+
+  <!-- Service / 售后保障 Drawer -->
+  <div class="param-drawer-overlay" id="serviceOverlay"></div>
+  <div class="param-drawer" id="serviceDrawer">
+    <div class="param-drawer-header">
+      <span class="title">售后保障</span>
+      <div class="param-drawer-close" id="serviceClose">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+      </div>
+    </div>
+    <div class="param-drawer-body">
+      <div class="service-drawer-list">
+        <p><strong>正品保障</strong> — OPPO 官方正品，假一赔十</p>
+        <p><strong>7天无理由</strong> — 未拆封可退，拆封不影响二次销售可退</p>
+        <p><strong>全国联保</strong> — OPPO 官方保修 1 年，全国联保</p>
+        <p><strong>积分规则</strong> — 支持苏银豆全额或组合支付，具体以结算页为准</p>
+      </div>
+    </div>
+    <div class="param-drawer-footer">
+      <button class="param-drawer-ok" id="serviceOk">我知道了</button>
+    </div>
+  </div>
+
+  <!-- Combo Sub-items Drawer -->
+  <div class="combo-list-overlay" id="comboListOverlay"></div>
+  <div class="combo-list-drawer" id="comboListDrawer">
+    <div class="combo-list-header">
+      <div>
+        <span class="title">套装子件清单</span>
+        <span class="sub">共 3 件</span>
+      </div>
+      <div class="combo-list-close" id="comboListClose">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+      </div>
+    </div>
+    <div class="combo-list-body">
+      <div class="combo-item" data-href="21.商品详情-原型页面.html?scene=single">
+        <div class="ci-thumb"><img src="../assets/products/oppo-x9/cp main01.jpg" alt=""></div>
+        <div class="ci-info">
+          <div class="ci-name">Find X9 Ultra 手机</div>
+          <div class="ci-meta">极地冰川 · 12GB+512GB · x1</div>
+        </div>
+        <span class="ci-role ci-role-main">主件</span>
+        <div class="ci-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+      </div>
+      <div class="combo-item" data-href="#">
+        <div class="ci-thumb"><img src="../assets/products/oppo-x9/c main02.webp" alt=""></div>
+        <div class="ci-info">
+          <div class="ci-name">哈苏专业增距镜</div>
+          <div class="ci-meta">10倍光变长焦 · x1</div>
+        </div>
+        <span class="ci-role ci-role-fit">配件</span>
+        <div class="ci-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+      </div>
+      <div class="combo-item" data-href="#">
+        <div class="ci-thumb"><img src="../assets/products/oppo-x9/c main01.jpg" alt=""></div>
+        <div class="ci-info">
+          <div class="ci-name">哈苏影像配件套装</div>
+          <div class="ci-meta">滤镜/脚架/收纳包 · x1套</div>
+        </div>
+        <span class="ci-role ci-role-fit">配件</span>
+        <div class="ci-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+      </div>
+    </div>
+    <div class="combo-list-footer">
+      <button class="combo-list-ok" id="comboListOk">我知道了</button>
+    </div>
+  </div>
+
+</div>
+<script src="../assets/common.js"></script>
+<script>
+(function() {
+  var IMG_OPP = '../assets/products/oppo-x9/';
+
+  var FRONT_NAME = '【OPPO】Find X9 Ultra 10倍光变天眼长焦 长续航 游戏 5G 摄影旗舰';
+  var SHIP_PROMISE_HOURS = 24;
+  var SHIP_HINT = '现货，预计明天18:00前发货 · 免邮';
+
+  // Detail images (3)
+  var DETAIL_IMGS = [];
+  for (var i = 1; i <= 3; i++) {
+    DETAIL_IMGS.push(IMG_OPP + 'detail' + (i < 10 ? '0' + i : i) + '.jpg');
+  }
+  document.getElementById('detailImgContainer').innerHTML = DETAIL_IMGS.map(function(src) {
+    return '<img src="' + src + '" alt="商品详情">';
+  }).join('');
+
+  // SKU data keyed by color, each has own images, price, stock, sku thumbnail
+  var MAIN_TAIL = ['main02.jpg','main03.jpg'].map(function(f){ return IMG_OPP + f; });
+  // price=商城价=C现价；originalPrice=划线价=C原价；stock=未指定供应商时多供之和
+  var SKU_MAP = {
+    '大地苔原': {
+      images: [IMG_OPP + 'sku01-大地苔原.jpg'].concat(MAIN_TAIL),
+      skuImg: 'sku01-大地苔原.jpg',
+      spec: '大地苔原 16GB+512GB',
+      price: 5999, originalPrice: 6499, stock: 569
+    },
+    '绒砂峡谷': {
+      images: [IMG_OPP + 'sku02-绒砂峡谷.jpg'].concat(MAIN_TAIL),
+      skuImg: 'sku02-绒砂峡谷.jpg',
+      spec: '绒砂峡谷 16GB+512GB',
+      price: 5999, originalPrice: 6499, stock: 323
+    },
+    '极地冰川': {
+      images: [IMG_OPP + 'sku03-极地冰川.jpg'].concat(MAIN_TAIL),
+      skuImg: 'sku03-极地冰川.jpg',
+      spec: '极地冰川 16GB+512GB',
+      price: 6399, originalPrice: 6499, stock: 156
+    }
+  };
+
+  // Current selected specs
+  var selectedSpecs = { color: '绒砂峡谷' };
+
+  // ===== Swiper =====
+  var wrapper = document.getElementById('detailSwiperWrapper');
+  var currentSlideEl = document.getElementById('currentSlide');
+  var totalSlideEl = document.getElementById('totalSlide');
+  var swiperEl = document.getElementById('detailSwiper');
+  var idx = 0;
+  var startX = 0, moving = false;
+
+  function renderSwiper(images) {
+    wrapper.innerHTML = '';
+    images.forEach(function(src) {
+      var slide = document.createElement('div');
+      slide.className = 'detail-swiper-slide';
+      slide.innerHTML = '<img src="' + src + '" alt="">';
+      wrapper.appendChild(slide);
+    });
+    idx = 0;
+    totalSlideEl.textContent = images.length;
+    goTo(0);
+  }
+
+  function goTo(index) {
+    var total = wrapper.children.length;
+    if (total === 0) return;
+    idx = ((index % total) + total) % total;
+    wrapper.style.transform = 'translateX(-' + (idx * 100) + '%)';
+    currentSlideEl.textContent = idx + 1;
+  }
+
+  swiperEl.addEventListener('touchstart', function(e) { startX = e.touches[0].clientX; moving = true; });
+  swiperEl.addEventListener('touchend', function(e) {
+    if (!moving) return; moving = false;
+    var diff = startX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 40) goTo(idx + (diff > 0 ? 1 : -1));
+  });
+  swiperEl.addEventListener('mousedown', function(e) { startX = e.clientX; moving = true; e.preventDefault(); });
+  document.addEventListener('mouseup', function(e) {
+    if (!moving) return; moving = false;
+    var diff = startX - e.clientX;
+    if (Math.abs(diff) > 40) goTo(idx + (diff > 0 ? 1 : -1));
+  });
+
+  // ===== Update page based on selected SKU =====
+  function updatePage() {
+    var sku = SKU_MAP[selectedSpecs.color];
+
+    // Update swiper images
+    renderSwiper(sku.images);
+
+    // Update product title
+    document.getElementById('productTitle').textContent = FRONT_NAME + ' ' + sku.spec;
+
+    // Update price area（现价=商城价，原价=划线价）
+    var saved = sku.originalPrice - sku.price;
+    document.querySelector('.price-row .current-price').innerHTML = '<span class="symbol">&yen;</span>' + sku.price;
+    document.querySelector('.price-row .original-price').textContent = '\xA5' + sku.originalPrice;
+    document.querySelector('.price-row .discount-tag').textContent = '已补贴 \xA5' + saved;
+
+    // Update specs section selected text
+    var specsValue = document.getElementById('specsSelected');
+    if (specsValue) specsValue.textContent = '已选：' + sku.spec;
+
+    // Update popup thumb & info
+    document.getElementById('popupThumb').src = IMG_OPP + sku.skuImg;
+    document.getElementById('popupPrice').innerHTML = '<span class="symbol">&yen;</span>' + sku.price.toFixed(2);
+    document.getElementById('popupStock').textContent = window.__scene === 'soldout' ? '库存 0件' : ('库存 ' + sku.stock + '件');
+
+    // Update popup selected text
+    var popupSelected = popup.querySelector('.popup-selected');
+    if (popupSelected) popupSelected.textContent = '已选：' + selectedSpecs.color + ' \xB7 16GB+512GB';
+  }
+
+  // ===== Spec Popup =====
+  var overlay = document.getElementById('specOverlay');
+  var popup = document.getElementById('specPopup');
+  var specClose = document.getElementById('specClose');
+  var confirmBtn = document.getElementById('specConfirmBtn');
+  var specQty = 1;
+  var currentAction = 'cart';
+
+  function openPopup(action) {
+    currentAction = action;
+    overlay.classList.add('show');
+    popup.classList.add('show');
+    if (window.__scene === 'soldout' && action === 'buy') {
+      confirmBtn.textContent = '已售罄';
+      confirmBtn.className = 'spec-confirm-btn soldout-disabled';
+      confirmBtn.disabled = true;
+    } else if (action === 'cart') {
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = '加入购物车';
+      confirmBtn.className = 'spec-confirm-btn cart';
+    } else if (action === 'buy') {
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = '立即购买';
+      confirmBtn.className = 'spec-confirm-btn buy';
+    }
+  }
+
+  function closePopup() {
+    overlay.classList.remove('show');
+    popup.classList.remove('show');
+  }
+
+  overlay.addEventListener('click', closePopup);
+  specClose.addEventListener('click', closePopup);
+
+  // ===== Param Drawer =====
+  var paramOverlay = document.getElementById('paramOverlay');
+  var paramDrawer = document.getElementById('paramDrawer');
+  var paramClose = document.getElementById('paramClose');
+  function openParamDrawer() {
+    paramOverlay.classList.add('show');
+    paramDrawer.classList.add('show');
+  }
+  function closeParamDrawer() {
+    paramOverlay.classList.remove('show');
+    paramDrawer.classList.remove('show');
+  }
+  paramOverlay.addEventListener('click', closeParamDrawer);
+  paramClose.addEventListener('click', closeParamDrawer);
+  document.getElementById('paramOk').addEventListener('click', closeParamDrawer);
+  document.getElementById('paramQuick').addEventListener('click', openParamDrawer);
+
+  // ===== Service / 售后保障 Drawer =====
+  var serviceOverlay = document.getElementById('serviceOverlay');
+  var serviceDrawer = document.getElementById('serviceDrawer');
+  var serviceClose = document.getElementById('serviceClose');
+  function openServiceDrawer() {
+    serviceOverlay.classList.add('show');
+    serviceDrawer.classList.add('show');
+  }
+  function closeServiceDrawer() {
+    serviceOverlay.classList.remove('show');
+    serviceDrawer.classList.remove('show');
+  }
+  serviceOverlay.addEventListener('click', closeServiceDrawer);
+  serviceClose.addEventListener('click', closeServiceDrawer);
+  document.getElementById('serviceOk').addEventListener('click', closeServiceDrawer);
+  document.getElementById('serviceEntry').addEventListener('click', openServiceDrawer);
+  document.getElementById('comboServiceEntry').addEventListener('click', openServiceDrawer);
+
+  // 单品规格弹窗打开时复位单品价（避免被组合场景污染）
+  document.querySelector('.specs-section').addEventListener('click', function() {
+    var allSold = window.__scene === 'soldout';
+    document.querySelector('.spec-options[data-group="color"]').innerHTML =
+      '<div class="spec-option soldout" data-value="大地苔原"><img src="../assets/products/oppo-x9/sku01-大地苔原.jpg" alt=""><span>大地苔原 16GB+512GB</span></div>' +
+      '<div class="spec-option selected' + (allSold ? ' soldout' : '') + '" data-value="绒砂峡谷"><img src="../assets/products/oppo-x9/sku02-绒砂峡谷.jpg" alt=""><span>绒砂峡谷 16GB+512GB</span></div>' +
+      '<div class="spec-option' + (allSold ? ' soldout' : '') + '" data-value="极地冰川"><img src="../assets/products/oppo-x9/sku03-极地冰川.jpg" alt=""><span>极地冰川 16GB+512GB</span></div>';
+    document.getElementById('popupThumb').src = '../assets/products/oppo-x9/sku02-绒砂峡谷.jpg';
+    document.getElementById('popupPrice').innerHTML = '<span class="symbol">&yen;</span>5999';
+    document.getElementById('popupStock').textContent = allSold ? '库存 0件' : '库存 323件';
+    document.querySelector('.popup-selected').textContent = '已选：绒砂峡谷 16GB+512GB';
+    openPopup('cart');
+  });
+  document.getElementById('addCartBtn').addEventListener('click', function() { openPopup('cart'); });
+  document.getElementById('buyNowBtn').addEventListener('click', function() { openPopup('buy'); });
+
+  // ===== Combo Scene =====
+  var comboListOverlay = document.getElementById('comboListOverlay');
+  var comboListDrawer = document.getElementById('comboListDrawer');
+  function openComboListDrawer() {
+    comboListOverlay.classList.add('show');
+    comboListDrawer.classList.add('show');
+  }
+  function closeComboListDrawer() {
+    comboListOverlay.classList.remove('show');
+    comboListDrawer.classList.remove('show');
+  }
+  comboListOverlay.addEventListener('click', closeComboListDrawer);
+  document.getElementById('comboListClose').addEventListener('click', closeComboListDrawer);
+  document.getElementById('comboListOk').addEventListener('click', closeComboListDrawer);
+  document.getElementById('comboItemsEntry').addEventListener('click', openComboListDrawer);
+  document.getElementById('specComboEntry').addEventListener('click', openComboListDrawer);
+  document.getElementById('comboParamEntry').addEventListener('click', openParamDrawer);
+  document.getElementById('comboAddrEntry').addEventListener('click', function(){ openAddrPopup(); });
+  document.getElementById('comboSpecsEntry').addEventListener('click', function() {
+    document.querySelector('.spec-options[data-group="color"]').innerHTML =
+      '<div class="spec-option selected" data-value="极地冰川"><img src="../assets/products/oppo-x9/cp SKU_01_极地冰川.jpg" alt=""><span>极地冰川 &middot; 12GB+512GB &middot; 哈苏专业摄影套装</span></div>' +
+      '<div class="spec-option" data-value="绒砂峡谷"><img src="../assets/products/oppo-x9/cp SKU_02_绒砂峡谷.jpg" alt=""><span>绒砂峡谷 &middot; 12GB+512GB &middot; 哈苏专业摄影套装</span></div>' +
+      '<div class="spec-option" data-value="大地苔原"><img src="../assets/products/oppo-x9/cp SKU_03_大地苔原.jpg" alt=""><span>大地苔原 &middot; 12GB+512GB &middot; 哈苏专业摄影套装</span></div>';
+    document.getElementById('popupThumb').src = '../assets/products/oppo-x9/cp main01.jpg';
+    document.getElementById('popupPrice').innerHTML = '<span class="symbol">&yen;</span>6999';
+    document.getElementById('popupStock').textContent = '套装库存 128套';
+    document.querySelector('.popup-selected').textContent = '已选：极地冰川 · 12GB+512GB · 哈苏专业摄影套装';
+    openPopup('cart');
+  });
+  document.querySelectorAll('.combo-item').forEach(function(item) {
+    item.addEventListener('click', function() {
+      var href = this.getAttribute('data-href');
+      if (href && href !== '#') { location.href = href; }
+    });
+  });
+
+  // Combo per-color pricing (original/single-buy 7397 constant)
+  var COMBO_PRICE_MAP = { '极地冰川': 6999, '绒砂峡谷': 7099, '大地苔原': 6899 };
+  var COMBO_ORIGINAL = 7397;
+
+  // Spec option selection — triggers image & title update
+  popup.addEventListener('click', function(e) {
+    var option = e.target.closest('.spec-option');
+    if (option) {
+      if (window.__scene === 'combo') {
+        option.parentElement.querySelectorAll('.spec-option').forEach(function(o) {
+          o.classList.remove('selected');
+        });
+        option.classList.add('selected');
+        var cv = option.dataset.value;
+        var cImg = option.querySelector('img').src;
+        document.querySelector('.popup-selected').textContent = '已选：' + cv + ' · 12GB+512GB · 哈苏专业摄影套装';
+        document.getElementById('popupThumb').src = cImg;
+        document.getElementById('comboCoverImg').src = cImg;
+        document.getElementById('comboSpecSelected').textContent = '已选：' + cv + ' · 12GB+512GB · 哈苏专业摄影套装';
+        document.getElementById('comboTitle').textContent = '【OPPO】Find X9 Ultra 12GB+512GB ' + cv + ' 10倍光变长焦 哈苏联名专业影像配件套装';
+        var cp = COMBO_PRICE_MAP[cv];
+        document.getElementById('comboPrice').innerHTML = '<span class="symbol">&yen;</span>' + cp;
+        document.getElementById('comboDiscount').innerHTML = '立省 &yen;' + (COMBO_ORIGINAL - cp);
+        document.getElementById('popupPrice').innerHTML = '<span class="symbol">&yen;</span>' + cp;
+        return;
+      }
+      if (option.classList.contains('soldout') && window.__scene !== 'soldout') {
+        showToast('该规格已售罄');
+        return;
+      }
+      option.parentElement.querySelectorAll('.spec-option').forEach(function(o) {
+        o.classList.remove('selected');
+      });
+      option.classList.add('selected');
+      selectedSpecs.color = option.dataset.value;
+      updatePage();
+      return;
+    }
+
+    var qtyBtn = e.target.closest('.spec-qty-btn');
+    if (qtyBtn) {
+      if (qtyBtn.dataset.action === 'plus') specQty++;
+      else if (qtyBtn.dataset.action === 'minus' && specQty > 1) specQty--;
+      document.getElementById('specQty').textContent = specQty;
+      qtyBtn.parentElement.querySelector('[data-action="minus"]').classList.toggle('disabled', specQty <= 1);
+      return;
+    }
+  });
+
+  confirmBtn.addEventListener('click', function() {
+    if (confirmBtn.disabled) {
+      showToast('该商品已售罄');
+      return;
+    }
+    if (currentAction === 'cart') {
+      showToast('已加入购物车');
+    } else if (currentAction === 'buy') {
+      location.href = '31.确认订单-原型页面.html?scene=' + (window.__scene === 'combo' ? 'combo' : 'goods');
+      return;
+    }
+    closePopup();
+  });
+
+  function showToast(msg) {
+    var toast = document.createElement('div');
+    toast.textContent = msg;
+    toast.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.7);color:var(--card-bg);padding:var(--space-sm) var(--space-xl);border-radius:var(--radius-sm);font-size:var(--font-base);z-index:9999;white-space:nowrap;';
+    document.querySelector('.phone-frame').appendChild(toast);
+    setTimeout(function() { toast.remove(); }, 1500);
+  }
+
+  // Initial render
+  updatePage();
+
+  // --- Address selection ---
+  var addresses = [
+    { id: 1, name: '张三', phone: '138****8888', region: '江苏省南京市建邺区江东中路369号 新华报业传媒广场1号楼', tag: '默认', isDefault: true },
+    { id: 2, name: '李四', phone: '139****6666', region: '上海市浦东新区陆家嘴环路1000号', tag: '' },
+    { id: 3, name: '王五', phone: '137****5555', region: '广东省深圳市南山区科技园南路8号', tag: '' },
+    { id: 4, name: '赵六', phone: '136****4444', region: '北京市朝阳区建国路88号 悦享大厦A座12层', tag: '' },
+    { id: 5, name: '孙七', phone: '135****3333', region: '新疆乌鲁木齐市天山区解放南路128号', tag: '' }
+  ];
+  var selectedAddrId = 1;
+
+  function isXinjiang(addr) {
+    return addr.region.indexOf('新疆') >= 0;
+  }
+
+  function updateStockStatus() {
+    if (window.__scene === 'soldout') {
+      document.getElementById('outOfStockBar').classList.remove('show');
+      return;
+    }
+    var addr = addresses.find(function(a) { return a.id === selectedAddrId; });
+    var noStock = addr && isXinjiang(addr);
+    document.getElementById('outOfStockBar').classList.toggle('show', noStock);
+    document.getElementById('addCartBtn').disabled = noStock;
+    document.getElementById('buyNowBtn').disabled = noStock;
+    document.getElementById('addCartBtn').style.opacity = noStock ? '0.4' : '1';
+    document.getElementById('buyNowBtn').style.opacity = noStock ? '0.4' : '1';
+    document.getElementById('addCartBtn').style.pointerEvents = noStock ? 'none' : 'auto';
+    document.getElementById('buyNowBtn').style.pointerEvents = noStock ? 'none' : 'auto';
+  }
+
+  function renderAddrList() {
+    var html = '';
+    addresses.forEach(function(addr) {
+      var checked = addr.id === selectedAddrId ? ' checked' : '';
+      var tagHtml = addr.tag ? '<span class="addr-tag">' + addr.tag + '</span>' : '';
+      html += '<div class="addr-list-item" data-id="' + addr.id + '" onclick="selectAddr(' + addr.id + ')">' +
+        '<div class="addr-radio' + checked + '"></div>' +
+        '<div class="addr-detail">' +
+          '<div class="addr-name-phone">' + addr.name + '  ' + addr.phone + tagHtml + '</div>' +
+          '<div class="addr-full">' + addr.region + '</div>' +
+        '</div>' +
+      '</div>';
+    });
+    document.getElementById('addrList').innerHTML = html;
+  }
+
+  window.selectAddr = function(id) {
+    selectedAddrId = id;
+    var addr = addresses.find(function(a) { return a.id === id; });
+    document.getElementById('addrText').textContent = addr.name + '  ' + addr.phone + '  ' + addr.region.split(' ').slice(0, 2).join(' ');
+    var hintEl = document.getElementById('addrHint');
+    if (isXinjiang(addr)) {
+      hintEl.textContent = '该地区暂不支持配送';
+      hintEl.classList.add('warn');
+      hintEl.classList.remove('addr-hint');
+    } else {
+      hintEl.textContent = SHIP_HINT;
+      hintEl.classList.remove('warn');
+      hintEl.classList.add('addr-hint');
+    }
+    renderAddrList();
+    updateStockStatus();
+    closeAddrPopup();
+  };
+
+  window.openAddrPopup = function() {
+    renderAddrList();
+    document.getElementById('addrOverlay').classList.add('show');
+    document.getElementById('addrPopup').classList.add('show');
+  };
+
+  function closeAddrPopup() {
+    document.getElementById('addrOverlay').classList.remove('show');
+    document.getElementById('addrPopup').classList.remove('show');
+  }
+
+  document.getElementById('addrOverlay').addEventListener('click', closeAddrPopup);
+  document.getElementById('addrCloseBtn').addEventListener('click', closeAddrPopup);
+
+  // Wrap openPopup to block when out of stock (Xinjiang address)
+  var _origOpenPopup = openPopup;
+  openPopup = function(action) {
+    var addr = addresses.find(function(a) { return a.id === selectedAddrId; });
+    if (addr && isXinjiang(addr)) {
+      showToast('该商品不支持配送至所选地址');
+      return;
+    }
+    _origOpenPopup(action);
+  };
+
+  updateStockStatus();
+})();
+</script>
+<script>
+// ===== 演示场景切换（实物商品 / 组合商品 / 商品不可用兜底） =====
+(function() {
+  var SINGLE = document.getElementById('scene-single');
+  var COMBO = document.getElementById('scene-combo');
+  var UNAVAIL = document.getElementById('scene-unavail');
+  var ACTION_BAR = document.querySelector('.detail-action-bar');
+  var PAGE_SCROLL = document.querySelector('.page-scroll');
+  var UNAVAIL_MAP = {
+    offshelf: { title: '该商品已下架', desc: '商品已下架，暂时无法购买，去看看其他好物吧' }
+  };
+  var FRAME = document.querySelector('.phone-frame');
+  function markAllSpecsSoldout(on) {
+    document.querySelectorAll('.spec-options[data-group="color"] .spec-option').forEach(function(o) {
+      if (on) o.classList.add('soldout');
+      else if (o.dataset.value !== '大地苔原') o.classList.remove('soldout');
+    });
+  }
+  function setScene(name) {
+    window.__scene = name;
+    var isCombo = name === 'combo';
+    var isUnavail = name === 'offshelf';
+    var isSoldout = name === 'soldout';
+    if (SINGLE) SINGLE.style.display = (isCombo || isUnavail) ? 'none' : '';
+    if (COMBO) COMBO.style.display = isCombo ? '' : 'none';
+    if (UNAVAIL) UNAVAIL.style.display = isUnavail ? '' : 'none';
+    if (ACTION_BAR) ACTION_BAR.style.display = isUnavail ? 'none' : '';
+    if (PAGE_SCROLL) PAGE_SCROLL.style.paddingBottom = isUnavail ? '0' : (isSoldout ? '96px' : '64px');
+    if (FRAME) FRAME.classList.toggle('is-soldout', isSoldout);
+    if (isUnavail) {
+      document.getElementById('unavailTitle').textContent = UNAVAIL_MAP.offshelf.title;
+      document.getElementById('unavailDesc').textContent = UNAVAIL_MAP.offshelf.desc;
+    }
+    markAllSpecsSoldout(isSoldout);
+    var specComboEntry = document.getElementById('specComboEntry');
+    if (specComboEntry) specComboEntry.style.display = isCombo ? '' : 'none';
+    document.querySelectorAll('.scene-tab').forEach(function(t) {
+      t.classList.toggle('scene-tab--active', t.dataset.scene === name);
+    });
+  }
+  document.querySelectorAll('.scene-tab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      var name = this.dataset.scene;
+      setScene(name);
+      var u = new URLSearchParams(location.search);
+      u.set('scene', name);
+      history.replaceState(null, '', location.pathname + '?' + u.toString());
+    });
+  });
+  var params = new URLSearchParams(location.search);
+  var init = params.get('scene') || params.get('reason');
+  setScene(init === 'combo' ? 'combo' : (init === 'offshelf' || init === 'soldout') ? init : 'single');
+})();
+</script>
+<script src="../assets/theme-switcher.js"></script>
+</body>
+</html>

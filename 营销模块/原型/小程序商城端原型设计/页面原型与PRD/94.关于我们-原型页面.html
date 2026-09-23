@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>关于我们 - 苏银豆商城</title>
+<link rel="stylesheet" href="../assets/common.css">
+<style>
+  .about-content {
+    padding: var(--space-xl) 16px;
+  }
+
+  /* Logo section */
+  .logo-section {
+    text-align: center;
+    margin-bottom: var(--space-2xl);
+  }
+  .app-logo {
+    width: 72px;
+    height: 72px;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(135deg, var(--primary-start), var(--price-color));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto var(--space-md);
+    box-shadow: 0 4px 16px rgba(238, 10, 36, 0.3);
+  }
+  .app-logo svg { width: 40px; height: 40px; color: var(--card-bg); }
+  .app-name {
+    font-size: var(--font-2xl);
+    font-weight: 700;
+    color: var(--text-color);
+    margin-bottom: var(--space-xs);
+  }
+  .app-version {
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+  }
+
+  /* Intro section */
+  .intro-section {
+    background: var(--card-bg);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    margin-bottom: var(--space-md);
+  }
+  .intro-text {
+    font-size: var(--font-base);
+    color: var(--text-secondary);
+    line-height: 1.8;
+    text-indent: 2em;
+  }
+
+  /* Features */
+  .features-section {
+    background: var(--card-bg);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    margin-bottom: var(--space-md);
+  }
+  .section-title {
+    font-size: var(--font-md);
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: var(--space-lg);
+  }
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-lg);
+  }
+  .feature-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .feature-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-md);
+    background: linear-gradient(135deg, var(--selected-bg), var(--selected-bg));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: var(--space-sm);
+  }
+  .feature-icon svg { width: 24px; height: 24px; color: var(--primary-start); }
+  .feature-name {
+    font-size: var(--font-sm);
+    color: var(--text-color);
+    font-weight: 500;
+  }
+  .feature-desc {
+    font-size: var(--font-xs);
+    color: var(--text-tertiary);
+    margin-top: 2px;
+  }
+
+  /* Links */
+  .links-section {
+    background: var(--card-bg);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    margin-bottom: var(--space-md);
+  }
+  .link-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-lg) 16px;
+    border-bottom: 1px solid var(--bg-color);
+    cursor: pointer;
+  }
+  .link-item:last-child { border-bottom: none; }
+  .link-item:active { background: var(--hover-bg); }
+  .link-item span { font-size: var(--font-base); color: var(--text-color); }
+  .link-item .arrow { color: var(--text-light); }
+  .link-item .arrow svg { width: 16px; height: 16px; }
+
+  /* Contact */
+  .contact-section {
+    background: var(--card-bg);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    margin-bottom: var(--space-md);
+  }
+  .contact-row {
+    display: flex;
+    align-items: center;
+    padding: var(--space-md) 0;
+  }
+  .contact-label {
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+    width: 80px;
+    flex-shrink: 0;
+  }
+  .contact-value {
+    font-size: var(--font-sm);
+    color: var(--text-color);
+  }
+
+  /* Copyright */
+  .copyright {
+    text-align: center;
+    padding: var(--space-xl);
+    color: var(--text-muted);
+    font-size: var(--font-sm);
+    line-height: 1.8;
+  }
+
+  /* Check update */
+  .update-section {
+    background: var(--card-bg);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    margin-bottom: var(--space-md);
+  }
+  .update-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .update-info {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+  }
+  .update-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-sm);
+    background: linear-gradient(135deg, var(--success-color), var(--success-dark));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .update-icon svg { width: 20px; height: 20px; color: var(--card-bg); }
+  .update-text { font-size: var(--font-base); color: var(--text-color); }
+  .update-desc { font-size: var(--font-sm); color: var(--text-tertiary); margin-top: 2px; }
+  .btn-check {
+    background: var(--bg-color);
+    color: var(--text-secondary);
+    border: none;
+    padding: var(--space-sm) 14px;
+    border-radius: var(--radius-lg);
+    font-size: var(--font-sm);
+    cursor: pointer;
+  }
+  .btn-check:active { background: var(--border-color); }
+</style>
+</head>
+<body>
+<div class="phone-frame">
+
+  <!-- Sub-page Navigation -->
+  <div class="sub-nav">
+    <div class="status-bar dark">
+      <span class="time">09:41</span>
+      <div class="icons">
+        <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+      </div>
+    </div>
+    <div class="nav-bar">
+      <div class="back-btn" onclick="if(history.length>1){history.back()}else{location.href='85.设置-原型页面.html'}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <span class="nav-title">关于我们</span>
+      <div class="capsule-btn"><img src="../assets/icons/小程序按钮.svg" alt=""></div>
+    </div>
+  </div>
+
+  <!-- Scrollable Content -->
+  <div class="page-scroll">
+    <div class="about-content">
+
+      <!-- Logo -->
+      <div class="logo-section">
+        <div class="app-logo">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        </div>
+        <div class="app-name">苏银豆商城</div>
+        <div class="app-version">版本 1.0.0</div>
+      </div>
+
+      <!-- Introduction -->
+      <div class="intro-section">
+        <div class="intro-text">
+          苏银豆商城是江苏银行推出的专属积分兑换平台，为江苏银行企业员工提供优质的积分兑换服务。苏银豆由平台发放，或通过绑定礼品卡、兑换积分卡卡密获得，可用于兑换精选好物或下单抵扣现金。
+        </div>
+      </div>
+
+      <!-- Features -->
+      <div class="features-section">
+        <div class="section-title">平台特色</div>
+        <div class="features-grid">
+          <div class="feature-item">
+            <div class="feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            </div>
+            <span class="feature-name">积分当钱花</span>
+            <span class="feature-desc">下单可抵现金</span>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+            </div>
+            <span class="feature-name">正品保障</span>
+            <span class="feature-desc">假一赔十</span>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <span class="feature-name">极速发货</span>
+            <span class="feature-desc">48小时内发出</span>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3zM7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3"/></svg>
+            </div>
+            <span class="feature-name">贴心售后</span>
+            <span class="feature-desc">7天无理由</span>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+            </div>
+            <span class="feature-name">在线客服</span>
+            <span class="feature-desc">9:00-21:00</span>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <span class="feature-name">安全支付</span>
+            <span class="feature-desc">银行级加密</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Check Update -->
+      <div class="update-section">
+        <div class="update-row">
+          <div class="update-info">
+            <div class="update-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+            </div>
+            <div>
+              <div class="update-text">检查更新</div>
+              <div class="update-desc">当前已是最新版本</div>
+            </div>
+          </div>
+          <button class="btn-check" onclick="alert('当前已是最新版本')">检查</button>
+        </div>
+      </div>
+
+      <!-- Links -->
+      <div class="links-section">
+        <div class="link-item">
+          <span>用户协议</span>
+          <span class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+        </div>
+        <div class="link-item">
+          <span>隐私政策</span>
+          <span class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+        </div>
+        <div class="link-item">
+          <span>营业执照</span>
+          <span class="arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+        </div>
+      </div>
+
+      <!-- Contact -->
+      <div class="contact-section">
+        <div class="section-title">联系我们</div>
+        <div class="contact-row">
+          <span class="contact-label">客服电话</span>
+          <span class="contact-value">400-888-0866</span>
+        </div>
+        <div class="contact-row">
+          <span class="contact-label">工作时间</span>
+          <span class="contact-value">周一至周日 9:00-21:00</span>
+        </div>
+        <div class="contact-row">
+          <span class="contact-label">官方邮箱</span>
+          <span class="contact-value">service@jsbank.com</span>
+        </div>
+      </div>
+
+      <!-- Copyright -->
+      <div class="copyright">
+        © 2026 江苏银行股份有限公司 版权所有<br>
+        苏ICP备XXXXXXXX号-X
+      </div>
+
+    </div>
+  </div>
+
+</div>
+<script src="../assets/common.js"></script>
+<script src="../assets/theme-switcher.js"></script>
+</body>
+</html>

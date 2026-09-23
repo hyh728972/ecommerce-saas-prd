@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>消息中心 - 苏银豆商城</title>
+<link rel="stylesheet" href="../assets/common.css">
+<style>
+  /* Fix: page-scroll 的 min-height:100vh 未扣除顶栏+标签栏高度，产生约134px幽灵滚动，
+     列表尾部/清空按钮被顶到折叠线下。锁定 phone-frame 为一屏、让 page-scroll 吃掉中间空间。 */
+  .phone-frame {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .page-scroll {
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* Tab bar */
+  .msg-tabs-bar {
+    display: flex;
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--border-divider);
+    position: sticky;
+    top: 88px;
+    z-index: 50;
+  }
+  .msg-tab {
+    flex: 1;
+    text-align: center;
+    padding: var(--space-md) 0;
+    font-size: var(--font-base);
+    color: var(--text-secondary);
+    cursor: pointer;
+    position: relative;
+  }
+  .msg-tab:active { background: var(--bg-input); }
+  .msg-tab.active {
+    color: var(--text-color);
+    font-weight: 600;
+  }
+  .msg-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 24px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--primary-start), var(--price-color));
+    border-radius: var(--radius-xs);
+  }
+  .msg-tab .tab-badge {
+    position: absolute;
+    top: 6px;
+    right: calc(50% - 18px);
+    background: var(--price-color);
+    color: var(--card-bg);
+    font-size: var(--font-xs);
+    min-width: 14px;
+    height: 14px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 var(--space-xs);
+  }
+
+  /* Message list */
+  .msg-list {
+    padding: var(--space-md);
+  }
+  .msg-item {
+    background: var(--card-bg);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-md);
+    overflow: hidden;
+    cursor: pointer;
+  }
+  .msg-item:active { background: var(--hover-bg); }
+  .msg-item-header {
+    display: flex;
+    align-items: center;
+    padding: var(--space-md);
+    gap: var(--space-md);
+  }
+  .msg-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .msg-icon svg { width: 24px; height: 24px; color: var(--card-bg); }
+  .msg-icon.order { background: linear-gradient(135deg, var(--info-color), var(--info-color)); }
+  .msg-icon.system { background: linear-gradient(135deg, var(--warning-color), var(--warning-dark)); }
+  .msg-icon.activity { background: linear-gradient(135deg, var(--error-light), var(--price-color)); }
+
+  .msg-info {
+    flex: 1;
+    min-width: 0;
+    position: relative;
+  }
+  .msg-title {
+    font-size: var(--font-base);
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: var(--space-xs);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .msg-title .unread-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--price-color);
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .msg-preview {
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .msg-time {
+    font-size: var(--font-sm);
+    color: var(--text-muted);
+    margin-top: var(--space-xs);
+  }
+
+  /* Empty state */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px var(--space-xl);
+    color: var(--text-tertiary);
+  }
+  .empty-state svg {
+    width: 80px;
+    height: 80px;
+    color: var(--text-disabled);
+    margin-bottom: var(--space-lg);
+  }
+  .empty-state .empty-text { font-size: var(--font-base); }
+
+  /* Clear button */
+  .clear-bar {
+    padding: var(--space-lg);
+    text-align: center;
+  }
+  .btn-clear {
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+  }
+  .btn-clear:active { color: var(--text-secondary); }
+</style>
+</head>
+<body>
+<div class="phone-frame">
+
+  <!-- Sub-page Navigation -->
+  <div class="sub-nav">
+    <div class="status-bar dark">
+      <span class="time">09:41</span>
+      <div class="icons">
+        <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+      </div>
+    </div>
+    <div class="nav-bar">
+      <div class="back-btn" onclick="if(history.length>1){history.back()}else{location.href='70.个人中心-原型页面.html'}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <span class="nav-title">消息中心</span>
+      <div class="capsule-btn"><img src="../assets/icons/小程序按钮.svg" alt=""></div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="msg-tabs-bar">
+    <div class="msg-tab active" data-tab="all">全部</div>
+    <div class="msg-tab" data-tab="order">订单<span class="tab-badge">2</span></div>
+    <div class="msg-tab" data-tab="system">系统</div>
+    <div class="msg-tab" data-tab="activity">活动</div>
+  </div>
+
+  <!-- Scrollable Content -->
+  <div class="page-scroll" style="padding-bottom: 16px;">
+    <div class="msg-list" id="msgList"></div>
+    <div class="clear-bar">
+      <button class="btn-clear" id="clearBtn">清空消息</button>
+    </div>
+  </div>
+
+</div>
+<script src="../assets/auth.js"></script>
+<script src="../assets/auth-guard.js"></script>
+<script src="../assets/common.js"></script>
+<script>
+(function() {
+  var messages = [
+    {
+      id: 1,
+      type: 'order',
+      title: '订单发货通知',
+      preview: '您的订单 SY2026040888001 已发货，快递单号：SF1234567890',
+      time: '今天 09:30',
+      unread: true
+    },
+    {
+      id: 2,
+      type: 'order',
+      title: '支付成功通知',
+      preview: '您已成功支付订单 SY2026040888001，金额￥171.90',
+      time: '今天 08:15',
+      unread: true
+    },
+    {
+      id: 3,
+      type: 'system',
+      title: '账户安全提醒',
+      preview: '您的账户于今日在新设备登录，如非本人操作请联系客服',
+      time: '昨天 18:22',
+      unread: false
+    },
+    {
+      id: 4,
+      type: 'activity',
+      title: '限时活动开启',
+      preview: '限时秒杀活动已开启，低至1折，快来抢购吧！',
+      time: '昨天 10:00',
+      unread: false
+    },
+    {
+      id: 5,
+      type: 'system',
+      title: '积分到账通知',
+      preview: '您购物获得的128积分已到账，当前积分余额1280',
+      time: '04-05 16:30',
+      unread: false
+    },
+    {
+      id: 6,
+      type: 'activity',
+      title: '新人专享福利',
+      preview: '新用户专享188元礼包，限时领取中',
+      time: '04-03 12:00',
+      unread: false
+    }
+  ];
+
+  var currentTab = 'all';
+  var msgList = document.getElementById('msgList');
+
+  function getIcon(type) {
+    if (type === 'order') {
+      return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>';
+    } else if (type === 'system') {
+      return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>';
+    } else {
+      return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>';
+    }
+  }
+
+  function renderList() {
+    var filtered = currentTab === 'all' ? messages : messages.filter(function(m) { return m.type === currentTab; });
+
+    if (filtered.length === 0) {
+      msgList.innerHTML = '<div class="empty-state">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>' +
+        '<div class="empty-text">暂无消息</div>' +
+      '</div>';
+      return;
+    }
+
+    var html = '';
+    filtered.forEach(function(msg) {
+      html += '<div class="msg-item" data-id="' + msg.id + '">' +
+        '<div class="msg-item-header">' +
+          '<div class="msg-icon ' + msg.type + '">' + getIcon(msg.type) + '</div>' +
+          '<div class="msg-info">' +
+            '<div class="msg-title">' +
+              '<span>' + msg.title + '</span>' +
+              (msg.unread ? '<span class="unread-dot"></span>' : '') +
+            '</div>' +
+            '<div class="msg-preview">' + msg.preview + '</div>' +
+            '<div class="msg-time">' + msg.time + '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    });
+    msgList.innerHTML = html;
+
+    // Mark as read on click
+    document.querySelectorAll('.msg-item').forEach(function(item) {
+      item.addEventListener('click', function() {
+        var id = parseInt(this.dataset.id);
+        messages.forEach(function(m) {
+          if (m.id === id) m.unread = false;
+        });
+        renderList();
+      });
+    });
+  }
+
+  // Tab switching
+  document.querySelectorAll('.msg-tab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      document.querySelectorAll('.msg-tab').forEach(function(t) { t.classList.remove('active'); });
+      this.classList.add('active');
+      currentTab = this.dataset.tab;
+      renderList();
+    });
+  });
+
+  // Clear messages
+  document.getElementById('clearBtn').addEventListener('click', function() {
+    if (messages.length === 0) return;
+    if (confirm('确定要清空所有消息吗？')) {
+      messages = [];
+      renderList();
+    }
+  });
+
+  renderList();
+})();
+</script>
+<script src="../assets/theme-switcher.js"></script>
+</body>
+</html>

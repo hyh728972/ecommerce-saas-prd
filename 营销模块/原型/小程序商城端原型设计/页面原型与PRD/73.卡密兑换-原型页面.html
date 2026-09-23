@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>卡密兑换 - 苏银豆商城</title>
+<link rel="stylesheet" href="../assets/common.css">
+<link rel="stylesheet" href="../assets/coupon-bind.css">
+<style>
+  .bind-page { background: var(--bg-color); padding-bottom: var(--space-xl); }
+  .bind-hero {
+    margin: var(--space-md);
+    padding: var(--space-xl) var(--space-lg);
+    border-radius: var(--radius-lg);
+    background: linear-gradient(135deg, var(--primary-start) 0%, var(--price-color) 100%);
+    color: var(--card-bg);
+    text-align: center;
+  }
+  .bind-hero-icon {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto var(--space-md);
+    opacity: 0.95;
+  }
+  .bind-hero h2 {
+    font-size: var(--font-lg);
+    font-weight: 600;
+  }
+  .bind-form-card {
+    margin: 0 var(--space-md) var(--space-md);
+    padding: var(--space-lg);
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+  }
+  .bind-form-card .coupon-bind-tip {
+    margin-bottom: var(--space-lg);
+  }
+  .bind-submit-btn {
+    width: 100%;
+    height: 44px;
+    margin-top: var(--space-md);
+    border-radius: 22px;
+    border: none;
+    font-size: var(--font-base);
+    font-weight: 600;
+    color: var(--card-bg);
+    background: linear-gradient(135deg, var(--primary-start), var(--price-color));
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .bind-related {
+    display: flex;
+    gap: var(--space-sm);
+    margin: 0 var(--space-md);
+  }
+  .bind-related a {
+    flex: 1;
+    display: block;
+    padding: var(--space-md);
+    background: var(--card-bg);
+    border-radius: var(--radius-md);
+    text-align: center;
+    text-decoration: none;
+    color: var(--text-color);
+    font-size: var(--font-sm);
+  }
+  .bind-related a span {
+    display: block;
+    font-size: var(--font-xs);
+    color: var(--text-tertiary);
+    margin-top: 4px;
+  }
+</style>
+</head>
+<body>
+<div class="phone-frame">
+  <div class="sub-nav">
+    <div class="status-bar dark">
+      <span class="time">09:41</span>
+      <div class="icons">
+        <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+      </div>
+    </div>
+    <div class="nav-bar">
+      <div class="back-btn" onclick="history.back()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <span class="nav-title">卡密兑换</span>
+    </div>
+  </div>
+
+  <div class="page-scroll bind-page">
+    <div class="bind-hero">
+      <svg class="bind-hero-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <rect x="2" y="4" width="20" height="16" rx="2"/>
+        <line x1="2" y1="10" x2="22" y2="10"/>
+        <line x1="12" y1="4" x2="12" y2="10"/>
+      </svg>
+      <h2>兑换卡密领取权益</h2>
+    </div>
+
+    <div class="bind-form-card">
+      <div class="coupon-bind-tip">请核对卡密后提交，区分大小写。支持积分卡、优惠券、满减券、折扣券、电影次卡及礼品卡。</div>
+      <div class="coupon-bind-row">
+        <label><em>*</em>卡密</label>
+        <input type="text" id="couponBindSecret" placeholder="请输入卡密" maxlength="64" autocomplete="off">
+      </div>
+      <div class="coupon-bind-row">
+        <label>卡券类型</label>
+        <div class="coupon-bind-detect pending" id="couponBindDetect">输入卡密后将显示类型</div>
+      </div>
+      <button type="button" class="bind-submit-btn" id="couponBindConfirm">立即兑换</button>
+      <div class="coupon-bind-history">
+        <div class="coupon-bind-history-hd">最近兑换</div>
+        <div id="couponBindHistory"></div>
+      </div>
+    </div>
+
+    <div class="bind-related">
+      <a href="71.积分中心-原型页面.html">积分中心<span>查看苏银豆余额</span></a>
+      <a href="74.我的卡券-原型页面.html">我的卡包<span>查看已兑换卡券</span></a>
+    </div>
+  </div>
+</div>
+<script src="../assets/auth.js"></script>
+<script src="../assets/auth-guard.js"></script>
+<script src="../assets/common.js"></script>
+<script src="../assets/coupon-bind.js"></script>
+<script>CouponBind.initPage();</script>
+</body>
+</html>

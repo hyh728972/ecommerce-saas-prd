@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>积分中心 - 苏银豆商城</title>
+<link rel="stylesheet" href="../assets/common.css">
+<style>
+  .points-header {
+    background: linear-gradient(135deg, var(--primary-start), var(--price-color));
+  }
+  .points-sub-nav {
+    background: none;
+  }
+  .points-sub-nav .status-bar,
+  .points-sub-nav .nav-title,
+  .points-sub-nav .back-btn svg {
+    color: var(--card-bg);
+  }
+  .points-sub-nav .status-bar .icons svg { fill: var(--card-bg); }
+  .title-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+  .title-wrap .bean {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--vip-gold-light), var(--primary-start));
+  }
+  .points-page { background: var(--bg-color); padding-bottom: 24px; }
+  .hero-wrap {
+    padding: 0;
+  }
+  .hero-card {
+    padding: var(--space-xl) var(--space-lg) var(--space-lg);
+    border-radius: 0;
+    color: var(--card-bg);
+  }
+  .hero-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-md);
+    margin-bottom: var(--space-md);
+  }
+  .hero-label { font-size: var(--font-sm); opacity: 0.85; margin-bottom: var(--space-xs); }
+  .hero-value { font-size: 36px; font-weight: 700; line-height: 1; }
+  .hero-offset {
+    display: inline-block;
+    margin-top: var(--space-sm);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: var(--font-xs);
+    background: rgba(255,255,255,0.2);
+  }
+  .hero-link {
+    font-size: var(--font-sm);
+    opacity: 0.9;
+    cursor: pointer;
+    white-space: nowrap;
+    padding-top: 4px;
+  }
+  .hero-offsets {
+    display: flex;
+    gap: var(--space-sm);
+    margin-top: var(--space-sm);
+  }
+  .hero-offset {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: var(--font-xs);
+    background: rgba(255,255,255,0.2);
+  }
+  .hero-offset.warn { color: #ffe082; background: rgba(255,224,130,0.22); }
+  .detail-card {
+    margin: -16px 0 0;
+    background: var(--card-bg);
+    border-radius: 16px 16px 0 0;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+  }
+  .main-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border-color);
+  }
+  .main-tab {
+    flex: 1;
+    text-align: center;
+    padding: var(--space-md) 0;
+    font-size: var(--font-base);
+    color: var(--text-secondary);
+    cursor: pointer;
+    position: relative;
+    background: none;
+    border: none;
+    font-family: inherit;
+  }
+  .main-tab.active {
+    color: var(--text-color);
+    font-weight: 600;
+  }
+  .main-tab.active::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    transform: translateX(-50%);
+    width: 24px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--primary-start), var(--price-color));
+    border-radius: 2px;
+  }
+  .filters {
+    display: flex;
+    gap: var(--space-sm);
+    padding: var(--space-md);
+    flex-wrap: wrap;
+  }
+  .filters.hidden { display: none; }
+  .filter-btn {
+    padding: 4px 12px;
+    border-radius: 14px;
+    font-size: var(--font-sm);
+    border: none;
+    background: var(--bg-color);
+    color: var(--text-secondary);
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .filter-btn.active {
+    background: var(--selected-bg);
+    color: var(--primary-start);
+    font-weight: 500;
+  }
+  .record-list { padding: 0 var(--space-md) var(--space-md); }
+  .record-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--space-md);
+    padding: var(--space-md) 0;
+    border-bottom: 1px solid var(--border-color);
+  }
+  .record-item:last-child { border-bottom: none; }
+  .record-desc {
+    flex: 1;
+    min-width: 0;
+    font-size: var(--font-base);
+    color: var(--text-color);
+    line-height: 1.4;
+  }
+  .record-time {
+    font-size: var(--font-xs);
+    color: var(--text-tertiary);
+    margin-top: 4px;
+  }
+  .record-change {
+    font-size: var(--font-md);
+    font-weight: 600;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  .record-change.plus { color: var(--price-color); }
+  .record-change.minus { color: var(--text-color); }
+  .record-change.expire { color: var(--text-tertiary); }
+  .empty-tip {
+    text-align: center;
+    padding: 40px 16px;
+    color: var(--text-tertiary);
+    font-size: var(--font-sm);
+  }
+  .rules-link {
+    text-align: center;
+    padding: var(--space-md);
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+  }
+  .rules-link a { color: var(--primary-start); }
+  /* 积分使用规则抽屉（贴合手机框，原 72 独立页合并为 71 内抽屉） */
+  .rules-drawer-overlay {
+    position: fixed;
+    top: 0; bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 375px;
+    z-index: 3000;
+    background: rgba(0,0,0,.5);
+    display: none;
+    align-items: flex-end;
+    overflow: hidden;
+  }
+  .rules-drawer-overlay.active { display: flex; }
+  .rules-drawer-sheet {
+    width: 100%; max-height: 80vh;
+    background: var(--card-bg);
+    border-radius: 16px 16px 0 0;
+    animation: rulesDrawerUp .25s ease;
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  @keyframes rulesDrawerUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .rules-drawer-hd {
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 16px 12px;
+    border-bottom: 1px solid var(--bg-color);
+  }
+  .rules-drawer-hd h3 { font-size: var(--font-md); font-weight: 600; color: var(--text-color); }
+  .rules-drawer-close {
+    width: 32px; height: 32px; border: none; background: none;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-tertiary); font-size: 22px; line-height: 1; cursor: pointer; font-family: inherit;
+  }
+  .rules-drawer-bd { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 16px; }
+  .rules-drawer-bd .rule-item + .rule-item {
+    margin-top: var(--space-lg); padding-top: var(--space-lg);
+    border-top: 1px solid var(--bg-color);
+  }
+  .rules-drawer-bd .rule-item strong { display: block; font-size: var(--font-base); color: var(--text-color); margin-bottom: 6px; }
+  .rules-drawer-bd .rule-item p { font-size: var(--font-sm); color: var(--text-secondary); line-height: 1.7; }
+  .rules-drawer-ft { flex-shrink: 0; padding: 8px 16px calc(16px + env(safe-area-inset-bottom)); border-top: 1px solid var(--bg-color); }
+  .rules-drawer-ft .ok-btn {
+    width: 100%; height: 44px; border: none; border-radius: 22px;
+    background: linear-gradient(135deg, var(--primary-start), var(--price-color));
+    color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit;
+  }
+  @media (max-width: 430px) {
+    .rules-drawer-overlay { width: 100%; left: 0; transform: none; }
+  }
+</style>
+</head>
+<body>
+<div class="phone-frame">
+  <div class="page-scroll points-page">
+  <div class="points-header">
+  <div class="sub-nav points-sub-nav">
+    <div class="status-bar">
+      <span class="time">09:41</span>
+      <div class="icons">
+        <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+      </div>
+    </div>
+    <div class="nav-bar">
+      <div class="back-btn" onclick="history.back()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <span class="nav-title">
+        <span class="title-wrap"><span class="bean"></span><span>积分中心</span></span>
+      </span>
+    </div>
+  </div>
+
+    <div class="hero-wrap">
+      <div class="hero-card">
+        <div class="hero-top">
+          <div>
+            <div class="hero-label">我的苏银豆</div>
+            <div class="hero-value" id="balanceVal">128,560</div>
+            <div class="hero-offsets">
+              <span class="hero-offset">可抵 <span id="offsetVal">¥1,285.60</span></span>
+              <span class="hero-offset warn"><span id="expiringVal">3,200</span> 7天内过期</span>
+            </div>
+          </div>
+          <div class="hero-link" id="heroRulesLink">说明</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+    <div class="detail-card">
+      <div class="main-tabs">
+        <button type="button" class="main-tab active" data-panel="records">收支明细</button>
+        <button type="button" class="main-tab" data-panel="expiring">即将过期</button>
+      </div>
+      <div class="filters" id="ptFilters">
+        <button type="button" class="filter-btn active" data-filter="all">全部</button>
+        <button type="button" class="filter-btn" data-filter="in">已获取</button>
+        <button type="button" class="filter-btn" data-filter="out">已消耗</button>
+        <button type="button" class="filter-btn" data-filter="expire">过期</button>
+      </div>
+      <div class="record-list" id="recordList"></div>
+      <div class="rules-link">查看 <a href="javascript:void(0)" id="openRulesDrawer">积分使用规则</a></div>
+    </div>
+  </div>
+
+  <div class="rules-drawer-overlay" id="rulesDrawer">
+    <div class="rules-drawer-sheet">
+      <div class="rules-drawer-hd">
+        <h3>积分使用规则</h3>
+        <button type="button" class="rules-drawer-close" id="rulesDrawerClose">&times;</button>
+      </div>
+      <div class="rules-drawer-bd">
+        <div class="rule-item">
+          <strong>1. 积分获取</strong>
+          <p>苏银豆主要由平台发放，或通过兑换积分卡卡密获得，具体以账户收支明细为准。</p>
+        </div>
+        <div class="rule-item">
+          <strong>2. 积分使用</strong>
+          <p>可在下单时勾选抵扣现金（与卡券叠加，先扣卡券再扣苏银豆），也可全额苏银豆兑换指定商品；抵扣不设品类限制，不可提现、不可转赠。</p>
+        </div>
+        <div class="rule-item">
+          <strong>3. 扣减顺序</strong>
+          <p>支付时按"即将过期优先"扣减，优先消耗快到期的苏银豆。</p>
+        </div>
+        <div class="rule-item">
+          <strong>4. 有效期</strong>
+          <p>苏银豆按批次设置有效期，到期未使用自动清零；积分中心首页会标红提醒"7 天内过期"的苏银豆，请及时使用。</p>
+        </div>
+        <div class="rule-item">
+          <strong>5. 退款与回退</strong>
+          <p>使用苏银豆的订单发生退款时，按原抵扣金额等额返还苏银豆并恢复原有效期；若退款时对应批次已过期，则该部分不再返还。待付款订单取消时直接释放预占的苏银豆。</p>
+        </div>
+      </div>
+      <div class="rules-drawer-ft">
+        <button type="button" class="ok-btn" id="rulesDrawerOk">我知道了</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../assets/auth.js"></script>
+<script src="../assets/auth-guard.js"></script>
+<script src="../assets/common.js"></script>
+<script src="../assets/coupon-bind.js"></script>
+<script>
+(function() {
+  var balance = 128560;
+
+  var records = [
+    { type: 'in', desc: '平台发放', time: '2026-06-01 09:00:00', change: 50000 },
+    { type: 'in', desc: '卡券绑定', time: '2026-05-28 18:32:15', change: 429 },
+    { type: 'out', desc: '订单抵扣 SY202606140089', time: '2026-06-14 11:20:08', change: -20000 },
+    { type: 'out', desc: '纯积分兑换 OPPO Find X9', time: '2026-06-10 15:06:44', change: -42990 },
+    { type: 'in', desc: '卡券绑定', time: '2026-06-08 10:20:00', change: 5000 },
+    { type: 'expire', desc: '过期清零', time: '2026-05-01 00:00:00', change: -1200 },
+    { type: 'in', desc: '平台发放', time: '2026-06-06 12:00:00', change: 888 },
+    { type: 'out', desc: '订单抵扣 SY202606080015', time: '2026-06-08 09:15:33', change: -8500 }
+  ];
+
+  var expiring = [
+    { time: '2026-06-22 23:59:59', amount: 3200 },
+    { time: '2026-07-01 23:59:59', amount: 1500 },
+    { time: '2026-08-31 23:59:59', amount: 5000 }
+  ];
+
+  var mainPanel = 'records';
+  var filter = 'all';
+
+  function fmt(n) { return n.toLocaleString(); }
+
+  function updateBalanceUI() {
+    document.getElementById('balanceVal').textContent = fmt(balance);
+    document.getElementById('offsetVal').textContent = '¥' + (balance * 0.01).toFixed(2);
+    document.getElementById('expiringVal').textContent = fmt(3200);
+  }
+
+  function currentList() {
+    if (mainPanel === 'expiring') return expiring;
+    if (filter === 'in') return records.filter(function(r) { return r.type === 'in'; });
+    if (filter === 'out') return records.filter(function(r) { return r.type === 'out'; });
+    if (filter === 'expire') return records.filter(function(r) { return r.type === 'expire'; });
+    return records;
+  }
+
+  function renderList() {
+    document.getElementById('ptFilters').classList.toggle('hidden', mainPanel !== 'records');
+    var list = currentList();
+    var el = document.getElementById('recordList');
+    if (!list.length) {
+      el.innerHTML = '<div class="empty-tip">暂无记录</div>';
+      return;
+    }
+    if (mainPanel === 'expiring') {
+      el.innerHTML = list.map(function(r) {
+        return '<div class="record-item">' +
+          '<div class="record-desc">过期时间<div class="record-time">' + r.time + '</div></div>' +
+          '<div class="record-change expire">' + fmt(r.amount) + '</div></div>';
+      }).join('');
+      return;
+    }
+    el.innerHTML = list.map(function(r) {
+      var cls = r.change > 0 ? 'plus' : (r.type === 'expire' ? 'expire' : 'minus');
+      var sign = r.change > 0 ? '+' : '';
+      return '<div class="record-item">' +
+        '<div class="record-desc">' + r.desc + '<div class="record-time">' + r.time + '</div></div>' +
+        '<div class="record-change ' + cls + '">' + sign + fmt(r.change) + '</div></div>';
+    }).join('');
+  }
+
+  document.querySelectorAll('.main-tab').forEach(function(tab) {
+    tab.onclick = function() {
+      mainPanel = tab.dataset.panel;
+      document.querySelectorAll('.main-tab').forEach(function(t) { t.classList.remove('active'); });
+      tab.classList.add('active');
+      renderList();
+    };
+  });
+
+  document.querySelectorAll('.filter-btn').forEach(function(btn) {
+    btn.onclick = function() {
+      filter = btn.dataset.filter;
+      document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      renderList();
+    };
+  });
+
+  function applyPointsRecharge(result) {
+    var amt = result.amount || 0;
+    balance += amt;
+    updateBalanceUI();
+    records.unshift({ type: 'in', desc: '卡券绑定', time: new Date().toISOString().slice(0, 19).replace('T', ' '), change: amt });
+    mainPanel = 'records';
+    filter = 'all';
+    document.querySelectorAll('.main-tab').forEach(function(t) { t.classList.toggle('active', t.dataset.panel === 'records'); });
+    document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.toggle('active', b.dataset.filter === 'all'); });
+    renderList();
+    alert('绑定成功，+' + fmt(amt) + ' 苏银豆');
+  }
+
+  var bindResult = CouponBind.consumeBindResult();
+  if (bindResult && bindResult.action === 'points') applyPointsRecharge(bindResult);
+
+  updateBalanceUI();
+  renderList();
+
+  var rulesDrawer = document.getElementById('rulesDrawer');
+  function openRulesDrawer(e) {
+    if (e) e.preventDefault();
+    rulesDrawer.classList.add('active');
+  }
+  document.getElementById('openRulesDrawer').onclick = openRulesDrawer;
+  document.getElementById('heroRulesLink').onclick = openRulesDrawer;
+  document.getElementById('rulesDrawerClose').onclick = function() {
+    rulesDrawer.classList.remove('active');
+  };
+  document.getElementById('rulesDrawerOk').onclick = function() {
+    rulesDrawer.classList.remove('active');
+  };
+  rulesDrawer.addEventListener('click', function(e) {
+    if (e.target === rulesDrawer) rulesDrawer.classList.remove('active');
+  });
+})();
+</script>
+<script src="../assets/theme-switcher.js"></script>
+</body>
+</html>

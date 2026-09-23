@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>卡券模板列表 - 商城运营平台</title>
+<style>
+:root {
+  --bg-app:#f4f3f0; --bg-sidebar:#1e1e22; --bg-surface:#ffffff; --bg-hover:#f7f6f4; --bg-input:#f9f8f7;
+  --border:#e6e4e0; --border-light:#f0eeeb;
+  --text-primary:#1a1a1c; --text-secondary:#6b6b70; --text-muted:#99999d; --text-sidebar:#c4c4c9;
+  --accent:#2d2d33; --accent-soft:#f0eeeb;
+  --blue:#2563eb; --blue-bg:#f5f8ff; --blue-border:#d4e0fc;
+  --red:#da3e3a; --red-bg:#fef4f3; --red-border:#fcd9d7;
+  --green:#16a34a; --green-bg:#f4fdf6; --green-border:#c6f0d4;
+  --orange:#d97706; --orange-bg:#fffbf0; --orange-border:#fde8c4;
+  --purple:#7c3aed; --purple-bg:#faf8ff; --purple-border:#e4dcfc;
+  --gray:#6b7280; --gray-bg:#f8f8f7; --gray-border:#e8e6e3;
+  --radius-sm:4px; --radius:8px; --radius-lg:12px;
+  --shadow:0 1px 3px rgba(0,0,0,.06); --shadow-lg:0 4px 16px rgba(0,0,0,.10);
+  --transition:160ms ease;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:"Microsoft YaHei",sans-serif;background:var(--bg-app);color:var(--text-primary);display:flex;min-height:100vh;-webkit-font-smoothing:antialiased;}
+.sidebar{width:232px;min-width:232px;background:var(--bg-sidebar);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;z-index:10;}
+.sidebar-brand{padding:20px 20px 28px;border-bottom:1px solid rgba(255,255,255,.06);}
+.sidebar-brand .logo{font-size:17px;font-weight:600;color:#fff;letter-spacing:-.02em;display:flex;align-items:center;gap:10px;}
+.sidebar-brand .sub{font-size:11px;color:var(--text-sidebar);margin-top:2px;}
+.sidebar-nav{flex:1;padding:12px 10px;display:flex;flex-direction:column;gap:2px;}
+.nav-section-label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.25);padding:14px 10px 6px;display:flex;align-items:center;gap:4px;cursor:pointer;user-select:none;}
+.nav-section-label:hover{color:rgba(255,255,255,.45);}
+.section-arrow{font-size:8px;transition:transform .2s ease;flex-shrink:0;}
+.nav-section.collapsed .section-arrow{transform:rotate(-90deg);}
+.nav-section.collapsed .nav-section-items{display:none;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:6px;color:var(--text-sidebar);font-size:13.5px;cursor:pointer;transition:all var(--transition);text-decoration:none;letter-spacing:.01em;}
+.nav-item:hover{background:rgba(255,255,255,.05);color:#fff;}
+.nav-item.active{background:rgba(255,255,255,.10);color:#fff;font-weight:500;}
+.nav-icon{width:18px;height:18px;opacity:.55;flex-shrink:0;}
+.nav-item.active .nav-icon{opacity:1;}
+.nav-item .badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:600;padding:1px 7px;border-radius:10px;min-width:20px;text-align:center;line-height:18px;}
+.main{flex:1;display:flex;flex-direction:column;min-width:0;}
+.topbar{height:52px;min-height:52px;background:var(--bg-surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 28px;gap:16px;z-index:5;}
+.topbar .breadcrumb{font-size:12.5px;color:var(--text-muted);letter-spacing:.01em;}
+.topbar .breadcrumb span{color:var(--text-primary);font-weight:500;}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:16px;}
+.user-avatar{width:30px;height:30px;border-radius:50%;background:#e6e4e0;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);}
+.content{flex:1;display:flex;flex-direction:column;padding:24px 28px;padding-bottom:70px;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;gap:16px;}
+.page-header h1{font-size:22px;font-weight:600;letter-spacing:-.02em;}
+.page-header p{font-size:13px;color:var(--text-muted);margin-top:2px;}
+.page-header-actions{display:flex;gap:8px;align-items:center;flex-shrink:0;}
+.table-panel{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-lg);}
+.content{flex:1;display:flex;flex-direction:column;padding:24px 28px;padding-bottom:60px;}
+.page-footer-fixed{position:fixed;bottom:0;left:232px;right:0;display:flex;align-items:center;justify-content:space-between;padding:12px 28px;background:#fafaf9;border-top:1px solid var(--border);z-index:100;box-shadow:0 -2px 8px rgba(0,0,0,.06);}
+.page-footer-left{display:flex;align-items:center;gap:12px;}
+.page-footer-right{display:flex;align-items:center;}
+.filter-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:12px 16px;background:var(--bg-surface);}
+.table-panel>.filter-bar{margin-bottom:0;border:none;border-bottom:1px solid var(--border);border-radius:var(--radius-lg) var(--radius-lg) 0 0;}
+.filter-bar input,.filter-bar select{height:36px;padding:0 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;background:var(--bg-surface);color:var(--text-primary);outline:none;transition:border-color var(--transition);}
+.filter-bar input[type="text"]{width:220px;}
+.filter-bar input.filter-keyword{width:280px;}
+.filter-bar input::placeholder{color:var(--text-muted);}
+.filter-bar select{min-width:150px;}
+.filter-bar > input:focus,.filter-bar > select:focus{border-color:var(--accent);}
+.btn-filter{height:36px;padding:0 16px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);font-size:13px;font-family:inherit;cursor:pointer;font-weight:500;transition:opacity var(--transition);}
+.btn-filter:hover{opacity:.88;}
+.btn-reset{height:36px;padding:0 14px;background:transparent;color:var(--text-secondary);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;cursor:pointer;transition:all var(--transition);}
+.btn-reset:hover{border-color:var(--text-muted);color:var(--text-primary);}
+.filter-bar .filter-extra{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.btn{display:inline-flex;align-items:center;padding:5px 12px;border-radius:var(--radius-sm);font-size:12px;font-family:inherit;cursor:pointer;border:1px solid transparent;transition:all var(--transition);white-space:nowrap;font-weight:500;gap:5px;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{opacity:.88;}
+.btn-outline{border-color:var(--border);color:var(--text-primary);background:var(--bg-surface);}
+.btn-outline:hover{border-color:var(--text-muted);background:var(--bg-hover);}
+.btn-sm{padding:4px 10px;font-size:11.5px;}
+.table-wrap{flex:1;display:flex;flex-direction:column;min-height:0;}
+.table-scroll{overflow-x:auto;flex:1;}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:2000px;}
+thead th{background:#fafaf9;text-align:left;padding:12px 14px;font-weight:500;font-size:12px;color:var(--text-muted);letter-spacing:.02em;border-bottom:1px solid var(--border);white-space:nowrap;}
+thead th:first-child,tbody td:first-child{padding-left:20px;}
+tbody td{padding:11px 14px;border-bottom:1px solid var(--border-light);vertical-align:middle;line-height:1.5;height:75px;}
+tbody tr:hover{background:var(--bg-hover);}
+.template-info{display:flex;align-items:center;gap:10px;}
+.template-avatar{width:32px;height:32px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--text-primary);flex-shrink:0;letter-spacing:-.02em;}
+.template-avatar.points{background:var(--orange-bg);color:var(--orange);}
+.template-avatar.coupon{background:var(--blue-bg);color:var(--blue);}
+.template-avatar.discount{background:var(--orange-bg);color:var(--orange);}
+.template-avatar.fullminus{background:var(--green-bg);color:var(--green);}
+.template-avatar.ticket{background:var(--purple-bg);color:var(--purple);}
+.template-avatar.gift{background:var(--red-bg);color:var(--red);}
+.template-name{font-weight:500;color:var(--text-primary);margin-bottom:2px;}
+.template-id{font-size:11.5px;color:var(--text-muted);font-family:"Microsoft YaHei",sans-serif;}
+.template-type-tag{display:inline;font-size:13px;color:var(--text-primary);}
+.value-cell{display:flex;flex-direction:column;gap:2px;}
+.value-main{font-size:13px;font-weight:500;color:var(--text-primary);}
+.value-sub{font-size:11.5px;color:var(--text-muted);}
+.exchange-points{font-family:"Microsoft YaHei",sans-serif;font-size:13px;font-weight:600;color:var(--blue);}
+.exchange-unit{font-size:11px;color:var(--text-muted);margin-left:2px;}
+.range-cell{font-size:12px;color:var(--text-secondary);}
+.range-label{font-size:11px;color:var(--text-muted);margin-top:2px;}
+.usage-note-cell{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis;font-size:12px;color:var(--text-secondary);line-height:1.5;max-width:300px;}
+.status-tag{display:inline-flex;align-items:center;padding:2px 10px;border-radius:100px;font-size:11.5px;font-weight:500;letter-spacing:.01em;white-space:nowrap;border:1px solid transparent;}
+.status-published{background:var(--green-bg);color:var(--green);border-color:var(--green-border);}
+.status-pending{background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border);}
+.status-draft{background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border);}
+.status-disabled{background:var(--gray-bg);color:var(--gray);border-color:var(--gray-border);}
+.vis-tag{display:inline;font-size:13px;color:var(--text-primary);}
+.actions{display:flex;align-items:center;gap:8px;white-space:nowrap;flex-wrap:wrap;}
+.action-link{color:var(--blue);font-size:12.5px;cursor:pointer;}
+.action-link:hover{text-decoration:underline;}
+.action-link.disabled{color:var(--text-muted);cursor:not-allowed;}
+.action-link.disabled:hover{text-decoration:none;}
+.table-footer{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-top:1px solid var(--border);background:#fafaf9;}
+.pagination{display:flex;align-items:center;gap:4px;}
+.pagination .page-btn{min-width:32px;width:32px;height:32px;padding:0;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-surface);cursor:pointer;font-size:12px;color:var(--text-primary);transition:all var(--transition);}
+.pagination .page-btn:hover{border-color:var(--text-muted);}
+.pagination .page-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.pagination .page-btn.disabled{opacity:.35;pointer-events:none;}
+.pagination .page-info{font-size:12px;color:var(--text-muted);margin:0 8px;}
+.toast-container{position:fixed;top:24px;right:24px;z-index:400;display:flex;flex-direction:column;gap:8px;}
+.toast{background:var(--bg-sidebar);color:#fff;padding:12px 18px;border-radius:var(--radius);font-size:13px;box-shadow:var(--shadow-lg);}
+.toast.success{border-left:3px solid var(--green);}
+.toast.info{border-left:3px solid var(--blue);}
+</style>
+</head>
+<body>
+
+<aside class="sidebar" id="app-sidebar"></aside>
+<script src="../assets/common-sidebar.js"></script>
+
+<div class="main">
+  <div class="topbar">
+    <div class="breadcrumb">积分卡券 / <span>卡券模板管理</span></div>
+    <div class="topbar-right">
+      <span style="font-size:12px;color:var(--text-muted);">运营专员 道馨</span>
+      <div class="user-avatar">道</div>
+    </div>
+  </div>
+  <div class="content">
+    <div class="page-header">
+      <div>
+        <h1>卡券模板管理</h1>
+        <p>平台预置的卡券模板，品牌商城和平台发放时选择模板、改名、发放即可</p>
+      </div>
+      <div class="page-header-actions">
+        <button class="btn btn-primary" onclick="createTemplate()">新建卡券模板</button>
+      </div>
+    </div>
+
+    <div class="table-panel">
+      <div class="filter-bar">
+        <input type="text" class="filter-keyword" placeholder="搜索模板名称 / 模板ID" />
+        <select>
+          <option value="">全部类型</option>
+          <option value="coupon">优惠券</option>
+          <option value="fullminus">满减券</option>
+          <option value="discount">折扣券</option>
+          <option value="ticket">商品次卡</option>
+          <option value="gift">礼品卡</option>
+          <option value="points">积分卡</option>
+        </select>
+        <select>
+          <option value="">全部状态</option>
+          <option value="published">已发布</option>
+          <option value="pending">待审核</option>
+          <option value="draft">草稿</option>
+        </select>
+        <button class="btn-filter" onclick="filterTable()">筛选</button>
+        <button class="btn-reset" onclick="resetFilter()">重置</button>
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:40px;"><input type="checkbox" id="selectAllTemplates" onchange="toggleSelectAll(this)" /></th>
+                <th style="width:180px;">模板名称</th>
+                <th style="width:100px;">卡券类型</th>
+                <th style="width:300px;">面值 / 有效期</th>
+                <th style="width:100px;">兑换积分</th>
+                <th style="width:160px;">商品限制</th>
+                <th style="width:200px;">授权范围</th>
+                <th style="width:100px;">使用次数</th>
+                <th style="width:120px;">累计发放量</th>
+                <th style="width:80px;">状态</th>
+                <th style="width:300px;">使用说明</th>
+                <th style="width:165px;">创建人/时间</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="tplTableBody">
+              <tr>
+                <td><input type="checkbox" class="row-checkbox" /></td>
+                <td>
+                  <div class="template-info">
+                    <div class="template-avatar points">积</div>
+                    <div>
+                      <div class="template-name">标准积分卡</div>
+                      <div class="template-id">M00001</div>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="template-type-tag type-points">积分卡</span></td>
+                <td>
+                  <div class="value-cell">
+                    <div class="value-main">100积分/张</div>
+                    <div class="value-sub">发放后 30 天 · 兑换后不限</div>
+                  </div>
+                </td>
+                <td>
+                  <span class="exchange-points">100<span class="exchange-unit">积分</span></span>
+                </td>
+                <td>
+                  <div class="range-cell">
+                    <div>全场通用</div>
+                  </div>
+                </td>
+                <td><span class="vis-tag">品牌商城可用</span></td>
+                <td><span style="font-family:"Microsoft YaHei",sans-serif;color:var(--text-primary);">12</span></td>
+                <td><span style="font-family:"Microsoft YaHei",sans-serif;color:var(--text-primary);">3,500</span></td>
+                <td><span class="status-tag status-published">已发布</span></td>
+                <td><div class="usage-note-cell">适用于全平台积分发放，不可与其他优惠叠加使用</div></td>
+                <td><span style="color:var(--text-secondary);">道馨</span><br/><span style="color:var(--text-muted);font-size:12px;">2026-06-15 10:30</span></td>
+                <td>
+                  <div class="actions">
+                    <span class="action-link" onclick="viewTemplate('M00001')">查看</span>
+                    <span class="action-link" style="color:var(--orange);" onclick="disableTemplate('M00001')">停用</span>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><input type="checkbox" class="row-checkbox" /></td>
+                <td>
+                  <div class="template-info">
+                    <div class="template-avatar coupon">券</div>
+                    <div>
+                      <div class="template-name">5元购物券</div>
+                      <div class="template-id">M00003</div>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="template-type-tag type-coupon">优惠券</span></td>
+                <td>
+                  <div class="value-cell">
+                    <div class="value-main">¥5元</div>
+                    <div class="value-sub">发放后 30 天 · 兑换后 7 天</div>
+                  </div>
+                </td>
+                <td>
+                  <span class="exchange-points">5<span class="exchange-unit">积分</span></span>
+                </td>
+                <td>
+                  <div class="range-cell">
+                    <div>全场通用</div>
+                  </div>
+                </td>
+                <td><span class="vis-tag">品牌商城、客诉可用</span></td>
+                <td><span style="font-family:"Microsoft YaHei",sans-serif;color:var(--text-primary);">8</span></td>
+                <td><span style="font-family:"Microsoft YaHei",sans-serif;color:var(--text-primary);">2,100</span></td>
+                <td><span class="status-tag status-published">已发布</span></td>
+                <td><div class="usage-note-cell">适用于全场商品购物抵扣，不可与其他优惠券叠加使用</div></td>
+                <td><span style="color:var(--text-secondary);">道馨</span><br/><span style="color:var(--text-muted);font-size:12px;">2026-06-16 09:15</span></td>
+                <td>
+                  <div class="actions">
+                    <span class="action-link" onclick="viewTemplate('M00003')">查看</span>
+                    <span class="action-link" style="color:var(--orange);" onclick="disableTemplate('M00003')">停用</span>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><input type="checkbox" class="row-checkbox" /></td>
+                <td>
+                  <div class="template-info">
+                    <div class="template-avatar fullminus">减</div>
+                    <div>
+                      <div class="template-name">满200减50券</div>
+                      <div class="template-id">M00005</div>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="template-type-tag type-fullminus">满减券</span></td>
+                <td>
+                  <div class="value-cell">
+                    <div class="value-main">满200减50元</div>
+                    <div class="value-sub">发放后 15 天 · 兑换后 7 天</div>
+                  </div>
+                </td>
+                <td>
+                  <span class="exchange-points">45<span class="exchange-unit">积分</span></span>
+                </td>
+                <td>
+                  <div class="range-cell">
+                    <div>通兑</div>
+                  </div>
+                </td>
+                <td><span class="vis-tag">品牌商城可用</span></td>
+                <td><span style="font-family:"Microsoft YaHei",sans-serif;color:var(--text-primary);">6</span></td>
+                <td><span style="font-family:"Microsoft YaHei",sans-serif;color:var(--text-primary);">800</span></td>
+                <td><span class="status-tag status-published">已发布</span></td>
+                <td><div class="usage-note-cell">适用于大额购物场景，满200元可用，不可与其他满减券叠加</div></td>
+                <td><span style="color:var(--text-secondary);">道馨</span><br/><span style="color:var(--text-muted);font-size:12px;">2026-06-17 11:00</span></td>
+                <td>
+                  <div class="actions">
+                    <span class="action-link" onclick="viewTemplate('M00005')">查看</span>
+                    <span class="action-link" style="color:var(--orange);" onclick="disableTemplate('M00005')">停用</span>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><input type="checkbox" class="row-checkbox" /></td>
+                <td>
+                  <div class="template-info">
+                    <div class="template-avatar discount">折</div>
+                    <div>
+                      <div class="template-name">手机专属8折券</div>
+                      <div class="template-id">M00007</div>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="template-type-tag type-discount">折扣券</span></td>
+                <td>
+                  <div class="value-cell">
+                    <div class="value-main">8折优惠</div>
+                    <div class="value-sub">发放后 10 天 · 兑换后 3 天</div>
+                  </div>
+                </td>
+                <td>
+                  <span class="exchange-points">80<span class="exchange-unit">积分</span></span>
+                </td>
+                <td>
+                  <div class="range-cell">
+                    <div>指定商品分类</div>
+                    <div class="range-label">手机品类</div>
+                  </div>
+                </td>
+                <td><span class="vis-tag">品牌商城可用</span></td>
+                <td><span style="font-family:"Microsoft YaHei",sans-serif;color:var(--text-primary);">4</span></td>
+                <td><span style="font-family:"Microsoft YaHei",sans-serif;color:var(--text-primary);">600</span></td>
+                <td><span class="status-tag status-published">已发布</span></td>
+                <td><div class="usage-note-cell">仅限手机品类使用，最高可优惠50元</div></td>
+                <td><span style="color:var(--text-secondary);">道馨</span><br/><span style="color:var(--text-muted);font-size:12px;">2026-06-18 14:30</span></td>
+                <td>
+                  <div class="actions">
+                    <span class="action-link" onclick="viewTemplate('M00007')">查看</span>
+                    <span class="action-link" style="color:var(--orange);" onclick="disableTemplate('M00007')">停用</span>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><input type="checkbox" class="row-checkbox" /></td>
+                <td>
+                  <div class="template-info">
+                    <div class="template-avatar ticket">票</div>
+                    <div>
+                      <div class="template-name">电影票次卡</div>
+                      <div class="template-id">M00008</div>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="template-type-tag type-ticket">商品次卡</span></td>
+                <td>
+                  <div class="value-cell">
+                    <div class="value-main">可观影 3 次</div>
+                    <div class="value-sub">每次30积分 · 发放后 60 天 · 兑换后不限</div>
+                  </div>
+                </td>
+                <td>
+                  <span class="exchange-points">90<span class="exchange-unit">积分</span></span>
+                </td>
+                <td>
+                  <div class="range-cell">
+                    <div>第三方：电影票</div>
+                  </div>
+                </td>
+                <td><span class="vis-tag vis-platform">仅平台自用</span></td>
+                <td><span style="font-family:"Microsoft YaHei",sans-serif;color:var(--text-primary);">3</span></td>
+                <td><span style="font-family:"Microsoft YaHei",sans-serif;color:var(--text-primary);">400</span></td>
+                <td><span class="status-tag status-draft">草稿</span></td>
+                <td><div class="usage-note-cell">适用于电影票兑换，支持全部影院和全部影片类型</div></td>
+                <td><span style="color:var(--text-secondary);">道馨</span><br/><span style="color:var(--text-muted);font-size:12px;">2026-06-19 15:30</span></td>
+                <td>
+                  <div class="actions">
+                    <span class="action-link" onclick="editTemplate('M00008')">编辑</span>
+                    <span class="action-link" onclick="viewTemplate('M00008')">查看</span>
+                    <span class="action-link" style="color:var(--blue);" onclick="submitForApproval('M00008')">提交审核</span>
+                    <span class="action-link" style="color:var(--red);" onclick="deleteTemplate('M00008')">删除</span>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><input type="checkbox" class="row-checkbox" /></td>
+                <td>
+                  <div class="template-info">
+                    <div class="template-avatar fullminus">减</div>
+                    <div>
+                      <div class="template-name">满100减20券</div>
+                      <div class="template-id">M00006</div>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="template-type-tag type-fullminus">满减券</span></td>
+                <td>
+                  <div class="value-cell">
+                    <div class="value-main">满100减20元</div>
+                    <div class="value-sub">发放后 20 天 · 兑换后 7 天</div>
+                  </div>
+                </td>
+                <td>
+                  <span class="exchange-points">18<span class="exchange-unit">积分</span></span>
+                </td>
+                <td>
+                  <div class="range-cell">
+                    <div>通兑</div>
+                  </div>
+                </td>
+                <td><span class="vis-tag">品牌商城可用</span></td>
+                <td><span style="font-family:"Microsoft YaHei",sans-serif;color:var(--text-muted);">0</span></td>
+                <td><span style="font-family:"Microsoft YaHei",sans-serif;color:var(--text-muted);">0</span></td>
+                <td><span class="status-tag status-pending">待审核</span></td>
+                <td><div class="usage-note-cell">适用于中小额购物场景，满100元可用</div></td>
+                <td><span style="color:var(--text-secondary);">道馨</span><br/><span style="color:var(--text-muted);font-size:12px;">2026-06-20 08:45</span></td>
+                <td>
+                  <div class="actions">
+                    <span class="action-link" onclick="viewTemplate('M00006')">查看</span>
+                    <span class="action-link" onclick="viewApprovalProgress('M00006')">审批进度</span>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><input type="checkbox" class="row-checkbox" /></td>
+                <td>
+                  <div class="template-info">
+                    <div class="template-avatar points">积</div>
+                    <div>
+                      <div class="template-name">面值50积分卡</div>
+                      <div class="template-id">M00002</div>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="template-type-tag type-points">积分卡</span></td>
+                <td>
+                  <div class="value-cell">
+                    <div class="value-main">50积分/张</div>
+                    <div class="value-sub">发放后 60 天 · 兑换后不限</div>
+                  </div>
+                </td>
+                <td>
+                  <span class="exchange-points">50<span class="exchange-unit">积分</span></span>
+                </td>
+                <td>
+                  <div class="range-cell">
+                    <div>全场通用</div>
+                  </div>
+                </td>
+                <td><span class="vis-tag">品牌商城可用</span></td>
+                <td><span style="font-family:"Microsoft YaHei",sans-serif;color:var(--text-primary);">15</span></td>
+                <td><span style="font-family:"Microsoft YaHei",sans-serif;color:var(--text-primary);">5,200</span></td>
+                <td><span class="status-tag status-published">已发布</span></td>
+                <td><div class="usage-note-cell">适用于小额度积分发放场景，可配合营销活动使用</div></td>
+                <td><span style="color:var(--text-secondary);">道馨</span><br/><span style="color:var(--text-muted);font-size:12px;">2026-06-10 14:00</span></td>
+                <td>
+                  <div class="actions">
+                    <span class="action-link" onclick="viewTemplate('M00002')">查看</span>
+                    <span class="action-link" style="color:var(--orange);" onclick="disableTemplate('M00002')">停用</span>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><input type="checkbox" class="row-checkbox" /></td>
+                <td>
+                  <div class="template-info">
+                    <div class="template-avatar coupon">券</div>
+                    <div>
+                      <div class="template-name">10元购物券</div>
+                      <div class="template-id">M00004</div>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="template-type-tag type-coupon">优惠券</span></td>
+                <td>
+                  <div class="value-cell">
+                    <div class="value-main">¥10元</div>
+                    <div class="value-sub">发放后 15 天 · 兑换后 7 天</div>
+                  </div>
+                </td>
+                <td>
+                  <span class="exchange-points">10<span class="exchange-unit">积分</span></span>
+                </td>
+                <td>
+                  <div class="range-cell">
+                    <div>指定商品分类</div>
+                    <div class="range-label">日用品</div>
+                  </div>
+                </td>
+                <td><span class="vis-tag">客诉可用</span></td>
+                <td><span style="font-family:"Microsoft YaHei",sans-serif;color:var(--text-primary);">22</span></td>
+                <td><span style="font-family:"Microsoft YaHei",sans-serif;color:var(--text-primary);">8,000</span></td>
+                <td><span class="status-tag status-published">已发布</span></td>
+                <td><div class="usage-note-cell">适用于日用品类购物抵扣，不可与其他优惠券叠加</div></td>
+                <td><span style="color:var(--text-secondary);">道馨</span><br/><span style="color:var(--text-muted);font-size:12px;">2026-06-08 10:00</span></td>
+                <td>
+                  <div class="actions">
+                    <span class="action-link" onclick="viewTemplate('M00004')">查看</span>
+                    <span class="action-link" style="color:var(--orange);" onclick="disableTemplate('M00004')">停用</span>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><input type="checkbox" class="row-checkbox" /></td>
+                <td>
+                  <div class="template-info">
+                    <div class="template-avatar discount">折</div>
+                    <div>
+                      <div class="template-name">9折优惠券</div>
+                      <div class="template-id">M00009</div>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="template-type-tag type-discount">折扣券</span></td>
+                <td>
+                  <div class="value-cell">
+                    <div class="value-main">9折优惠</div>
+                    <div class="value-sub">发放后 7 天 · 兑换后 3 天</div>
+                  </div>
+                </td>
+                <td>
+                  <span class="exchange-points">30<span class="exchange-unit">积分</span></span>
+                </td>
+                <td>
+                  <div class="range-cell">
+                    <div>全场通用</div>
+                  </div>
+                </td>
+                <td><span class="vis-tag">品牌商城、客诉可用</span></td>
+                <td><span style="font-family:"Microsoft YaHei",sans-serif;color:var(--text-primary);">7</span></td>
+                <td><span style="font-family:"Microsoft YaHei",sans-serif;color:var(--text-primary);">1,200</span></td>
+                <td><span class="status-tag status-published">已发布</span></td>
+                <td><div class="usage-note-cell">全场通用9折，最高优惠30元，适用于日常消费场景</div></td>
+                <td><span style="color:var(--text-secondary);">道馨</span><br/><span style="color:var(--text-muted);font-size:12px;">2026-06-05 09:30</span></td>
+                <td>
+                  <div class="actions">
+                    <span class="action-link" onclick="viewTemplate('M00009')">查看</span>
+                    <span class="action-link" style="color:var(--orange);" onclick="disableTemplate('M00009')">停用</span>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><input type="checkbox" class="row-checkbox" /></td>
+                <td>
+                  <div class="template-info">
+                    <div class="template-avatar gift">礼</div>
+                    <div>
+                      <div class="template-name">蛋糕叔叔礼品卡</div>
+                      <div class="template-id">M00010</div>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="template-type-tag type-gift">礼品卡</span></td>
+                <td>
+                  <div class="value-cell">
+                    <div class="value-main">面值 ¥200</div>
+                    <div class="value-sub">余额可拆分使用 · 发放后 90 天 · 兑换后不限</div>
+                  </div>
+                </td>
+                <td>
+                  <span class="exchange-points">200<span class="exchange-unit">积分</span></span>
+                </td>
+                <td>
+                  <div class="range-cell">
+                    <div>第三方：蛋糕叔叔</div>
+                  </div>
+                </td>
+                <td><span class="vis-tag">品牌商城可用</span></td>
+                <td><span style="font-family:"Microsoft YaHei",sans-serif;color:var(--text-primary);">5</span></td>
+                <td><span style="font-family:"Microsoft YaHei",sans-serif;color:var(--text-primary);">200</span></td>
+                <td><span class="status-tag status-draft">草稿</span></td>
+                <td><div class="usage-note-cell">适用于蛋糕叔叔品牌商品，余额可跨订单拆分消费，支持多卡叠加使用</div></td>
+                <td><span style="color:var(--text-secondary);">道馨</span><br/><span style="color:var(--text-muted);font-size:12px;">2026-07-01 10:00</span></td>
+                <td>
+                  <div class="actions">
+                    <span class="action-link" onclick="editTemplate('M00010')">编辑</span>
+                    <span class="action-link" onclick="viewTemplate('M00010')">查看</span>
+                    <span class="action-link" style="color:var(--blue);" onclick="submitForApproval('M00010')">提交审核</span>
+                    <span class="action-link" style="color:var(--red);" onclick="deleteTemplate('M00010')">删除</span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 页面底部固定操作栏 -->
+  <div class="page-footer-fixed">
+    <div class="page-footer-left">
+      <button class="btn btn-outline btn-sm" onclick="batchDisable()">批量停用</button>
+      <div style="font-size:12px;color:var(--text-muted);" id="selectedCount">已选 0 项</div>
+    </div>
+    <div class="page-footer-right">
+      <div style="font-size:12px;color:var(--text-muted);margin-right:16px;" id="tplTableInfo">共 10 条记录</div>
+      <div class="pagination" id="tplPagination"></div>
+      <div style="display:flex;align-items:center;gap:8px;margin-left:16px;">
+        <span style="font-size:12px;color:var(--text-muted);">每页</span>
+        <select id="pageSizeSelect" onchange="changePageSize()" style="height:28px;padding:0 8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:inherit;background:var(--bg-surface);color:var(--text-primary);cursor:pointer;">
+          <option value="10">10条</option>
+          <option value="20" selected>20条</option>
+          <option value="50">50条</option>
+          <option value="100">100条</option>
+        </select>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;margin-left:16px;">
+        <span style="font-size:12px;color:var(--text-muted);">跳转至</span>
+        <input type="number" id="jumpPageInput" min="1" max="2" value="1" style="width:56px;height:28px;padding:0 8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:inherit;background:var(--bg-surface);color:var(--text-primary);text-align:center;" onkeydown="if(event.key==='Enter')jumpToPage()"/>
+        <span style="font-size:12px;color:var(--text-muted);">页</span>
+        <button onclick="jumpToPage()" style="height:28px;padding:0 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:inherit;background:var(--bg-surface);color:var(--text-primary);cursor:pointer;">跳转</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+function showToast(type, message) {
+  var container = document.getElementById('toastContainer');
+  var toast = document.createElement('div');
+  toast.className = 'toast ' + type;
+  toast.textContent = message;
+  container.appendChild(toast);
+  setTimeout(function() {
+    toast.remove();
+  }, 3000);
+}
+
+// 勾选操作
+function updateSelectedCount() {
+  var count = document.querySelectorAll('.row-checkbox:checked').length;
+  document.getElementById('selectedCount').textContent = '已选 ' + count + ' 项';
+}
+
+function toggleSelectAll(cb) {
+  document.querySelectorAll('#tplTableBody > tr:not(.pg-hide) .row-checkbox').forEach(function(c) { c.checked = cb.checked; });
+  updateSelectedCount();
+}
+
+function batchDisable() {
+  var checked = document.querySelectorAll('.row-checkbox:checked');
+  if (checked.length === 0) {
+    showToast('warning', '请先勾选要停用的模板');
+    return;
+  }
+  showToast('success', '演示：批量停用 ' + checked.length + ' 个模板，已转为草稿态');
+}
+
+function changePageSize() {
+  pageSize = parseInt(document.getElementById('pageSizeSelect').value, 10) || 20;
+  currentPage = 1;
+  renderPagination();
+}
+
+/* === 真分页：静态行 DOM 切片 === */
+var pageSize = 20, currentPage = 1;
+var st = document.createElement('style');
+st.textContent = '.pg-hide{display:none!important;}';
+document.head.appendChild(st);
+
+function renderPager(elId, page, pages, gotoFn) {
+  var el = document.getElementById(elId); if (!el) return;
+  var h = '<button class="page-btn' + (page <= 1 ? ' disabled' : '') + '" onclick="' + gotoFn + '(' + (page - 1) + ')">‹</button>';
+  var nums = [];
+  if (pages <= 7) { for (var i = 1; i <= pages; i++) nums.push(i); }
+  else {
+    nums.push(1);
+    if (page > 3) nums.push('…');
+    for (var j = Math.max(2, page - 1); j <= Math.min(pages - 1, page + 1); j++) nums.push(j);
+    if (page < pages - 2) nums.push('…');
+    nums.push(pages);
+  }
+  nums.forEach(function (n) {
+    h += n === '…' ? '<span style="padding:0 4px;font-size:12px;color:var(--text-muted);">…</span>' : '<button class="page-btn' + (n === page ? ' active' : '') + '" onclick="' + gotoFn + '(' + n + ')">' + n + '</button>';
+  });
+  h += '<button class="page-btn' + (page >= pages ? ' disabled' : '') + '" onclick="' + gotoFn + '(' + (page + 1) + ')">›</button>';
+  el.innerHTML = h;
+}
+
+function getTplRows() { return Array.prototype.slice.call(document.querySelectorAll('#tplTableBody > tr')); }
+function renderPagination() {
+  var rows = getTplRows(), pages = Math.max(1, Math.ceil(rows.length / pageSize));
+  if (currentPage > pages) currentPage = pages;
+  rows.forEach(function (r, i) { r.classList.toggle('pg-hide', i < (currentPage - 1) * pageSize || i >= currentPage * pageSize); });
+  document.getElementById('tplTableInfo').textContent = '共 ' + rows.length + ' 条记录';
+  var ji = document.getElementById('jumpPageInput');
+  if (ji) { ji.setAttribute('max', pages); ji.value = currentPage; }
+  renderPager('tplPagination', currentPage, pages, 'goPage');
+}
+function goPage(p) {
+  var rows = getTplRows(), pages = Math.max(1, Math.ceil(rows.length / pageSize));
+  currentPage = Math.min(Math.max(1, p), pages);
+  renderPagination();
+}
+
+function jumpToPage() {
+  var input = document.getElementById('jumpPageInput');
+  var page = parseInt(input.value) || 1;
+  goPage(page);
+}
+
+// 初始化
+renderPagination();
+
+
+// 新建模板：跳转编辑页（新建模式），与编辑共用同一套使用范围与提交审核流程
+function createTemplate() {
+  window.location.href = '11a.卡券模板编辑-原型页面.html';
+}
+
+// 查看审批进度（审批详情页待建设，暂仅提示）
+function viewApprovalProgress(templateId) {
+  showToast('info', '审批详情页待建设，当前审批进展请在审批中心查看');
+}
+
+function editTemplate(templateId) {
+  window.location.href = '11a.卡券模板编辑-原型页面.html?id=' + templateId;
+}
+
+function viewTemplate(templateId) {
+  window.location.href = '11b.卡券模板查看-原型页面.html?id=' + templateId;
+}
+
+// 按模板ID定位行
+function findTemplateRow(templateId) {
+  var rows = document.querySelectorAll('tbody tr');
+  var target = null;
+  rows.forEach(function(r) {
+    var idEl = r.querySelector('.template-id');
+    if (idEl && idEl.textContent.trim() === templateId) target = r;
+  });
+  return target;
+}
+
+// 停用：已发布 → 草稿（停用后才能编辑/删除，重新发布需走审核）
+function disableTemplate(templateId) {
+  var row = findTemplateRow(templateId);
+  if (!row) return;
+  row.cells[9].innerHTML = '<span class="status-tag status-draft">草稿</span>';
+  row.cells[12].innerHTML = '<div class="actions">' +
+    '<span class="action-link" onclick="editTemplate(\'' + templateId + '\')">编辑</span>' +
+    '<span class="action-link" onclick="viewTemplate(\'' + templateId + '\')">查看</span>' +
+    '<span class="action-link" style="color:var(--blue);" onclick="submitForApproval(\'' + templateId + '\')">提交审核</span>' +
+    '<span class="action-link" style="color:var(--red);" onclick="deleteTemplate(\'' + templateId + '\')">删除</span>' +
+    '</div>';
+  showToast('success', '模板 ' + templateId + ' 已停用并转为草稿，可编辑、删除或重新提交审核');
+}
+
+// 提交审核：草稿 → 待审核（审批中只能查看，不可编辑/删除，需审批通过后才发布）
+function submitForApproval(templateId) {
+  var row = findTemplateRow(templateId);
+  if (!row) return;
+  row.cells[9].innerHTML = '<span class="status-tag status-pending">待审核</span>';
+  row.cells[12].innerHTML = '<div class="actions">' +
+    '<span class="action-link" onclick="viewTemplate(\'' + templateId + '\')">查看</span>' +
+    '<span class="action-link" onclick="viewApprovalProgress(\'' + templateId + '\')">审批进度</span>' +
+    '</div>';
+  showToast('success', '模板 ' + templateId + ' 已提交审核，审批通过后自动发布');
+}
+
+function deleteTemplate(templateId) {
+  showToast('info', '演示：删除模板 ' + templateId);
+}
+
+function filterTable() {
+  showToast('info', '演示：执行筛选操作');
+}
+
+function resetFilter() {
+  showToast('info', '演示：重置筛选条件');
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1424 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>商城积分列表 - 商城运营平台</title>
+<style>
+:root {
+  --bg-app:#f4f3f0; --bg-sidebar:#1e1e22; --bg-surface:#ffffff; --bg-hover:#f7f6f4; --bg-input:#f9f8f7;
+  --border:#e6e4e0; --border-light:#f0eeeb;
+  --text-primary:#1a1a1c; --text-secondary:#6b6b70; --text-muted:#99999d; --text-sidebar:#c4c4c9;
+  --accent:#2d2d33; --accent-soft:#f0eeeb;
+  --blue:#2563eb; --blue-bg:#f5f8ff; --blue-border:#d4e0fc;
+  --red:#da3e3a; --red-bg:#fef4f3; --red-border:#fcd9d7;
+  --green:#16a34a; --green-bg:#f4fdf6; --green-border:#c6f0d4;
+  --orange:#d97706; --orange-bg:#fffbf0; --orange-border:#fde8c4;
+  --purple:#7c3aed; --purple-bg:#faf8ff; --purple-border:#e4dcfc;
+  --gray:#6b7280; --gray-bg:#f8f8f7; --gray-border:#e8e6e3;
+  --radius-sm:4px; --radius:8px; --radius-lg:12px;
+  --shadow:0 1px 3px rgba(0,0,0,.06); --shadow-lg:0 4px 16px rgba(0,0,0,.10);
+  --transition:160ms ease;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:"Microsoft YaHei",sans-serif;background:var(--bg-app);color:var(--text-primary);display:flex;min-height:100vh;-webkit-font-smoothing:antialiased;}
+.sidebar{width:232px;min-width:232px;background:var(--bg-sidebar);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;z-index:10;}
+.sidebar-brand{padding:20px 20px 28px;border-bottom:1px solid rgba(255,255,255,.06);}
+.sidebar-brand .logo{font-size:17px;font-weight:600;color:#fff;letter-spacing:-.02em;display:flex;align-items:center;gap:10px;}
+.sidebar-brand .sub{font-size:11px;color:var(--text-sidebar);margin-top:2px;}
+.sidebar-nav{flex:1;padding:12px 10px;display:flex;flex-direction:column;gap:2px;}
+.nav-section-label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.25);padding:14px 10px 6px;display:flex;align-items:center;gap:4px;cursor:pointer;user-select:none;}
+.nav-section-label:hover{color:rgba(255,255,255,.45);}
+.section-arrow{font-size:8px;transition:transform .2s ease;flex-shrink:0;}
+.nav-section.collapsed .section-arrow{transform:rotate(-90deg);}
+.nav-section.collapsed .nav-section-items{display:none;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:6px;color:var(--text-sidebar);font-size:13.5px;cursor:pointer;transition:all var(--transition);text-decoration:none;letter-spacing:.01em;}
+.nav-item:hover{background:rgba(255,255,255,.05);color:#fff;}
+.nav-item.active{background:rgba(255,255,255,.10);color:#fff;font-weight:500;}
+.nav-icon{width:18px;height:18px;opacity:.55;flex-shrink:0;}
+.nav-item.active .nav-icon{opacity:1;}
+.nav-item .badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:600;padding:1px 7px;border-radius:10px;min-width:20px;text-align:center;line-height:18px;}
+.main{flex:1;display:flex;flex-direction:column;min-width:0;}
+.topbar{height:52px;min-height:52px;background:var(--bg-surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 28px;gap:16px;z-index:5;}
+.topbar .breadcrumb{font-size:12.5px;color:var(--text-muted);letter-spacing:.01em;}
+.topbar .breadcrumb span{color:var(--text-primary);font-weight:500;}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:16px;}
+.user-avatar{width:30px;height:30px;border-radius:50%;background:#e6e4e0;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);}
+.content{flex:1;display:flex;flex-direction:column;padding:24px 28px;padding-bottom:70px;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;gap:16px;}
+.page-header h1{font-size:22px;font-weight:600;letter-spacing:-.02em;}
+.page-header p{font-size:13px;color:var(--text-muted);margin-top:2px;}
+.stats-row{display:flex;gap:14px;margin-bottom:20px;}
+.stat-card{flex:1;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;display:flex;align-items:center;gap:14px;min-width:0;overflow:visible;}
+.stat-icon{width:42px;height:42px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.stat-icon.blue{background:var(--blue-bg);color:var(--blue);}
+.stat-icon.green{background:var(--green-bg);color:var(--green);}
+.stat-icon.orange{background:var(--orange-bg);color:var(--orange);}
+.stat-icon.gray{background:var(--gray-bg);color:var(--gray);}
+.stat-card>div:not(.stat-icon){min-width:0;overflow:visible;}
+.stat-value{font-size:22px;font-weight:600;letter-spacing:-.02em;line-height:1.2;white-space:nowrap;overflow:visible;}
+.stat-label{font-size:12px;color:var(--text-muted);margin-top:1px;}
+.table-panel{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-lg);display:flex;flex-direction:column;}
+.filter-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:12px 16px;background:var(--bg-surface);}
+.table-panel>.filter-bar{margin-bottom:0;border:none;border-bottom:1px solid var(--border);border-radius:var(--radius-lg) var(--radius-lg) 0 0;}
+.filter-bar input,.filter-bar select{height:36px;padding:0 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;background:var(--bg-surface);color:var(--text-primary);outline:none;transition:border-color var(--transition);}
+.filter-bar input[type="text"]{width:220px;}
+.filter-bar input.filter-keyword{width:280px;}
+.filter-bar input::placeholder{color:var(--text-muted);}
+.filter-bar select{min-width:150px;}
+.filter-bar > input:focus,.filter-bar > select:focus{border-color:var(--accent);}
+.btn-filter{height:36px;padding:0 16px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);font-size:13px;font-family:inherit;cursor:pointer;font-weight:500;transition:opacity var(--transition);}
+.btn-filter:hover{opacity:.88;}
+.btn-reset{height:36px;padding:0 14px;background:transparent;color:var(--text-secondary);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;cursor:pointer;transition:all var(--transition);}
+.btn-reset:hover{border-color:var(--text-muted);color:var(--text-primary);}
+.btn{display:inline-flex;align-items:center;padding:5px 12px;border-radius:var(--radius-sm);font-size:12px;font-family:inherit;cursor:pointer;border:1px solid transparent;transition:all var(--transition);white-space:nowrap;font-weight:500;gap:5px;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{opacity:.88;}
+.btn-orange{background:var(--orange);color:#fff;}
+.btn-orange:hover{opacity:.88;}
+.btn-green{background:var(--green);color:#fff;}
+.btn-green:hover{opacity:.88;}
+.btn-outline{border-color:var(--border);color:var(--text-primary);background:var(--bg-surface);}
+.btn-outline:hover{border-color:var(--text-muted);background:var(--bg-hover);}
+.btn-sm{padding:4px 10px;font-size:11.5px;}
+.table-wrap{display:flex;flex-direction:column;}
+.table-scroll{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:1800px;}
+thead th{background:#fafaf9;text-align:left;padding:12px 14px;font-weight:500;font-size:12px;color:var(--text-muted);letter-spacing:.02em;border-bottom:1px solid var(--border);white-space:nowrap;}
+thead th:first-child,tbody td:first-child{padding-left:20px;}
+tbody td{padding:16px 14px;border-bottom:1px solid var(--border-light);vertical-align:middle;}
+tbody tr:hover{background:var(--bg-hover);}
+tbody tr td{font-size:13px;}
+.cell-row{display:flex;align-items:center;gap:10px;}
+.mall-logo{width:40px;height:40px;border-radius:var(--radius);background:var(--blue-bg);color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;flex-shrink:0;letter-spacing:-.02em;}
+.cell-stack{display:flex;flex-direction:column;gap:3px;min-width:0;}
+.cell-stack .primary{font-size:13px;font-weight:500;color:var(--text-primary);line-height:1.35;}
+.cell-stack .secondary{font-size:11.5px;color:var(--text-muted);line-height:1.35;}
+.code-line{display:flex;align-items:center;gap:6px;}
+.entity-logo{width:40px;height:40px;border-radius:var(--radius);background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:var(--accent);flex-shrink:0;letter-spacing:-.02em;}
+.person-avatar{width:36px;height:36px;border-radius:50%;background:var(--blue-bg);color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0;}
+.code-text{font-family:"Microsoft YaHei",sans-serif;font-size:11.5px;color:var(--text-muted);}
+.points-display{font-family:"Microsoft YaHei",sans-serif;font-size:15px;font-weight:600;color:var(--text-primary);}
+.points-unit{font-size:11px;color:var(--text-muted);font-weight:400;margin-left:4px;}
+.brand-points{font-size:12px;color:var(--text-secondary);margin-top:2px;}
+.brand-points-label{color:var(--text-muted);font-size:11px;}
+.status-tag{display:inline-flex;align-items:center;padding:2px 10px;border-radius:100px;font-size:11.5px;font-weight:500;letter-spacing:.01em;white-space:nowrap;border:1px solid transparent;}
+.status-active{background:var(--green-bg);color:var(--green);border-color:var(--green-border);}
+.status-inactive{background:var(--gray-bg);color:var(--gray);border-color:var(--gray-border);}
+.actions{display:flex;align-items:center;gap:8px;white-space:nowrap;flex-wrap:nowrap;}
+.action-link{color:var(--blue);font-size:12.5px;cursor:pointer;}
+.action-link:hover{text-decoration:underline;}
+.page-footer-fixed{position:fixed;bottom:0;left:232px;right:0;display:flex;align-items:center;justify-content:space-between;padding:12px 28px;background:#fafaf9;border-top:1px solid var(--border);z-index:100;box-shadow:0 -2px 8px rgba(0,0,0,.06);}
+.page-footer-left{display:flex;align-items:center;gap:12px;}
+.page-footer-right{display:flex;align-items:center;}
+.content{flex:1;display:flex;flex-direction:column;padding:24px 28px;padding-bottom:60px;}
+.pagination{display:flex;align-items:center;gap:4px;}
+.pagination .page-btn{min-width:32px;width:32px;height:32px;padding:0;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-surface);cursor:pointer;font-size:12px;color:var(--text-primary);transition:all var(--transition);}
+.pagination .page-btn:hover{border-color:var(--text-muted);}
+.pagination .page-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.pagination .page-btn.disabled{opacity:.35;pointer-events:none;}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:300;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--bg-surface);border-radius:var(--radius-lg);width:100%;max-width:520px;box-shadow:var(--shadow-lg);}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);}
+.modal-header h3{font-size:15px;font-weight:600;}
+.modal-close{background:none;border:none;font-size:20px;color:var(--text-muted);cursor:pointer;padding:4px;line-height:1;}
+.modal-close:hover{color:var(--text-primary);}
+.modal-body{padding:20px;}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;padding:14px 20px;border-top:1px solid var(--border);}
+.form-group{margin-bottom:16px;}
+.form-group:last-child{margin-bottom:0;}
+.form-group label{display:block;font-size:12px;color:var(--text-muted);margin-bottom:6px;font-weight:500;}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;outline:none;transition:border-color var(--transition);}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--accent);}
+.form-group textarea{resize:vertical;min-height:80px;}
+.form-hint{font-size:11.5px;color:var(--text-muted);margin-top:4px;}
+.amount-input-group{display:flex;align-items:center;gap:8px;}
+.amount-input-group input{flex:1;}
+.amount-input-group .unit{font-size:13px;color:var(--text-muted);white-space:nowrap;}
+.amount-input-group select{width:140px;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;outline:none;transition:border-color var(--transition);background:var(--bg-surface);color:var(--text-primary);cursor:pointer;}
+.amount-input-group select:focus{border-color:var(--accent);}
+.toast-container{position:fixed;top:24px;right:24px;z-index:400;display:flex;flex-direction:column;gap:8px;}
+.toast{background:var(--bg-sidebar);color:#fff;padding:12px 18px;border-radius:var(--radius);font-size:13px;box-shadow:var(--shadow-lg);}
+.toast.success{border-left:3px solid var(--green);}
+.toast.info{border-left:3px solid var(--blue);}
+.toast.warning{border-left:3px solid var(--orange);}
+</style>
+</head>
+<body>
+
+<aside class="sidebar" id="app-sidebar"></aside>
+<script src="../assets/common-sidebar.js"></script>
+
+<div class="main">
+  <div class="topbar">
+    <div class="breadcrumb">积分卡券 / <span>商城积分列表</span></div>
+    <div class="topbar-right">
+      <span style="font-size:12px;color:var(--text-muted);">运营专员 道馨</span>
+      <div class="user-avatar">道</div>
+    </div>
+  </div>
+  <div class="content">
+    <div class="page-header">
+      <div>
+        <h1>商城积分列表</h1>
+        <p>管理各品牌商城积分池，查看商城积分池余额、充值记录、积分池明细</p>
+      </div>
+    </div>
+
+    <!-- TAB切换 -->
+    <div class="tabs" style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:20px;">
+      <button class="tab active" data-tab="pool" onclick="switchTab('pool')">积分池</button>
+      <button class="tab" data-tab="recharge" onclick="switchTab('recharge')">充值记录</button>
+    </div>
+
+    <style>
+    .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+    .tab {
+      padding: 10px 20px; font-size: 13.5px; font-weight: 500;
+      color: var(--text-muted); cursor: pointer;
+      border-bottom: 2px solid transparent; transition: all var(--transition);
+      font-family: inherit; background: none;
+      border-top: none; border-left: none; border-right: none;
+    }
+    .tab.active { color: var(--text-primary); border-bottom-color: var(--accent); }
+    .tab:hover:not(.active) { color: var(--text-secondary); }
+    .view { display: none; }
+    .view.active { display: block; }
+    .view .page-footer-fixed { display: none; }
+    .view.active .page-footer-fixed { display: flex; }
+    </style>
+
+    <script>
+    function switchTab(tab) {
+      document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
+      document.querySelectorAll('.view').forEach(function(v){ v.classList.remove('active'); });
+      document.querySelector('.tab[data-tab="'+tab+'"]').classList.add('active');
+      document.querySelector('.view[data-view="'+tab+'"]').classList.add('active');
+    }
+    </script>
+
+    <!-- 积分池 TAB -->
+    <div class="view active" data-view="pool">
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-icon gray">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 00-3-3.87"/>
+            <path d="M16 3.13a4 4 0 010 7.75"/>
+          </svg>
+        </div>
+        <div>
+          <div class="stat-value">8</div>
+          <div class="stat-label">覆盖品牌商城</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon blue">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26"/>
+          </svg>
+        </div>
+        <div>
+          <div class="stat-value">1,250,000</div>
+          <div class="stat-label">平台总积分</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          </svg>
+        </div>
+        <div>
+          <div class="stat-value">856,500</div>
+          <div class="stat-label">已消耗积分</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon orange">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="7" width="20" height="14" rx="2"/>
+            <path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/>
+          </svg>
+        </div>
+        <div>
+          <div class="stat-value">393,500</div>
+          <div class="stat-label">剩余积分</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-panel">
+      <div class="filter-bar">
+        <input type="text" class="filter-keyword" placeholder="搜索品牌商城名称 / 品牌商城编码" />
+        <select>
+          <option value="">全部状态</option>
+          <option value="active">正常</option>
+          <option value="inactive">冻结</option>
+        </select>
+        <button class="btn-filter" onclick="filterTable()">筛选</button>
+        <button class="btn-reset" onclick="resetFilter()">重置</button>
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:40px;"><input type="checkbox" id="poolCheckAll" onchange="togglePoolAll(this)" /></th>
+                <th style="width:260px;">品牌商城</th>
+                <th style="width:260px;">所属企业</th>
+                <th style="width:190px;">客户联系人</th>
+                <th style="width:160px;">商城积分池余额</th>
+                <th style="width:120px;">已消耗积分</th>
+                <th style="width:140px;">累计充值</th>
+                <th style="width:180px;">品牌积分比例</th>
+                <th style="width:150px;">品牌积分余额</th>
+                <th style="width:120px;">状态</th>
+                <th style="width:168px;">最近充值操作</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="poolTableBody">
+              <tr>
+                <td><input type="checkbox" class="pool-row-check" onchange="updatePoolSelectedCount()" /></td>
+                <td>
+                  <div class="cell-row">
+                    <div class="mall-logo">苏</div>
+                    <div class="cell-stack">
+                      <div class="primary">苏银商城</div>
+                      <div class="secondary code-line"><span class="code-text">P202607001</span></div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="cell-row">
+                    <div class="entity-logo">苏</div>
+                    <div class="cell-stack">
+                      <div class="primary">江苏银行股份有限公司</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="cell-row">
+                    <div class="person-avatar">蔡</div>
+                    <div class="cell-stack">
+                      <div class="primary">蔡文静</div>
+                      <div class="secondary">13800001111</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="points-display">150,000<span class="points-unit">积分</span></div>
+                </td>
+                <td>
+                  <span style="color:var(--text-secondary);font-family:"Microsoft YaHei",sans-serif;">85,500</span>
+                </td>
+                <td>
+                  <span style="color:var(--text-secondary);font-family:"Microsoft YaHei",sans-serif;">235,500</span>
+                </td>
+                <td>
+                  <div class="brand-points">
+                    <span class="brand-points-label">1积分 = </span>
+                    <span style="color:var(--text-primary);font-weight:500;">100 苏银豆</span>
+                  </div>
+                </td>
+                <td>
+                  <span style="color:var(--text-primary);font-family:"Microsoft YaHei",sans-serif;font-size:14px;font-weight:500;">15,000,000</span>
+                  <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">苏银豆</div>
+                </td>
+                <td><span class="status-tag status-active">正常</span></td>
+                <td><span style="color:var(--text-primary);font-size:12px;">道馨</span><br/><span style="color:var(--text-muted);font-size:12px;">2026-06-28 14:30</span></td>
+                <td>
+                  <div class="actions">
+                    <span class="action-link" onclick="showAddPointsModal('苏银商城', 'P202607001')">充值</span>
+                    <span class="action-link" onclick="showPointsSetting('P202607001','苏银商城','苏银豆','100')">品牌积分配置</span>
+                    <span class="action-link" onclick="showRecords('P202607001')">积分池明细</span>
+                    <span class="action-link" onclick="showProxySend('P202607001')">平台代发</span>
+                    <span class="action-link" style="color:var(--orange);" onclick="freezeMall('P202607001', '苏银商城', 'freeze')">冻结</span>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><input type="checkbox" class="pool-row-check" onchange="updatePoolSelectedCount()" /></td>
+                <td>
+                  <div class="cell-row">
+                    <div class="mall-logo">泡</div>
+                    <div class="cell-stack">
+                      <div class="primary">泡泡玛特官方商城</div>
+                      <div class="secondary code-line"><span class="code-text">P2606002</span></div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="cell-row">
+                    <div class="entity-logo">北</div>
+                    <div class="cell-stack">
+                      <div class="primary">北京泡泡玛特文化创意有限公司</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="cell-row">
+                    <div class="person-avatar">刘</div>
+                    <div class="cell-stack">
+                      <div class="primary">刘文静</div>
+                      <div class="secondary">13911285670</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="points-display">98,500<span class="points-unit">积分</span></div>
+                </td>
+                <td>
+                  <span style="color:var(--text-secondary);font-family:"Microsoft YaHei",sans-serif;">156,000</span>
+                </td>
+                <td>
+                  <span style="color:var(--text-secondary);font-family:"Microsoft YaHei",sans-serif;">254,500</span>
+                </td>
+                <td>
+                  <div class="brand-points">
+                    <span class="brand-points-label">1积分 = </span>
+                    <span style="color:var(--text-primary);font-weight:500;">1 泡泡豆</span>
+                  </div>
+                </td>
+                <td>
+                  <span style="color:var(--text-primary);font-family:"Microsoft YaHei",sans-serif;font-size:14px;font-weight:500;">98,500</span>
+                  <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">泡泡豆</div>
+                </td>
+                <td><span class="status-tag status-active">正常</span></td>
+                <td><span style="color:var(--text-primary);font-size:12px;">张晗</span><br/><span style="color:var(--text-muted);font-size:12px;">2026-06-27 09:15</span></td>
+                <td>
+                  <div class="actions">
+                    <span class="action-link" onclick="showAddPointsModal('泡泡玛特官方商城', 'P2606002')">充值</span>
+                    <span class="action-link" onclick="showPointsSetting('P2606002','泡泡玛特官方商城','泡泡豆','1')">品牌积分配置</span>
+                    <span class="action-link" onclick="showRecords('P2606002')">积分池明细</span>
+                    <span class="action-link" onclick="showProxySend('P2606002')">平台代发</span>
+                    <span class="action-link" style="color:var(--orange);" onclick="freezeMall('P2606002', '泡泡玛特官方商城', 'freeze')">冻结</span>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><input type="checkbox" class="pool-row-check" onchange="updatePoolSelectedCount()" /></td>
+                <td>
+                  <div class="cell-row">
+                    <div class="mall-logo">锦</div>
+                    <div class="cell-stack">
+                      <div class="primary">锦程员工福利商城</div>
+                      <div class="secondary code-line"><span class="code-text">P2606001</span></div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="cell-row">
+                    <div class="entity-logo">上</div>
+                    <div class="cell-stack">
+                      <div class="primary">上海锦程人力资源有限公司</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="cell-row">
+                    <div class="person-avatar">陈</div>
+                    <div class="cell-stack">
+                      <div class="primary">陈晓明</div>
+                      <div class="secondary">13816782345</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="points-display">42,000<span class="points-unit">积分</span></div>
+                </td>
+                <td>
+                  <span style="color:var(--text-secondary);font-family:"Microsoft YaHei",sans-serif;">108,000</span>
+                </td>
+                <td>
+                  <span style="color:var(--text-secondary);font-family:"Microsoft YaHei",sans-serif;">150,000</span>
+                </td>
+                <td>
+                  <div class="brand-points">
+                    <span class="brand-points-label">1积分 = </span>
+                    <span style="color:var(--text-primary);font-weight:500;">10 锦程币</span>
+                  </div>
+                </td>
+                <td>
+                  <span style="color:var(--text-primary);font-family:"Microsoft YaHei",sans-serif;font-size:14px;font-weight:500;">420,000</span>
+                  <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">锦程币</div>
+                </td>
+                <td><span class="status-tag status-active">正常</span></td>
+                <td><span style="color:var(--text-primary);font-size:12px;">林悦</span><br/><span style="color:var(--text-muted);font-size:12px;">2026-06-26 16:45</span></td>
+                <td>
+                  <div class="actions">
+                    <span class="action-link" onclick="showAddPointsModal('锦程员工福利商城', 'P2606001')">充值</span>
+                    <span class="action-link" onclick="showPointsSetting('P2606001','锦程员工福利商城','锦程币','10')">品牌积分配置</span>
+                    <span class="action-link" onclick="showRecords('P2606001')">积分池明细</span>
+                    <span class="action-link" onclick="showProxySend('P2606001')">平台代发</span>
+                    <span class="action-link" style="color:var(--orange);" onclick="freezeMall('P2606001', '锦程员工福利商城', 'freeze')">冻结</span>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><input type="checkbox" class="pool-row-check" onchange="updatePoolSelectedCount()" /></td>
+                <td>
+                  <div class="cell-row">
+                    <div class="mall-logo">美</div>
+                    <div class="cell-stack">
+                      <div class="primary">美尚内购商城</div>
+                      <div class="secondary code-line"><span class="code-text">P2606003</span></div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="cell-row">
+                    <div class="entity-logo">广</div>
+                    <div class="cell-stack">
+                      <div class="primary">广州美尚服饰科技有限公司</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="cell-row">
+                    <div class="person-avatar">周</div>
+                    <div class="cell-stack">
+                      <div class="primary">周海燕</div>
+                      <div class="secondary">13602893456</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="points-display">75,000<span class="points-unit">积分</span></div>
+                </td>
+                <td>
+                  <span style="color:var(--text-secondary);font-family:"Microsoft YaHei",sans-serif;">125,000</span>
+                </td>
+                <td>
+                  <span style="color:var(--text-secondary);font-family:"Microsoft YaHei",sans-serif;">200,000</span>
+                </td>
+                <td>
+                  <div class="brand-points">
+                    <span class="brand-points-label">1积分 = </span>
+                    <span style="color:var(--text-primary);font-weight:500;">50 美尚币</span>
+                  </div>
+                </td>
+                <td>
+                  <span style="color:var(--text-primary);font-family:"Microsoft YaHei",sans-serif;font-size:14px;font-weight:500;">3,750,000</span>
+                  <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">美尚币</div>
+                </td>
+                <td><span class="status-tag status-active">正常</span></td>
+                <td><span style="color:var(--text-primary);font-size:12px;">李建国</span><br/><span style="color:var(--text-muted);font-size:12px;">2026-06-25 11:20</span></td>
+                <td>
+                  <div class="actions">
+                    <span class="action-link" onclick="showAddPointsModal('美尚内购商城', 'P2606003')">充值</span>
+                    <span class="action-link" onclick="showPointsSetting('P2606003','美尚内购商城','美尚币','50')">品牌积分配置</span>
+                    <span class="action-link" onclick="showRecords('P2606003')">积分池明细</span>
+                    <span class="action-link" onclick="showProxySend('P2606003')">平台代发</span>
+                    <span class="action-link" style="color:var(--orange);" onclick="freezeMall('P2606003', '美尚内购商城', 'freeze')">冻结</span>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><input type="checkbox" class="pool-row-check" onchange="updatePoolSelectedCount()" /></td>
+                <td>
+                  <div class="cell-row">
+                    <div class="mall-logo">锦</div>
+                    <div class="cell-stack">
+                      <div class="primary">锦程积分商城</div>
+                      <div class="secondary code-line"><span class="code-text">P2606004</span></div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="cell-row">
+                    <div class="entity-logo">上</div>
+                    <div class="cell-stack">
+                      <div class="primary">上海锦程人力资源有限公司</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="cell-row">
+                    <div class="person-avatar">陈</div>
+                    <div class="cell-stack">
+                      <div class="primary">陈晓明</div>
+                      <div class="secondary">13816782345</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="points-display">28,000<span class="points-unit">积分</span></div>
+                </td>
+                <td>
+                  <span style="color:var(--text-secondary);font-family:"Microsoft YaHei",sans-serif;">82,000</span>
+                </td>
+                <td>
+                  <span style="color:var(--text-secondary);font-family:"Microsoft YaHei",sans-serif;">110,000</span>
+                </td>
+                <td>
+                  <div class="brand-points">
+                    <span class="brand-points-label">1积分 = </span>
+                    <span style="color:var(--text-primary);font-weight:500;">1 积分</span>
+                  </div>
+                </td>
+                <td>
+                  <span style="color:var(--text-primary);font-family:"Microsoft YaHei",sans-serif;font-size:14px;font-weight:500;">28,000</span>
+                  <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">积分</div>
+                </td>
+                <td><span class="status-tag status-inactive">冻结</span></td>
+                <td><span style="color:var(--text-primary);font-size:12px;">林悦</span><br/><span style="color:var(--text-muted);font-size:12px;">2026-06-20 13:50</span></td>
+                <td>
+                  <div class="actions">
+                    <span class="action-link" onclick="showAddPointsModal('锦程积分商城', 'P2606004')">充值</span>
+                    <span class="action-link" onclick="showPointsSetting('P2606004','锦程积分商城','积分','1')">品牌积分配置</span>
+                    <span class="action-link" onclick="showRecords('P2606004')">积分池明细</span>
+                    <span class="action-link" onclick="showProxySend('P2606004')">平台代发</span>
+                    <span class="action-link" style="color:var(--green);" onclick="freezeMall('P2606004', '锦程积分商城', 'unfreeze')">解冻</span>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><input type="checkbox" class="pool-row-check" onchange="updatePoolSelectedCount()" /></td>
+                <td>
+                  <div class="cell-row">
+                    <div class="mall-logo">泡</div>
+                    <div class="cell-stack">
+                      <div class="primary">泡泡玛特企业购</div>
+                      <div class="secondary code-line"><span class="code-text">P2606005</span></div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="cell-row">
+                    <div class="entity-logo">北</div>
+                    <div class="cell-stack">
+                      <div class="primary">北京泡泡玛特文化创意有限公司</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="cell-row">
+                    <div class="person-avatar">刘</div>
+                    <div class="cell-stack">
+                      <div class="primary">刘文静</div>
+                      <div class="secondary">13911285670</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="points-display">68,000<span class="points-unit">积分</span></div>
+                </td>
+                <td>
+                  <span style="color:var(--text-secondary);font-family:"Microsoft YaHei",sans-serif;">92,000</span>
+                </td>
+                <td>
+                  <span style="color:var(--text-secondary);font-family:"Microsoft YaHei",sans-serif;">160,000</span>
+                </td>
+                <td>
+                  <div class="brand-points">
+                    <span class="brand-points-label">1积分 = </span>
+                    <span style="color:var(--text-primary);font-weight:500;">10 泡豆</span>
+                  </div>
+                </td>
+                <td>
+                  <span style="color:var(--text-primary);font-family:"Microsoft YaHei",sans-serif;font-size:14px;font-weight:500;">680,000</span>
+                  <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">泡豆</div>
+                </td>
+                <td><span class="status-tag status-active">正常</span></td>
+                <td><span style="color:var(--text-primary);font-size:12px;">张晗</span><br/><span style="color:var(--text-muted);font-size:12px;">2026-06-19 10:30</span></td>
+                <td>
+                  <div class="actions">
+                    <span class="action-link" onclick="showAddPointsModal('泡泡玛特企业购', 'P2606005')">充值</span>
+                    <span class="action-link" onclick="showPointsSetting('P2606005','泡泡玛特企业购','泡豆','10')">品牌积分配置</span>
+                    <span class="action-link" onclick="showRecords('P2606005')">积分池明细</span>
+                    <span class="action-link" onclick="showProxySend('P2606005')">平台代发</span>
+                    <span class="action-link" style="color:var(--orange);" onclick="freezeMall('P2606005', '泡泡玛特企业购', 'freeze')">冻结</span>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><input type="checkbox" class="pool-row-check" onchange="updatePoolSelectedCount()" /></td>
+                <td>
+                  <div class="cell-row">
+                    <div class="mall-logo">蜀</div>
+                    <div class="cell-stack">
+                      <div class="primary">蜀味员工专区</div>
+                      <div class="secondary code-line"><span class="code-text">P2606006</span></div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="cell-row">
+                    <div class="entity-logo">成</div>
+                    <div class="cell-stack">
+                      <div class="primary">成都蜀味食品有限公司</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="cell-row">
+                    <div class="person-avatar">郑</div>
+                    <div class="cell-stack">
+                      <div class="primary">郑国强</div>
+                      <div class="secondary">18980987654</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="points-display">55,000<span class="points-unit">积分</span></div>
+                </td>
+                <td>
+                  <span style="color:var(--text-secondary);font-family:"Microsoft YaHei",sans-serif;">75,000</span>
+                </td>
+                <td>
+                  <span style="color:var(--text-secondary);font-family:"Microsoft YaHei",sans-serif;">130,000</span>
+                </td>
+                <td>
+                  <div class="brand-points">
+                    <span class="brand-points-label">1积分 = </span>
+                    <span style="color:var(--text-primary);font-weight:500;">5 蜀味币</span>
+                  </div>
+                </td>
+                <td>
+                  <span style="color:var(--text-primary);font-family:"Microsoft YaHei",sans-serif;font-size:14px;font-weight:500;">275,000</span>
+                  <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">蜀味币</div>
+                </td>
+                <td><span class="status-tag status-active">正常</span></td>
+                <td><span style="color:var(--text-primary);font-size:12px;">孙佳宁</span><br/><span style="color:var(--text-muted);font-size:12px;">2026-06-18 15:20</span></td>
+                <td>
+                  <div class="actions">
+                    <span class="action-link" onclick="showAddPointsModal('蜀味员工专区', 'P2606006')">充值</span>
+                    <span class="action-link" onclick="showPointsSetting('P2606006','蜀味员工专区','蜀味币','5')">品牌积分配置</span>
+                    <span class="action-link" onclick="showRecords('P2606006')">积分池明细</span>
+                    <span class="action-link" onclick="showProxySend('P2606006')">平台代发</span>
+                    <span class="action-link" style="color:var(--orange);" onclick="freezeMall('P2606006', '蜀味员工专区', 'freeze')">冻结</span>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><input type="checkbox" class="pool-row-check" onchange="updatePoolSelectedCount()" /></td>
+                <td>
+                  <div class="cell-row">
+                    <div class="mall-logo">汇</div>
+                    <div class="cell-stack">
+                      <div class="primary">汇通内购平台</div>
+                      <div class="secondary code-line"><span class="code-text">P2606007</span></div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="cell-row">
+                    <div class="entity-logo">南</div>
+                    <div class="cell-stack">
+                      <div class="primary">南京汇通医疗器械有限公司</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="cell-row">
+                    <div class="person-avatar">黄</div>
+                    <div class="cell-stack">
+                      <div class="primary">黄丽娟</div>
+                      <div class="secondary">13805198765</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="points-display">120,000<span class="points-unit">积分</span></div>
+                </td>
+                <td>
+                  <span style="color:var(--text-secondary);font-family:"Microsoft YaHei",sans-serif;">180,000</span>
+                </td>
+                <td>
+                  <span style="color:var(--text-secondary);font-family:"Microsoft YaHei",sans-serif;">300,000</span>
+                </td>
+                <td>
+                  <div class="brand-points">
+                    <span class="brand-points-label">1积分 = </span>
+                    <span style="color:var(--text-primary);font-weight:500;">20 汇通币</span>
+                  </div>
+                </td>
+                <td>
+                  <span style="color:var(--text-primary);font-family:"Microsoft YaHei",sans-serif;font-size:14px;font-weight:500;">2,400,000</span>
+                  <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">汇通币</div>
+                </td>
+                <td><span class="status-tag status-active">正常</span></td>
+                <td><span style="color:var(--text-primary);font-size:12px;">陈思远</span><br/><span style="color:var(--text-muted);font-size:12px;">2026-06-17 09:45</span></td>
+                <td>
+                  <div class="actions">
+                    <span class="action-link" onclick="showAddPointsModal('汇通内购平台', 'P2606007')">充值</span>
+                    <span class="action-link" onclick="showPointsSetting('P2606007','汇通内购平台','汇通币','20')">品牌积分配置</span>
+                    <span class="action-link" onclick="showRecords('P2606007')">积分池明细</span>
+                    <span class="action-link" onclick="showProxySend('P2606007')">平台代发</span>
+                    <span class="action-link" style="color:var(--orange);" onclick="freezeMall('P2606007', '汇通内购平台', 'freeze')">冻结</span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 页面底部固定操作栏 -->
+    <div class="page-footer-fixed">
+      <div class="page-footer-left">
+        <button class="btn btn-outline btn-sm" onclick="exportData()">导出勾选</button>
+        <div style="font-size:12px;color:var(--text-muted);" id="selectedCount">已选 0 项</div>
+      </div>
+      <div class="page-footer-right">
+        <div style="font-size:12px;color:var(--text-muted);margin-right:16px;" id="poolTableInfo">共 8 条记录</div>
+        <div class="pagination" id="poolPagination"></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-left:16px;">
+          <span style="font-size:12px;color:var(--text-muted);">每页</span>
+          <select id="pageSizeSelect" onchange="changePageSize()" style="height:28px;padding:0 8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:inherit;background:var(--bg-surface);color:var(--text-primary);cursor:pointer;">
+            <option value="10">10条</option>
+            <option value="20" selected>20条</option>
+            <option value="50">50条</option>
+            <option value="100">100条</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;margin-left:16px;">
+          <span style="font-size:12px;color:var(--text-muted);">跳转至</span>
+          <input type="number" id="jumpPageInput" min="1" max="1" value="1" style="width:56px;height:28px;padding:0 8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:inherit;background:var(--bg-surface);color:var(--text-primary);text-align:center;" onkeydown="if(event.key==='Enter')jumpToPage()"/>
+          <span style="font-size:12px;color:var(--text-muted);">页</span>
+          <button onclick="jumpToPage()" style="height:28px;padding:0 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:inherit;background:var(--bg-surface);color:var(--text-primary);cursor:pointer;">跳转</button>
+        </div>
+      </div>
+</div>
+</div>
+
+	<!-- 充值记录 TAB -->
+	<div class="view" data-view="recharge">
+	  <div class="table-panel">
+	    <div class="filter-bar">
+	      <input type="text" id="fOrder" placeholder="搜索充值单号 / 充值原因 / 凭证编号" oninput="filterRechargeTable()" />
+	      <select id="fMall" onchange="filterRechargeTable()">
+	        <option value="">全部品牌商城</option>
+	        <option value="苏银商城">苏银商城</option>
+	        <option value="泡泡玛特官方商城">泡泡玛特官方商城</option>
+	        <option value="锦程员工福利商城">锦程员工福利商城</option>
+	        <option value="美尚内购商城">美尚内购商城</option>
+	        <option value="锦程积分商城">锦程积分商城</option>
+	      </select>
+	      <span style="font-size:12px;color:var(--text-muted);white-space:nowrap;">充值时间</span>
+	      <div class="date-range">
+	        <input type="date" id="fDateFrom" />
+	        <span class="date-sep">至</span>
+	        <input type="date" id="fDateTo" />
+	      </div>
+	      <button class="btn-filter" onclick="filterRechargeTable()">筛选</button>
+	      <button class="btn-reset" onclick="resetRechargeFilter()">重置</button>
+	    </div>
+
+	    <div class="table-wrap">
+	      <div class="table-scroll">
+	        <table>
+	          <thead>
+	            <tr>
+	              <th style="width:40px;"><input type="checkbox" id="rechargeCheckAll" onchange="toggleRechargeAll(this)" /></th>
+	              <th style="width:160px;">充值单号</th>
+	              <th style="width:130px;">品牌商城</th>
+	              <th style="width:110px;">充值类型</th>
+	              <th style="width:140px;">充值积分</th>
+	              <th style="width:140px;">充值后余额</th>
+	              <th style="width:150px;">凭证编号</th>
+	              <th>充值原因</th>
+	              <th style="width:168px;">操作时间</th>
+	              <th style="width:120px;">操作</th>
+	            </tr>
+	          </thead>
+	          <tbody id="rechargeTableBody"></tbody>
+	        </table>
+	      </div>
+	    </div>
+	  </div>
+
+	  <!-- 页面底部固定操作栏 -->
+	  <div class="page-footer-fixed">
+	    <div class="page-footer-left">
+	      <button class="btn btn-outline btn-sm" onclick="exportRechargeChecked()">导出勾选</button>
+	      <div style="font-size:12px;color:var(--text-muted);" id="rechargeSelectedCount">已选 0 项</div>
+	    </div>
+	    <div class="page-footer-right">
+	      <div style="font-size:12px;color:var(--text-muted);margin-right:16px;" id="rechargeTableInfo">共 8 条记录</div>
+	      <div class="pagination" id="rechargePagination"></div>
+	      <div style="display:flex;align-items:center;gap:8px;margin-left:16px;">
+	        <span style="font-size:12px;color:var(--text-muted);">每页</span>
+	        <select id="rechargePageSizeSelect" onchange="changeRechargePageSize()" style="height:28px;padding:0 8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:inherit;background:var(--bg-surface);color:var(--text-primary);cursor:pointer;">
+	          <option value="10">10条</option>
+	          <option value="20" selected>20条</option>
+	          <option value="50">50条</option>
+	          <option value="100">100条</option>
+	        </select>
+	      </div>
+	      <div style="display:flex;align-items:center;gap:6px;margin-left:16px;">
+	        <span style="font-size:12px;color:var(--text-muted);">跳转至</span>
+	        <input type="number" id="rechargeJumpInput" min="1" max="1" value="1" style="width:56px;height:28px;padding:0 8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:inherit;background:var(--bg-surface);color:var(--text-primary);text-align:center;" onkeydown="if(event.key==='Enter')jumpRechargePage()"/>
+	        <span style="font-size:12px;color:var(--text-muted);">页</span>
+	        <button onclick="jumpRechargePage()" style="height:28px;padding:0 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:inherit;background:var(--bg-surface);color:var(--text-primary);cursor:pointer;">跳转</button>
+	      </div>
+	    </div>
+	  </div>
+	</div>
+
+	<!-- 充值详情已迁移至 21c.积分池明细详情 -->
+
+<!-- 手动充值积分模态框 -->
+<div class="modal-overlay" id="addPointsModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>手动充值积分</h3>
+      <button class="modal-close" onclick="closeAddPointsModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>品牌商城</label>
+        <input type="text" id="mallNameInput" readonly style="background:var(--bg-input);" />
+      </div>
+      <div class="form-group">
+        <label>充值积分数量 *</label>
+        <div class="amount-input-group">
+          <input type="number" id="pointsAmount" placeholder="请输入充值积分数量" min="1" />
+          <span class="unit">积分</span>
+        </div>
+        <div class="form-hint">充值后，品牌商城可使用积分发放卡券</div>
+      </div>
+      <div class="form-group">
+        <label>充值原因 *</label>
+        <textarea id="rechargeReason" placeholder="请输入充值原因（如：线下对公转账）"></textarea>
+      </div>
+      <div class="form-group">
+        <label>凭证编号</label>
+        <input type="text" id="voucherNo" placeholder="选填，如转账流水号" />
+      </div>
+      <div class="form-group">
+        <label>上传凭证（选填）</label>
+        <input type="file" id="voucherFile" accept="image/*,.pdf" style="font-size:12.5px;" />
+        <div class="form-hint">支持上传转账截图/凭证图片/PDF，便于后续核对与追溯；未上传也可提交</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeAddPointsModal()">取消</button>
+      <button class="btn btn-primary" onclick="confirmAddPoints()">确认充值</button>
+    </div>
+  </div>
+</div>
+
+<!-- 冻结确认弹窗 -->
+<div class="modal-overlay" id="freezeModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>冻结积分池</h3>
+      <button class="modal-close" onclick="closeFreezeModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div style="background:var(--orange-bg);border:1px solid var(--orange-border);border-radius:var(--radius-sm);padding:12px;margin-bottom:16px;">
+        <div style="font-size:13px;font-weight:500;color:var(--orange);margin-bottom:4px;">冻结提醒</div>
+        <div style="font-size:12px;color:var(--text-secondary);">冻结后该商城积分池将无法进行积分发放和充值操作，请谨慎操作。</div>
+      </div>
+
+      <div class="form-group">
+        <label>商城名称</label>
+        <input type="text" id="freezeMallName" readonly style="background:var(--bg-input);" />
+      </div>
+      <div class="form-group">
+        <label>品牌商城编码</label>
+        <input type="text" id="freezeMallId" readonly style="background:var(--bg-input);" />
+      </div>
+      <div class="form-group">
+        <label>当前商城积分池余额</label>
+        <input type="text" id="freezeMallBalance" readonly style="background:var(--bg-input);font-family:"Microsoft YaHei",sans-serif;font-weight:600;" />
+      </div>
+      <div class="form-group">
+        <label>冻结原因（必填）</label>
+        <textarea id="freezeReason" placeholder="请填写冻结原因，如：违规操作、账户异常、涉嫌欺诈等"></textarea>
+        <div class="form-hint">冻结原因将记录在操作日志中，后续可查看</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeFreezeModal()">取消</button>
+      <button class="btn btn-orange" onclick="confirmFreeze()">确认冻结</button>
+    </div>
+  </div>
+</div>
+
+<!-- 解冻确认弹窗 -->
+<div class="modal-overlay" id="unfreezeModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>解冻积分池</h3>
+      <button class="modal-close" onclick="closeUnfreezeModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div style="background:var(--green-bg);border:1px solid var(--green-border);border-radius:var(--radius-sm);padding:12px;margin-bottom:16px;">
+        <div style="font-size:13px;font-weight:500;color:var(--green);margin-bottom:4px;">解冻提醒</div>
+        <div style="font-size:12px;color:var(--text-secondary);">解冻后该商城积分池将恢复正常的积分发放和充值操作。</div>
+      </div>
+
+      <div class="form-group">
+        <label>商城名称</label>
+        <input type="text" id="unfreezeMallName" readonly style="background:var(--bg-input);" />
+      </div>
+      <div class="form-group">
+        <label>品牌商城编码</label>
+        <input type="text" id="unfreezeMallId" readonly style="background:var(--bg-input);" />
+      </div>
+      <div class="form-group">
+        <label>当前商城积分池余额</label>
+        <input type="text" id="unfreezeMallBalance" readonly style="background:var(--bg-input);font-family:"Microsoft YaHei",sans-serif;font-weight:600;" />
+      </div>
+      <div class="form-group">
+        <label>冻结时间</label>
+        <input type="text" id="freezeTime" readonly style="background:var(--bg-input);" />
+      </div>
+      <div class="form-group">
+        <label>冻结原因</label>
+        <input type="text" id="freezeReasonHistory" readonly style="background:var(--bg-input);" />
+      </div>
+      <div class="form-group">
+        <label>解冻原因（必填）</label>
+        <textarea id="unfreezeReason" placeholder="请填写解冻原因，如：已整改完成、恢复正常、解除限制等"></textarea>
+        <div class="form-hint">解冻原因将记录在操作日志中，后续可查看</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeUnfreezeModal()">取消</button>
+      <button class="btn btn-green" onclick="confirmUnfreeze()">确认解冻</button>
+    </div>
+  </div>
+</div>
+
+<!-- 积分名称与比例设置 弹窗 -->
+<div class="modal-overlay" id="pointsSettingModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>积分名称与比例设置</h3>
+      <button class="modal-close" onclick="closePointsSetting()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>品牌商城</label>
+        <input type="text" id="psMallName" readonly style="background:var(--bg-input);" />
+      </div>
+      <div class="form-group">
+        <label>积分名称 *</label>
+        <input type="text" id="psPointsName" placeholder="如：苏银豆" oninput="updatePsRatioUnit()" />
+        <div class="form-hint">该品牌商城对外的积分展示名称，用户在商城内看到此名称</div>
+      </div>
+      <div class="form-group">
+        <label>兑换比例 *</label>
+        <div class="amount-input-group">
+          <span class="unit" style="padding-left:12px;">1 平台积分 =</span>
+          <select id="psPointsRatio">
+            <option value="1">1</option>
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="50">50</option>
+            <option value="100" selected>100</option>
+            <option value="500">500</option>
+            <option value="1000">1000</option>
+          </select>
+          <span class="unit" id="psRatioUnit" style="padding-right:12px;">积分</span>
+        </div>
+        <div class="form-hint">品牌商城积分池余额、收支明细及用户积分均以该名称与比例展示</div>
+      </div>
+      <div style="background:var(--blue-bg);border:1px solid var(--blue-border);border-radius:var(--radius-sm);padding:12px;font-size:12px;color:var(--blue);line-height:1.6;">
+        平台设置后同步至品牌商城端；品牌商城运营自助修改后两边同步。
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closePointsSetting()">取消</button>
+      <button class="btn btn-primary" onclick="savePointsSetting()">保存设置</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+function showToast(type, message) {
+  var container = document.getElementById('toastContainer');
+  var toast = document.createElement('div');
+  toast.className = 'toast ' + type;
+  toast.textContent = message;
+  container.appendChild(toast);
+  setTimeout(function() {
+    toast.remove();
+  }, 3000);
+}
+
+function showAddPointsModal(mallName, mallId) {
+  if (typeof mallName === 'string' && typeof mallId === 'string') {
+    document.getElementById('mallNameInput').value = mallName;
+    document.getElementById('mallNameInput').dataset.mallId = mallId;
+  } else {
+    document.getElementById('mallNameInput').value = '';
+    document.getElementById('mallNameInput').dataset.mallId = '';
+  }
+  document.getElementById('addPointsModal').classList.add('open');
+}
+
+function closeAddPointsModal() {
+  document.getElementById('addPointsModal').classList.remove('open');
+  document.getElementById('pointsAmount').value = '';
+  document.getElementById('rechargeReason').value = '';
+  document.getElementById('voucherNo').value = '';
+}
+
+function confirmAddPoints() {
+  var mallName = document.getElementById('mallNameInput').value;
+  var mallId = document.getElementById('mallNameInput').dataset.mallId;
+  var amount = document.getElementById('pointsAmount').value;
+  var reason = document.getElementById('rechargeReason').value;
+  
+  if (!mallName) {
+    showToast('info', '请先选择要充值的品牌商城');
+    return;
+  }
+  if (!amount || parseInt(amount) <= 0) {
+    showToast('info', '请输入有效的充值积分数量');
+    return;
+  }
+  if (!reason.trim()) {
+    showToast('info', '请输入充值原因');
+    return;
+  }
+
+  showToast('success', '已为 ' + mallName + ' 充值 ' + amount + ' 积分');
+  closeAddPointsModal();
+}
+
+function showRecords(mallId) {
+  // 跳转到积分/卡券发放记录页面，携带商城编码参数
+  window.location.href = '10a.商城积分池明细-原型页面.html?mall=' + encodeURIComponent(mallId);
+}
+
+function showProxySend(mallId) {
+  window.location.href = '10c.平台代发-原型页面.html?mallId=' + encodeURIComponent(mallId);
+}
+
+function showPointsSetting(mallId, mallName, curName, curRatio) {
+  document.getElementById('psMallName').value = mallName + '（' + mallId + '）';
+  document.getElementById('psMallName').dataset.mallId = mallId;
+  document.getElementById('psPointsName').value = curName || '';
+  document.getElementById('psPointsRatio').value = curRatio || 1;
+  updatePsRatioUnit();
+  document.getElementById('pointsSettingModal').classList.add('open');
+}
+function closePointsSetting() { document.getElementById('pointsSettingModal').classList.remove('open'); }
+function updatePsRatioUnit() {
+  var name = document.getElementById('psPointsName').value.trim() || '积分';
+  document.getElementById('psRatioUnit').textContent = name;
+}
+function savePointsSetting() {
+  var name = document.getElementById('psPointsName').value.trim();
+  var ratio = document.getElementById('psPointsRatio').value;
+  var mallName = document.getElementById('psMallName').value;
+  if (!name) { showToast('warning', '请输入积分名称'); return; }
+  if (!ratio || parseInt(ratio) <= 0) { showToast('warning', '请输入有效的兑换比例'); return; }
+  closePointsSetting();
+  showToast('success', '已为 ' + mallName + ' 保存：1 平台积分 = ' + ratio + ' ' + name);
+}
+
+// 各品牌商城当前商城积分池余额（按 mallId 查实际余额填入弹窗，避免硬编码）
+var mallBalanceMap = {
+  'P2606001': '150,000',
+  'P2606002': '98,500',
+  'P2606003': '42,000',
+  'P2606004': '75,000',
+  'P2606005': '28,000'
+};
+
+function freezeMall(mallId, mallName, action) {
+  var balance = (mallBalanceMap[mallId] || '0') + ' 积分';
+  if (action === 'freeze') {
+    document.getElementById('freezeMallName').value = mallName;
+    document.getElementById('freezeMallId').value = mallId;
+    document.getElementById('freezeMallBalance').value = balance;
+    document.getElementById('freezeReason').value = '';
+    document.getElementById('freezeModal').classList.add('open');
+  } else if (action === 'unfreeze') {
+    document.getElementById('unfreezeMallName').value = mallName;
+    document.getElementById('unfreezeMallId').value = mallId;
+    document.getElementById('unfreezeMallBalance').value = balance;
+    document.getElementById('freezeTime').value = '2026-06-20 13:50';
+    document.getElementById('freezeReasonHistory').value = '账户异常，涉嫌违规操作';
+    document.getElementById('unfreezeReason').value = '';
+    document.getElementById('unfreezeModal').classList.add('open');
+  }
+}
+
+function closeFreezeModal() {
+  document.getElementById('freezeModal').classList.remove('open');
+}
+
+function closeUnfreezeModal() {
+  document.getElementById('unfreezeModal').classList.remove('open');
+}
+
+function confirmFreeze() {
+  var reason = document.getElementById('freezeReason').value;
+  if (!reason.trim()) {
+    showToast('warning', '请填写冻结原因');
+    return;
+  }
+  closeFreezeModal();
+  showToast('success', '冻结成功，该商城积分池已暂停所有操作');
+}
+
+function confirmUnfreeze() {
+  var reason = document.getElementById('unfreezeReason').value;
+  if (!reason.trim()) {
+    showToast('warning', '请填写解冻原因');
+    return;
+  }
+  closeUnfreezeModal();
+  showToast('success', '解冻成功，该商城积分池已恢复正常操作');
+}
+
+function filterTable() {
+  showToast('info', '演示：执行筛选操作');
+}
+
+function resetFilter() {
+  showToast('info', '演示：重置筛选条件');
+}
+
+function changePageSize() {
+  poolPageSize = parseInt(document.getElementById('pageSizeSelect').value, 10) || 20;
+  poolPage = 1;
+  renderPoolPagination();
+}
+
+/* === 真分页：积分池（静态行 DOM 切片）与充值记录（数据切片）共用页码渲染 === */
+var poolPageSize = 20, poolPage = 1;
+
+function renderPager(elId, page, pages, gotoFn) {
+  var el = document.getElementById(elId); if (!el) return;
+  var h = '<button class="page-btn' + (page <= 1 ? ' disabled' : '') + '" onclick="' + gotoFn + '(' + (page - 1) + ')">‹</button>';
+  var nums = [];
+  if (pages <= 7) { for (var i = 1; i <= pages; i++) nums.push(i); }
+  else {
+    nums.push(1);
+    if (page > 3) nums.push('…');
+    for (var j = Math.max(2, page - 1); j <= Math.min(pages - 1, page + 1); j++) nums.push(j);
+    if (page < pages - 2) nums.push('…');
+    nums.push(pages);
+  }
+  nums.forEach(function (n) {
+    h += n === '…' ? '<span style="padding:0 4px;font-size:12px;color:var(--text-muted);">…</span>' : '<button class="page-btn' + (n === page ? ' active' : '') + '" onclick="' + gotoFn + '(' + n + ')">' + n + '</button>';
+  });
+  h += '<button class="page-btn' + (page >= pages ? ' disabled' : '') + '" onclick="' + gotoFn + '(' + (page + 1) + ')">›</button>';
+  el.innerHTML = h;
+}
+
+function getPoolRows() { return Array.prototype.slice.call(document.querySelectorAll('#poolTableBody > tr')); }
+function renderPoolPagination() {
+  var rows = getPoolRows(), pages = Math.max(1, Math.ceil(rows.length / poolPageSize));
+  if (poolPage > pages) poolPage = pages;
+  rows.forEach(function (r, i) { r.classList.toggle('pg-hide', i < (poolPage - 1) * poolPageSize || i >= poolPage * poolPageSize); });
+  document.getElementById('poolTableInfo').textContent = '共 ' + rows.length + ' 条记录';
+  var ji = document.getElementById('jumpPageInput');
+  if (ji) { ji.setAttribute('max', pages); ji.value = poolPage; }
+  renderPager('poolPagination', poolPage, pages, 'goPoolPage');
+}
+function goPoolPage(p) {
+  var rows = getPoolRows(), pages = Math.max(1, Math.ceil(rows.length / poolPageSize));
+  poolPage = Math.min(Math.max(1, p), pages);
+  renderPoolPagination();
+}
+
+function exportData() {
+  var checked = document.querySelectorAll('.pool-row-check:checked');
+  if (checked.length === 0) {
+    showToast('warning', '请先勾选要导出的商城');
+    return;
+  }
+  showToast('success', '演示：开始导出勾选的 ' + checked.length + ' 条商城积分');
+}
+
+function updatePoolSelectedCount() {
+  var count = document.querySelectorAll('.pool-row-check:checked').length;
+  var el = document.getElementById('selectedCount');
+  if (el) el.textContent = '已选 ' + count + ' 项';
+}
+
+// 积分池全选/反选
+function togglePoolAll(master) {
+  document.querySelectorAll('#poolTableBody > tr:not(.pg-hide) .pool-row-check').forEach(function(cb) {
+    cb.checked = master.checked;
+  });
+  updatePoolSelectedCount();
+}
+
+function updateRechargeSelectedCount() {
+  var count = document.querySelectorAll('.recharge-row-check:checked').length;
+  var el = document.getElementById('rechargeSelectedCount');
+  if (el) el.textContent = '已选 ' + count + ' 项';
+}
+
+// 充值记录全选/反选
+function toggleRechargeAll(master) {
+  document.querySelectorAll('.recharge-row-check').forEach(function(cb) {
+    cb.checked = master.checked;
+  });
+  updateRechargeSelectedCount();
+}
+
+// 充值记录导出勾选
+function exportRechargeChecked() {
+  var checked = document.querySelectorAll('.recharge-row-check:checked');
+  if (checked.length === 0) {
+    showToast('warning', '请先勾选要导出的充值记录');
+    return;
+  }
+  showToast('success', '演示：开始导出勾选的 ' + checked.length + ' 条充值记录');
+}
+
+function jumpToPage() {
+  var input = document.getElementById('jumpPageInput');
+  var page = parseInt(input.value) || 1;
+  goPoolPage(page);
+}
+
+/* === 充值记录表格 === */
+var TYPE_MAP_RECHARGE={operation:{label:'运营充值',cls:'type-operation'}};
+
+var rcPageSize=20,rcPage=1;
+
+var RECHARGE_RECORDS=[
+  {time:'2026-07-01 10:18',orderNo:'J20260701001',mall:'苏银商城',type:'operation',amount:'100,000',after:'250,000',operator:'运营中心-道馨',reason:'三季度营销预算充值，用于下半年员工福利积分发放',voucherNo:'PZ20260701001'},
+  {time:'2026-06-24 08:30',orderNo:'J20260624001',mall:'苏银商城',type:'operation',amount:'100,000',after:'211,700',operator:'运营中心-道馨',reason:'运营中心临时补充积分，应对618大促卡券消耗',voucherNo:'PZ20260624002'},
+  {time:'2026-06-22 15:00',orderNo:'J20260622001',mall:'锦程员工福利商城',type:'operation',amount:'200,000',after:'200,000',operator:'运营中心-道馨',reason:'年度人力资源预算充值，发放员工关怀积分',voucherNo:'PZ20260622003'},
+  {time:'2026-06-21 14:20',orderNo:'J20260621001',mall:'锦程积分商城',type:'operation',amount:'60,000',after:'60,000',operator:'运营中心-道馨',reason:'端午节专项活动充值，用于发放节日福利卡券',voucherNo:'PZ20260621004'},
+  {time:'2026-06-20 09:00',orderNo:'J20260620001',mall:'泡泡玛特官方商城',type:'operation',amount:'80,000',after:'98,500',operator:'运营中心-道馨',reason:'新商城开业首充，用于拉新促活积分活动',voucherNo:'PZ20260620005'},
+  {time:'2026-06-19 10:45',orderNo:'J20260619001',mall:'美尚内购商城',type:'operation',amount:'150,000',after:'150,000',operator:'运营中心-道馨',reason:'季度运营积分补充，满足日常内购积分消耗需求',voucherNo:'PZ20260619006'},
+  {time:'2026-06-18 11:30',orderNo:'J20260618001',mall:'泡泡玛特官方商城',type:'operation',amount:'30,000',after:'18,500',operator:'运营中心-道馨',reason:'618大促返场活动促销积分补充',voucherNo:'PZ20260618007'},
+  {time:'2026-06-15 14:05',orderNo:'J20260615001',mall:'苏银商城',type:'operation',amount:'50,000',after:'150,000',operator:'运营中心-道馨',reason:'618年中大促活动积分补充，应对集中发放需求',voucherNo:'PZ20260615008'},
+  {time:'2026-06-14 10:20',orderNo:'J20260614001',mall:'苏银商城',type:'operation',amount:'40,000',after:'100,000',operator:'运营中心-道馨',reason:'618返场阶段积分追加，保障活动收尾发放',voucherNo:'PZ20260614009'},
+  {time:'2026-06-12 09:15',orderNo:'J20260612001',mall:'锦程积分商城',type:'operation',amount:'25,000',after:'35,000',operator:'运营中心-道馨',reason:'会员日翻倍积分活动预算充值',voucherNo:'PZ20260612010'},
+  {time:'2026-06-10 16:40',orderNo:'J20260610001',mall:'泡泡玛特官方商城',type:'operation',amount:'60,000',after:'68,500',operator:'运营中心-道馨',reason:'新品首发抽签活动积分预算充值',voucherNo:'PZ20260610011'},
+  {time:'2026-06-08 11:05',orderNo:'J20260608001',mall:'美尚内购商城',type:'operation',amount:'35,000',after:'115,000',operator:'运营中心-道馨',reason:'员工内购月度积分定额补充',voucherNo:'PZ20260608012'},
+  {time:'2026-06-05 14:30',orderNo:'J20260605001',mall:'苏银商城',type:'operation',amount:'120,000',after:'60,000',operator:'运营中心-道馨',reason:'二季度员工福利积分批量充值',voucherNo:'PZ20260605013'},
+  {time:'2026-06-02 10:50',orderNo:'J20260602001',mall:'锦程员工福利商城',type:'operation',amount:'90,000',after:'110,000',operator:'运营中心-道馨',reason:'半年度绩效考核奖励积分预算充值',voucherNo:'PZ20260602014'},
+  {time:'2026-05-30 09:35',orderNo:'J20260530001',mall:'苏银商城',type:'operation',amount:'70,000',after:'155,000',operator:'运营中心-道馨',reason:'五一活动积分消耗补充，维持余额充足',voucherNo:'PZ20260530015'},
+  {time:'2026-05-28 15:25',orderNo:'J20260528001',mall:'泡泡玛特官方商城',type:'operation',amount:'45,000',after:'8,500',operator:'运营中心-道馨',reason:'周末促销活动积分紧急补充',voucherNo:'PZ20260528016'},
+  {time:'2026-05-25 11:45',orderNo:'J20260525001',mall:'锦程积分商城',type:'operation',amount:'55,000',after:'10,000',operator:'运营中心-道馨',reason:'积分商城焕新上线推广活动充值',voucherNo:'PZ20260525017'},
+  {time:'2026-05-22 10:10',orderNo:'J20260522001',mall:'美尚内购商城',type:'operation',amount:'65,000',after:'80,000',operator:'运营中心-道馨',reason:'夏季新品内购专享积分预算',voucherNo:'PZ20260522018'},
+  {time:'2026-05-20 14:55',orderNo:'J20260520001',mall:'苏银商城',type:'operation',amount:'80,000',after:'90,000',operator:'运营中心-道馨',reason:'520主题营销活动积分充值',voucherNo:'PZ20260520019'},
+  {time:'2026-05-18 09:40',orderNo:'J20260518001',mall:'锦程员工福利商城',type:'operation',amount:'30,000',after:'20,000',operator:'运营中心-道馨',reason:'员工生日关怀积分月度充值',voucherNo:'PZ20260518020'},
+  {time:'2026-05-15 16:15',orderNo:'J20260515001',mall:'苏银商城',type:'operation',amount:'95,000',after:'140,000',operator:'运营中心-道馨',reason:'五一活动预热期积分储备充值',voucherNo:'PZ20260515021'},
+  {time:'2026-05-12 10:35',orderNo:'J20260512001',mall:'泡泡玛特官方商城',type:'operation',amount:'50,000',after:'63,500',operator:'运营中心-道馨',reason:'母亲节主题礼赠积分活动充值',voucherNo:'PZ20260512022'},
+  {time:'2026-05-10 13:20',orderNo:'J20260510001',mall:'锦程积分商城',type:'operation',amount:'20,000',after:'47,000',operator:'运营中心-道馨',reason:'积分签到活动小额预算补充',voucherNo:'PZ20260510023'},
+  {time:'2026-05-08 09:55',orderNo:'J20260508001',mall:'美尚内购商城',type:'operation',amount:'75,000',after:'15,000',operator:'运营中心-道馨',reason:'劳动节内购专场积分预算充值',voucherNo:'PZ20260508024'},
+  {time:'2026-05-05 15:05',orderNo:'J20260505001',mall:'苏银商城',type:'operation',amount:'110,000',after:'65,000',operator:'运营中心-道馨',reason:'五一黄金周大促积分全额预算充值',voucherNo:'PZ20260505025'},
+  {time:'2026-05-02 10:45',orderNo:'J20260502001',mall:'锦程员工福利商城',type:'operation',amount:'85,000',after:'52,000',operator:'运营中心-道馨',reason:'五四青年节主题福利积分充值',voucherNo:'PZ20260502026'}
+];
+
+function getRechargeFiltered(){
+  var b=(document.getElementById('fOrder').value||'').trim().toLowerCase();
+  var m=document.getElementById('fMall').value;
+  var df=document.getElementById('fDateFrom').value;
+  var dt=document.getElementById('fDateTo').value;
+  return RECHARGE_RECORDS.filter(function(r){
+    if(m&&r.mall!==m)return false;
+    if(df&&r.time.substring(0,10)<df)return false;
+    if(dt&&r.time.substring(0,10)>dt)return false;
+    if(b&&(r.orderNo.toLowerCase().indexOf(b)<0&&r.reason.toLowerCase().indexOf(b)<0&&r.voucherNo.toLowerCase().indexOf(b)<0))return false;
+    return true;
+  });
+}
+function filterRechargeTable(){rcPage=1;renderRechargeTable();}
+function resetRechargeFilter(){
+  ['fOrder','fMall','fDateFrom','fDateTo'].forEach(function(id){document.getElementById(id).value='';});
+  rcPage=1;
+  renderRechargeTable();
+}
+
+function dr(label,value,cls){return '<div class="detail-row"><span class="detail-label">'+label+'</span><span class="detail-value '+(cls||'')+'">'+value+'</span></div>';}
+
+function renderRechargeTable(){
+  var list=getRechargeFiltered();
+  var pages=Math.max(1,Math.ceil(list.length/rcPageSize));
+  if(rcPage>pages)rcPage=pages;
+  var pageList=list.slice((rcPage-1)*rcPageSize,rcPage*rcPageSize);
+  var html='';
+  if(!list.length){
+    html='<tr><td colspan="10" style="text-align:center;padding:40px;color:var(--text-muted);">暂无匹配的充值记录</td></tr>';
+  }else{
+    pageList.forEach(function(r){
+      var ti=TYPE_MAP_RECHARGE[r.type];
+      html+='<tr>'+
+        '<td><input type="checkbox" class="recharge-row-check" onchange="updateRechargeSelectedCount()" /></td>'+
+        '<td><span class="order-no">'+r.orderNo+'</span></td>'+
+        '<td><span style="font-size:12.5px;">'+r.mall+'</span></td>'+
+        '<td><span class="type-tag '+ti.cls+'">'+ti.label+'</span></td>'+
+        '<td><span class="amount-cell">'+r.amount+'</span></td>'+
+        '<td><span class="balance-cell">'+r.after+'</span></td>'+
+        '<td><span class="order-no">'+r.voucherNo+'</span></td>'+
+        '<td><span style="font-size:12.5px;color:var(--text-secondary);">'+r.reason+'</span></td>'+
+        '<td><span style="color:var(--text-primary);font-size:12px;">'+r.operator+'</span><br/><span style="color:var(--text-muted);font-size:12px;">'+r.time+'</span></td>'+
+        '<td><div class="actions"><span class="action-link" onclick="viewRechargeDetail(\''+r.orderNo+'\')">详情</span></div></td>'+
+      '</tr>';
+    });
+  }
+  document.getElementById('rechargeTableBody').innerHTML=html;
+  document.getElementById('rechargeTableInfo').textContent='共 '+list.length+' 条记录';
+  renderPager('rechargePagination',rcPage,pages,'goRechargePage');
+  var rji=document.getElementById('rechargeJumpInput');
+  if(rji){rji.setAttribute('max',pages);rji.value=rcPage;}
+}
+function jumpRechargePage(){
+  var p=parseInt(document.getElementById('rechargeJumpInput').value,10)||1;
+  goRechargePage(p);
+}
+
+function viewRechargeDetail(orderNo){
+  window.location.href='10b.积分池明细详情-原型页面.html?type=recharge-mall&orderNo='+encodeURIComponent(orderNo);
+}
+
+function changeRechargePageSize(){
+  rcPageSize=parseInt(document.getElementById('rechargePageSizeSelect').value,10)||20;
+  rcPage=1;
+  renderRechargeTable();
+}
+function goRechargePage(p){
+  var list=getRechargeFiltered(),pages=Math.max(1,Math.ceil(list.length/rcPageSize));
+  rcPage=Math.min(Math.max(1,p),pages);
+  renderRechargeTable();
+}
+
+// 初始化渲染
+renderPoolPagination();
+renderRechargeTable();
+
+// 点击模态框背景关闭
+document.querySelectorAll('.modal-overlay').forEach(function(o){o.addEventListener('click',function(e){if(e.target===o)o.classList.remove('open');});});
+
+// 额外样式补充
+var style = document.createElement('style');
+style.textContent = '\
+.order-no{font-family:"Microsoft YaHei",sans-serif;font-size:12px;color:var(--blue);font-weight:500;}\n\
+.type-tag{display:inline;font-size:11.5px;font-weight:500;color:var(--text-secondary);white-space:nowrap;}\n\
+.amount-cell{font-family:"Microsoft YaHei",sans-serif;font-size:13px;font-weight:600;color:var(--green);}\n\
+.balance-cell{font-family:"Microsoft YaHei",sans-serif;font-size:12px;color:var(--text-secondary);}\n\
+.detail-section{margin-bottom:20px;}\n\
+.detail-section-title{font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:10px;padding-left:10px;border-left:3px solid var(--accent);}\n\
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 24px;}\n\
+.detail-row{display:flex;padding:7px 0;border-bottom:1px solid var(--border-light);}\n\
+.detail-label{width:90px;font-size:12px;color:var(--text-muted);flex-shrink:0;}\n\
+.detail-value{font-size:13px;color:var(--text-primary);flex:1;word-break:break-all;}\n\
+.detail-value.mono{font-family:"Microsoft YaHei",sans-serif;}\n\
+.date-range{display:flex;align-items:center;gap:6px;}\n\
+.pg-hide{display:none!important;}\n\
+.date-range input{width:140px;}\n\
+.date-range .date-sep{font-size:12px;color:var(--text-muted);}\n\
+';
+document.head.appendChild(style);
+</script>
+
+</body>
+</html>

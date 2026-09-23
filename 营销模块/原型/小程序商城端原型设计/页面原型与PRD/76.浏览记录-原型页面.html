@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>浏览记录 - 苏银豆商城</title>
+<link rel="stylesheet" href="../assets/common.css">
+<style>
+  /* Override page-scroll for this page */
+  .page-scroll {
+    min-height: auto;
+    overflow: visible;
+    padding-bottom: var(--space-lg);
+  }
+
+  /* Header actions - removed from nav bar */
+
+  /* Search bar - sticky below sub-nav */
+  .search-bar {
+    position: sticky;
+    top: 88px;
+    z-index: 99;
+    background: var(--card-bg);
+    padding: var(--space-sm) 12px;
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    border-bottom: 1px solid var(--border-divider);
+  }
+  .search-bar input {
+    flex: 1;
+    background: var(--bg-color);
+    border: none;
+    border-radius: var(--radius-lg);
+    padding: var(--space-sm) 12px;
+    font-size: var(--font-base);
+    outline: none;
+  }
+  .search-bar input::placeholder { color: var(--text-muted); }
+  .search-bar .edit-btn {
+    font-size: var(--font-sm);
+    color: var(--primary-start);
+    cursor: pointer;
+    white-space: nowrap;
+    padding: var(--space-sm) 0;
+  }
+
+  /* Date group */
+  .date-group {
+    margin-bottom: 0;
+  }
+  .date-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-md) 16px;
+    background: var(--bg-color);
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+    position: sticky;
+    top: 136px;
+    z-index: 50;
+  }
+  .date-header .delete-btn {
+    color: var(--primary-start);
+    cursor: pointer;
+    font-size: var(--font-sm);
+  }
+
+  /* Product list */
+  .history-list {
+    background: var(--card-bg);
+  }
+  .history-item {
+    display: flex;
+    gap: var(--space-md);
+    padding: var(--space-md) 16px;
+    border-bottom: 1px solid var(--bg-color);
+    align-items: center;
+    cursor: pointer;
+  }
+  .history-item:last-child { border-bottom: none; }
+  .history-item:active { background: var(--hover-bg); }
+  .history-item.selected { background: var(--selected-bg); }
+
+  .history-checkbox {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--text-disabled);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+  .history-checkbox.checked {
+    background: var(--primary-start);
+    border-color: var(--primary-start);
+  }
+  .history-checkbox.checked::after {
+    content: '';
+    width: 8px;
+    height: 5px;
+    border: 2px solid var(--card-bg);
+    border-top: none;
+    border-right: none;
+    transform: rotate(-45deg);
+    margin-top: -2px;
+  }
+
+  .history-img {
+    width: 72px;
+    height: 72px;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    flex-shrink: 0;
+    background: var(--bg-input);
+  }
+  .history-img img { width: 100%; height: 100%; object-fit: cover; }
+  .history-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+  .history-name {
+    font-size: var(--font-base);
+    color: var(--text-color);
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .history-spec {
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+  }
+  .history-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .history-price {
+    font-size: var(--font-md);
+    font-weight: 600;
+    color: var(--price-color);
+  }
+  .history-time {
+    font-size: var(--font-sm);
+    color: var(--text-muted);
+  }
+
+  /* Edit mode bottom bar */
+  .edit-bar {
+    position: sticky;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--card-bg);
+    padding: var(--space-md) 16px;
+    border-top: 1px solid var(--border-color);
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 200;
+  }
+  .edit-bar.show { display: flex; }
+  .edit-bar .select-all {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-size: var(--font-base);
+    color: var(--text-color);
+    cursor: pointer;
+  }
+  .edit-bar .btn-delete {
+    background: linear-gradient(135deg, var(--primary-start), var(--price-color));
+    color: var(--card-bg);
+    border: none;
+    padding: var(--space-md) 28px;
+    border-radius: var(--radius-xl);
+    font-size: var(--font-base);
+    cursor: pointer;
+  }
+  .edit-bar .btn-delete:active { opacity: 0.85; }
+  .edit-bar .btn-delete:disabled {
+    background: var(--text-light);
+    cursor: not-allowed;
+  }
+
+  /* Empty state */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px var(--space-xl);
+    color: var(--text-tertiary);
+  }
+  .empty-state svg {
+    width: 80px;
+    height: 80px;
+    color: var(--text-disabled);
+    margin-bottom: var(--space-lg);
+  }
+  .empty-state .empty-text { font-size: var(--font-base); margin-bottom: var(--space-lg); }
+  .empty-state .btn-shop {
+    background: linear-gradient(135deg, var(--primary-start), var(--price-color));
+    color: var(--card-bg);
+    border: none;
+    padding: var(--space-md) 28px;
+    border-radius: var(--radius-xl);
+    font-size: var(--font-base);
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<div class="phone-frame">
+
+  <!-- Sub-page Navigation (sticky top:0 from common.css) -->
+  <div class="sub-nav">
+    <div class="status-bar dark">
+      <span class="time">09:41</span>
+      <div class="icons">
+        <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+      </div>
+    </div>
+    <div class="nav-bar">
+      <div class="back-btn" onclick="history.back()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <span class="nav-title">浏览记录</span>
+      <div class="capsule-btn"><img src="../assets/icons/小程序按钮.svg" alt=""></div>
+    </div>
+  </div>
+
+  <!-- Scrollable Content -->
+  <div class="page-scroll">
+
+    <!-- Search (sticky below sub-nav) -->
+    <div class="search-bar">
+      <input type="text" placeholder="搜索浏览记录" id="searchInput">
+      <span class="edit-btn" id="editBtn">管理</span>
+    </div>
+
+    <!-- History Content -->
+    <div id="historyContent"></div>
+
+    <!-- Edit Bar (sticky bottom) -->
+    <div class="edit-bar" id="editBar">
+      <div class="select-all" id="selectAllBtn">
+        <div class="history-checkbox" id="selectAllCheckbox"></div>
+        <span>全选</span>
+      </div>
+      <button class="btn-delete" id="deleteBtn" disabled>删除</button>
+    </div>
+
+  </div><!-- end page-scroll -->
+
+</div>
+<script src="../assets/common.js"></script>
+<script>
+(function() {
+  var historyData = [
+    { id: 1, name: '无线蓝牙降噪耳机 迷你入耳式超长续航', spec: '黑色 标准版', price: 89, img: '../assets/unsplash/1505740420928-5e560c06d30e.jpg', time: '10:35', date: 'today' },
+    { id: 2, name: '日本进口保温杯 不锈钢真空便携水杯', spec: '白色 500ml', price: 68, img: '../assets/unsplash/1602143407151-7111542de6e8.jpg', time: '09:22', date: 'today' },
+    { id: 3, name: '潮流太阳眼镜 防紫外线偏光墨镜', spec: '黑色', price: 79, img: '../assets/unsplash/1572635196237-14b3f281503f.jpg', time: '昨天 18:45', date: 'yesterday' },
+    { id: 4, name: '纯棉短袖T恤男女款 夏季宽松百搭潮流', spec: '白色 L码', price: 39, img: '../assets/unsplash/1521572163474-6864f9cf17ab.jpg', time: '昨天 14:30', date: 'yesterday' },
+    { id: 5, name: '时尚运动鞋 透气网面跑步鞋轻便缓震', spec: '黑色 42码', price: 159, img: '../assets/unsplash/1542291026-7eec264c27ff.jpg', time: '04-06 16:20', date: 'earlier' },
+    { id: 6, name: '精致蛋糕礼盒 手工制作生日庆典甜品', spec: '草莓味 8寸', price: 128, img: '../assets/unsplash/1578985545062-69928b1d9587.jpg', time: '04-05 11:15', date: 'earlier' }
+  ];
+
+  var isEditMode = false;
+  var selectedIds = [];
+  var historyContent = document.getElementById('historyContent');
+  var editBtn = document.getElementById('editBtn');
+  var editBar = document.getElementById('editBar');
+  var selectAllBtn = document.getElementById('selectAllBtn');
+  var selectAllCheckbox = document.getElementById('selectAllCheckbox');
+  var deleteBtn = document.getElementById('deleteBtn');
+
+  function renderHistory(data) {
+    if (data.length === 0) {
+      historyContent.innerHTML = '<div class="empty-state">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>' +
+        '<div class="empty-text">暂无浏览记录</div>' +
+        '<button class="btn-shop" onclick="location.href=\'10.首页-原型页面.html\'">去逛逛</button>' +
+      '</div>';
+      return;
+    }
+
+    var groups = {
+      today: { label: '今天', items: [] },
+      yesterday: { label: '昨天', items: [] },
+      earlier: { label: '更早', items: [] }
+    };
+
+    data.forEach(function(item) {
+      if (groups[item.date]) {
+        groups[item.date].items.push(item);
+      }
+    });
+
+    var html = '';
+    Object.keys(groups).forEach(function(key) {
+      var group = groups[key];
+      if (group.items.length === 0) return;
+
+      html += '<div class="date-group">' +
+        '<div class="date-header">' +
+          '<span>' + group.label + '</span>' +
+          (isEditMode ? '<span class="delete-btn" onclick="deleteGroup(\'' + key + '\')">删除</span>' : '') +
+        '</div>' +
+        '<div class="history-list">';
+
+      group.items.forEach(function(item) {
+        var isSelected = selectedIds.indexOf(item.id) !== -1;
+        html += '<div class="history-item' + (isSelected ? ' selected' : '') + '" data-id="' + item.id + '">' +
+          (isEditMode ? '<div class="history-checkbox' + (isSelected ? ' checked' : '') + '" onclick="toggleSelect(' + item.id + ', event)"></div>' : '') +
+          '<div class="history-img" onclick="' + (isEditMode ? '' : 'location.href=\'21.商品详情-原型页面.html\'') + '">' +
+            '<img src="' + item.img + '" alt="">' +
+          '</div>' +
+          '<div class="history-info" onclick="' + (isEditMode ? 'toggleSelect(' + item.id + ', event)' : 'location.href=\'21.商品详情-原型页面.html\'') + '">' +
+            '<div class="history-name">' + item.name + '</div>' +
+            '<div class="history-spec">' + item.spec + '</div>' +
+            '<div class="history-bottom">' +
+              '<span class="history-price">&yen;' + item.price + '</span>' +
+              '<span class="history-time">' + item.time + '</span>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      });
+
+      html += '</div></div>';
+    });
+
+    historyContent.innerHTML = html;
+  }
+
+  window.toggleSelect = function(id, event) {
+    if (event) event.stopPropagation();
+    var idx = selectedIds.indexOf(id);
+    if (idx === -1) {
+      selectedIds.push(id);
+    } else {
+      selectedIds.splice(idx, 1);
+    }
+    updateSelectUI();
+  };
+
+  window.deleteGroup = function(dateGroup) {
+    if (confirm('确定删除该时间段的所有浏览记录吗？')) {
+      historyData = historyData.filter(function(item) { return item.date !== dateGroup; });
+      renderHistory(historyData);
+    }
+  };
+
+  function updateSelectUI() {
+    renderHistory(historyData);
+    selectAllCheckbox.classList.toggle('checked', selectedIds.length === historyData.length);
+    deleteBtn.disabled = selectedIds.length === 0;
+    deleteBtn.textContent = selectedIds.length > 0 ? '删除(' + selectedIds.length + ')' : '删除';
+  }
+
+  // Edit mode toggle
+  editBtn.addEventListener('click', function() {
+    isEditMode = !isEditMode;
+    selectedIds = [];
+    this.textContent = isEditMode ? '完成' : '管理';
+    editBar.classList.toggle('show', isEditMode);
+    renderHistory(historyData);
+    deleteBtn.disabled = true;
+    deleteBtn.textContent = '删除';
+  });
+
+  // Select all
+  selectAllBtn.addEventListener('click', function() {
+    if (selectedIds.length === historyData.length) {
+      selectedIds = [];
+    } else {
+      selectedIds = historyData.map(function(item) { return item.id; });
+    }
+    updateSelectUI();
+  });
+
+  // Delete
+  deleteBtn.addEventListener('click', function() {
+    if (selectedIds.length === 0) return;
+    if (confirm('确定删除选中的' + selectedIds.length + '条浏览记录吗？')) {
+      historyData = historyData.filter(function(item) { return selectedIds.indexOf(item.id) === -1; });
+      selectedIds = [];
+      renderHistory(historyData);
+      deleteBtn.disabled = true;
+      deleteBtn.textContent = '删除';
+    }
+  });
+
+  // Search
+  document.getElementById('searchInput').addEventListener('input', function() {
+    var keyword = this.value.toLowerCase().trim();
+    if (!keyword) {
+      renderHistory(historyData);
+      return;
+    }
+    var filtered = historyData.filter(function(item) {
+      return item.name.toLowerCase().indexOf(keyword) !== -1;
+    });
+    renderHistory(filtered);
+  });
+
+  renderHistory(historyData);
+})();
+</script>
+<script src="../assets/theme-switcher.js"></script>
+</body>
+</html>

@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>编辑卡券模板 - 商城运营平台</title>
+<style>
+:root {
+  --bg-app:#f4f3f0; --bg-sidebar:#1e1e22; --bg-surface:#ffffff; --bg-hover:#f7f6f4; --bg-input:#f9f8f7;
+  --border:#e6e4e0; --border-light:#f0eeeb;
+  --text-primary:#1a1a1c; --text-secondary:#6b6b70; --text-muted:#99999d; --text-sidebar:#c4c4c9;
+  --accent:#2d2d33; --accent-soft:#f0eeeb;
+  --blue:#2563eb; --blue-bg:#f5f8ff; --blue-border:#d4e0fc;
+  --red:#da3e3a; --red-bg:#fef4f3; --red-border:#fcd9d7;
+  --green:#16a34a; --green-bg:#f4fdf6; --green-border:#c6f0d4;
+  --orange:#d97706; --orange-bg:#fffbf0; --orange-border:#fde8c4;
+  --purple:#7c3aed; --purple-bg:#faf8ff; --purple-border:#e4dcfc;
+  --gray:#6b7280; --gray-bg:#f8f8f7; --gray-border:#e8e6e3;
+  --radius-sm:4px; --radius:8px; --radius-lg:12px;
+  --shadow:0 1px 3px rgba(0,0,0,.06); --shadow-lg:0 4px 16px rgba(0,0,0,.10);
+  --transition:160ms ease;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:"Microsoft YaHei",sans-serif;background:var(--bg-app);color:var(--text-primary);display:flex;min-height:100vh;-webkit-font-smoothing:antialiased;}
+
+/* Sidebar */
+.sidebar{width:232px;min-width:232px;background:var(--bg-sidebar);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;z-index:10;}
+.sidebar-brand{padding:20px 20px 28px;border-bottom:1px solid rgba(255,255,255,.06);}
+.sidebar-brand .logo{font-size:17px;font-weight:600;color:#fff;letter-spacing:-.02em;display:flex;align-items:center;gap:10px;}
+.sidebar-brand .sub{font-size:11px;color:var(--text-sidebar);margin-top:2px;}
+.sidebar-nav{flex:1;padding:12px 10px;display:flex;flex-direction:column;gap:2px;}
+.nav-section-label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.25);padding:14px 10px 6px;display:flex;align-items:center;gap:4px;cursor:pointer;user-select:none;}
+.nav-section-label:hover{color:rgba(255,255,255,.45);}
+.section-arrow{font-size:8px;transition:transform .2s ease;flex-shrink:0;}
+.nav-section.collapsed .section-arrow{transform:rotate(-90deg);}
+.nav-section.collapsed .nav-section-items{display:none;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:6px;color:var(--text-sidebar);font-size:13.5px;cursor:pointer;transition:all var(--transition);text-decoration:none;letter-spacing:.01em;}
+.nav-item:hover{background:rgba(255,255,255,.05);color:#fff;}
+.nav-item.active{background:rgba(255,255,255,.10);color:#fff;font-weight:500;}
+.nav-icon{width:18px;height:18px;opacity:.55;flex-shrink:0;}
+.nav-item.active .nav-icon{opacity:1;}
+.nav-item .badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:600;padding:1px 7px;border-radius:10px;min-width:20px;text-align:center;line-height:18px;}
+
+/* Main */
+.main{flex:1;display:flex;flex-direction:column;min-width:0;}
+.topbar{height:52px;min-height:52px;background:var(--bg-surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 28px;gap:16px;z-index:5;}
+.topbar .breadcrumb{font-size:12.5px;color:var(--text-muted);letter-spacing:.01em;}
+.topbar .breadcrumb a{color:var(--text-muted);text-decoration:none;}
+.topbar .breadcrumb a:hover{color:var(--text-primary);}
+.topbar .breadcrumb span{color:var(--text-primary);font-weight:500;}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:16px;}
+.user-avatar{width:30px;height:30px;border-radius:50%;background:#e6e4e0;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);}
+
+/* Content */
+.content{flex:1;display:flex;flex-direction:column;padding:24px 28px;padding-bottom:70px;max-width:900px;}
+.page-header{margin-bottom:24px;}
+.page-header h1{font-size:22px;font-weight:600;letter-spacing:-.02em;display:flex;align-items:center;gap:10px;}
+.page-header p{font-size:13px;color:var(--text-muted);margin-top:4px;}
+
+/* Form Panel */
+.form-panel{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;}
+.form-section{margin-bottom:32px;padding-bottom:24px;border-bottom:1px solid var(--border);}
+.form-section:last-of-type{margin-bottom:0;padding-bottom:0;border-bottom:none;}
+.form-section-title{font-size:15px;font-weight:600;color:var(--text-primary);margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.form-section-title::before{content:'';width:3px;height:16px;background:var(--accent);border-radius:2px;}
+.form-section-title .section-icon{font-size:11px;color:var(--text-muted);font-weight:400;margin-left:4px;}
+
+/* Form Elements */
+.form-group{margin-bottom:16px;}
+.form-group:last-child{margin-bottom:0;}
+.form-group label{display:block;font-size:12px;color:var(--text-muted);margin-bottom:6px;font-weight:500;}
+.form-group label .required{color:var(--red);margin-left:2px;}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;background:var(--bg-surface);color:var(--text-primary);outline:none;transition:border-color var(--transition);}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--accent);}
+.form-group textarea{resize:vertical;min-height:80px;}
+.form-group input[readonly]{background:var(--bg-input);color:var(--text-muted);cursor:not-allowed;}
+.form-row{display:flex;gap:12px;margin-bottom:16px;}
+.form-row:last-child{margin-bottom:0;}
+.form-row .form-group{flex:1;margin-bottom:0;}
+.form-hint{font-size:11.5px;color:var(--text-muted);margin-top:4px;}
+.form-tip{font-size:11px;color:var(--blue);margin-top:4px;display:flex;align-items:center;gap:4px;}
+.form-tip svg{width:14px;height:14px;flex-shrink:0;}
+
+/* Image Upload */
+.image-upload{width:200px;height:130px;border:1px dashed var(--border);border-radius:var(--radius);position:relative;overflow:hidden;background:var(--bg-input);}
+.image-upload-placeholder{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--text-muted);cursor:pointer;}
+.image-upload-preview{width:100%;height:100%;position:relative;display:none;}
+.image-upload-preview img{width:100%;height:100%;object-fit:cover;display:block;}
+.image-upload-mask{position:absolute;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;gap:14px;opacity:0;transition:opacity var(--transition);}
+.image-upload-preview:hover .image-upload-mask{opacity:1;}
+.image-upload-mask .img-action{color:#fff;font-size:12.5px;cursor:pointer;text-decoration:underline;}
+
+/* Amount Input Group */
+.amount-input-group{display:flex;align-items:center;gap:0;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-surface);overflow:hidden;}
+.amount-input-group:focus-within{border-color:var(--accent);}
+.amount-input-group input{flex:1;border:none !important;background:none !important;padding:10px 12px;font-size:13px;outline:none;border-radius:0 !important;}
+.amount-input-group .unit{font-size:13px;color:var(--text-muted);white-space:nowrap;padding-right:12px;background:var(--bg-input);padding:10px 14px;border-left:1px solid var(--border);}
+
+/* Range Tags */
+.range-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;}
+.range-tag-item{display:inline-flex;align-items:center;padding:4px 12px;border-radius:var(--radius-sm);font-size:11.5px;background:var(--bg-surface);border:1px solid var(--border);cursor:pointer;transition:all var(--transition);user-select:none;}
+.range-tag-item:hover{border-color:var(--accent);}
+.range-tag-item.selected{background:var(--blue-bg);border-color:var(--blue);color:var(--blue);}
+
+/* Radio Group */
+.radio-group{display:flex;gap:20px;margin-top:4px;}
+.radio-option{display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;}
+.radio-option input[type="radio"]{width:auto;cursor:pointer;accent-color:var(--accent);}
+
+/* Checkbox Group */
+.checkbox-option{display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;margin-top:8px;}
+.checkbox-option input[type="checkbox"]{width:auto;cursor:pointer;accent-color:var(--accent);}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;padding:6px 16px;border-radius:var(--radius-sm);font-size:13px;font-family:inherit;cursor:pointer;border:1px solid transparent;transition:all var(--transition);white-space:nowrap;font-weight:500;gap:6px;}
+.btn-outline{border-color:var(--border);color:var(--text-primary);background:var(--bg-surface);}
+.btn-outline:hover{border-color:var(--text-muted);background:var(--bg-hover);}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:300;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--bg-surface);border-radius:var(--radius-lg);width:100%;max-width:480px;box-shadow:var(--shadow-lg);}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);}
+.modal-header h3{font-size:15px;font-weight:600;}
+.modal-close{background:none;border:none;font-size:20px;color:var(--text-muted);cursor:pointer;padding:4px;line-height:1;}
+.modal-close:hover{color:var(--text-primary);}
+.modal-body{padding:20px;}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;padding:14px 20px;border-top:1px solid var(--border);}
+.btn-blue{background:var(--blue);color:#fff;}
+.btn-blue:hover{opacity:.88;}
+.btn-gray{background:var(--gray);color:#fff;}
+.btn-gray:hover{opacity:.88;}
+
+/* Status Tag */
+.status-tag{display:inline-flex;align-items:center;padding:3px 12px;border-radius:100px;font-size:12px;font-weight:500;white-space:nowrap;border:1px solid transparent;}
+.status-published{background:var(--green-bg);color:var(--green);border-color:var(--green-border);}
+.status-draft{background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border);}
+.status-pending{background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border);}
+
+/* Form Footer */
+.form-footer{display:flex;align-items:center;justify-content:space-between;margin-top:24px;padding-top:20px;border-top:1px solid var(--border);}
+.form-footer .btn-group{display:flex;gap:8px;}
+
+/* Summary Card */
+.summary-card{background:var(--blue-bg);border:1px solid var(--blue-border);border-radius:var(--radius);padding:14px 18px;margin-top:16px;display:flex;align-items:center;gap:12px;}
+.summary-card svg{width:20px;height:20px;color:var(--blue);flex-shrink:0;}
+.summary-card .summary-text{font-size:12.5px;color:var(--blue);line-height:1.6;}
+
+/* Conditional Container */
+.conditional-fields{display:none;margin-top:14px;padding:14px;background:var(--bg-input);border-radius:var(--radius);border:1px solid var(--border);}
+
+/* Toast */
+.toast-container{position:fixed;top:24px;right:24px;z-index:400;display:flex;flex-direction:column;gap:8px;}
+.toast{background:var(--bg-sidebar);color:#fff;padding:12px 18px;border-radius:var(--radius);font-size:13px;box-shadow:var(--shadow-lg);}
+.toast.success{border-left:3px solid var(--green);}
+.toast.info{border-left:3px solid var(--blue);}
+</style>
+</head>
+<body>
+
+<aside class="sidebar" id="app-sidebar" data-nav-active="coupon-template"></aside>
+<script src="../assets/common-sidebar.js"></script>
+
+<div class="main">
+  <div class="topbar">
+    <div class="breadcrumb">
+      <a href="11.卡券模板列表-原型页面.html">积分卡券</a> /
+      <a href="11.卡券模板列表-原型页面.html">卡券模板列表</a> /
+      <span id="breadcrumbTitle">新建卡券模板</span>
+    </div>
+    <div class="topbar-right">
+      <span style="font-size:12px;color:var(--text-muted);">运营专员 道馨</span>
+      <div class="user-avatar">道</div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="page-header">
+      <h1 id="pageTitle">
+        新建卡券模板
+        <span class="status-tag status-draft" id="headerStatusTag" style="display:none;">草稿</span>
+      </h1>
+      <p id="pageSubtitle">创建新的卡券模板，配置面值、有效期、使用范围等参数</p>
+    </div>
+
+    <div class="form-panel">
+      <!-- Section 1: 基本信息 -->
+      <div class="form-section">
+        <div class="form-section-title">基本信息</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>模板名称 <span class="required">*</span></label>
+            <input type="text" id="templateName" placeholder="请输入模板名称，如「双11满减券」「5元购物券」" maxlength="50" />
+            <div class="form-hint">最多 50 个字，品牌商城发放时可自定义卡券展示名称</div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>模板类型 <span class="required">*</span></label>
+            <select id="templateType" onchange="updateTypeFields()">
+              <option value="">请选择卡券类型</option>
+              <option value="coupon">优惠券</option>
+              <option value="fullminus">满减券</option>
+              <option value="discount">折扣券</option>
+              <option value="ticket">商品次卡</option>
+              <option value="gift">礼品卡</option>
+              <option value="points">积分卡</option>
+            </select>
+            <div class="form-hint">选择模板类型后将展示对应的面值配置项。创建后不可修改类型。积分卡发放给用户，存在有效期（平台品牌积分本身无有效期）。</div>
+          </div>
+          <div class="form-group" id="statusGroup" style="display:none;">
+            <label>模板状态</label>
+            <select id="templateStatus" disabled>
+              <option value="draft">草稿</option>
+              <option value="pending">待审核</option>
+              <option value="published">已发布</option>
+            </select>
+            <div class="form-hint">状态由系统流转：草稿→提交审核→待审核→审核通过自动发布，不支持手动修改。</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>卡券封面图 <span style="color:var(--text-muted);font-weight:400;">(选填)</span></label>
+          <div class="image-upload" id="imageUpload">
+            <div class="image-upload-placeholder" id="imagePlaceholder" onclick="document.getElementById('imageFile').click()">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              <div style="font-size:13px;color:var(--text-primary);">点击上传卡券封面图</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">建议尺寸 600×400，jpg/png，≤2MB</div>
+            </div>
+            <div class="image-upload-preview" id="imagePreview">
+              <img id="previewImg" src="" alt="卡券封面" />
+              <div class="image-upload-mask">
+                <span class="img-action" onclick="replaceImage(event)">更换</span>
+                <span class="img-action" style="color:#fecaca;" onclick="removeImage(event)">删除</span>
+              </div>
+            </div>
+            <input type="file" id="imageFile" accept="image/*" style="display:none;" onchange="previewImage(this)" />
+          </div>
+          <div class="form-hint">用于 C 端卡券展示封面；不上传则使用卡券类型默认图标</div>
+        </div>
+        <div class="form-group">
+          <label>使用说明 <span style="color:var(--text-muted);font-weight:400;">(选填)</span></label>
+          <textarea id="templateUsageNote" placeholder="选填，C端展示规则说明，如「仅限双11活动期间使用，不可与其他优惠叠加」" maxlength="200"></textarea>
+          <div class="form-hint">最多 200 字，用于 C 端用户查看卡券时的规则说明</div>
+        </div>
+      </div>
+
+      <!-- Section 2: 卡券面值设置 (动态) -->
+      <div class="form-section">
+        <div class="form-section-title">卡券面值设置 <span class="section-icon">— 根据卡券类型配置</span></div>
+
+        <!-- 优惠券 -->
+        <div id="fieldsCoupon" class="type-fields" style="display:none;">
+          <div class="form-group">
+            <label>优惠类型 <span class="required">*</span></label>
+            <div class="radio-group" id="couponTypeGroup">
+              <label class="radio-option">
+                <input type="radio" name="couponType" value="fixed" checked onchange="updateCouponSubFields()" />
+                固定金额
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="couponType" value="discount" onchange="updateCouponSubFields()" />
+                折扣
+              </label>
+            </div>
+          </div>
+          <div class="form-row" id="couponFixedFields">
+            <div class="form-group">
+              <label>优惠金额 <span class="required">*</span></label>
+              <div class="amount-input-group">
+                <input type="number" id="couponValue" placeholder="请输入优惠金额" min="1" />
+                <span class="unit">元</span>
+              </div>
+              <div class="form-hint">每张卡券的固定优惠金额</div>
+            </div>
+            <div class="form-group">
+              <label>最高优惠金额</label>
+              <div class="amount-input-group">
+                <input type="number" id="couponMaxDiscount" placeholder="不填则无上限" min="0" />
+                <span class="unit">元</span>
+              </div>
+              <div class="form-hint">留空表示不限最高优惠金额</div>
+            </div>
+          </div>
+          <div id="couponDiscountFields" style="display:none;">
+            <div class="form-row">
+              <div class="form-group">
+                <label>折扣率 <span class="required">*</span></label>
+                <div class="amount-input-group">
+                  <input type="number" id="couponDiscountRate" placeholder="如8折输入 80" min="1" max="99" />
+                  <span class="unit">%</span>
+                </div>
+                <div class="form-hint">如 8 折请输入 80，9.5 折请输入 95</div>
+              </div>
+              <div class="form-group">
+                <label>最高优惠金额</label>
+                <div class="amount-input-group">
+                  <input type="number" id="couponMaxDiscount2" placeholder="不填则无上限" min="0" />
+                  <span class="unit">元</span>
+                </div>
+                <div class="form-hint">折扣券最高可优惠的金额上限</div>
+              </div>
+            </div>
+          </div>
+          <div class="form-hint" style="margin-top:10px;color:var(--text-muted);">该券仅支持单张使用，不可与其他优惠券叠加（与积分可叠加，不受此限）</div>
+        </div>
+
+        <!-- 满减券 -->
+        <div id="fieldsFullminus" class="type-fields" style="display:none;">
+          <div class="form-row">
+            <div class="form-group">
+              <label>满减门槛 <span class="required">*</span></label>
+              <div class="amount-input-group">
+                <input type="number" id="fullminusThreshold" placeholder="请输入满减门槛" min="1" />
+                <span class="unit">元</span>
+              </div>
+              <div class="form-hint">订单金额需达到此额度才能使用该券</div>
+            </div>
+            <div class="form-group">
+              <label>减免金额 <span class="required">*</span></label>
+              <div class="amount-input-group">
+                <input type="number" id="fullminusValue" placeholder="请输入减免金额" min="1" />
+                <span class="unit">元</span>
+              </div>
+              <div class="form-hint">满足门槛后减免的金额</div>
+            </div>
+          </div>
+          <div class="checkbox-option">
+            <input type="checkbox" id="fullminusLadder" onchange="toggleLadderFields()" />
+            <label for="fullminusLadder">是否阶梯满减</label>
+            <span style="font-size:11.5px;color:var(--text-muted);margin-left:4px;">勾选后可配置多档满减规则</span>
+          </div>
+          <div id="ladderFields" style="display:none;">
+            <div class="form-tip" style="margin-top:10px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              阶梯满减配置将在后续版本支持，当前版本仅支持单档满减
+            </div>
+          </div>
+        </div>
+
+        <!-- 折扣券 -->
+        <div id="fieldsDiscount" class="type-fields" style="display:none;">
+          <div class="form-row">
+            <div class="form-group">
+              <label>折扣率 <span class="required">*</span></label>
+              <div class="amount-input-group">
+                <input type="number" id="discountRate" placeholder="如8折输入 80" min="1" max="99" step="0.1" />
+                <span class="unit">%</span>
+              </div>
+              <div class="form-hint">折扣比例，如 8 折请输入 80，9.5 折请输入 95</div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>最高优惠金额</label>
+              <div class="amount-input-group">
+                <input type="number" id="discountMaxDiscount" placeholder="不填则无上限" min="0" />
+                <span class="unit">元</span>
+              </div>
+              <div class="form-hint">单次使用该折扣券最高可优惠的金额</div>
+            </div>
+            <div class="form-group">
+              <label>最低消费金额</label>
+              <div class="amount-input-group">
+                <input type="number" id="discountMinConsumption" placeholder="不填则无限制" min="0" />
+                <span class="unit">元</span>
+              </div>
+              <div class="form-hint">使用该折扣券的最低订单金额要求</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 商品次卡（仅支持固定次数） -->
+        <div id="fieldsTicket" class="type-fields" style="display:none;">
+          <div class="form-row">
+            <div class="form-group">
+              <label>可用次数 <span class="required">*</span></label>
+              <div class="amount-input-group">
+                <input type="number" id="ticketTimes" placeholder="请输入可用次数" min="1" />
+                <span class="unit">次</span>
+              </div>
+              <div class="form-hint">卡券可使用的总次数（商品次卡仅支持固定次数）</div>
+            </div>
+            <div class="form-group">
+              <label>每次积分值 <span class="required">*</span></label>
+              <div class="amount-input-group">
+                <input type="number" id="ticketPoints" placeholder="请输入每次积分值" min="1" />
+                <span class="unit">积分</span>
+              </div>
+              <div class="form-hint">每次使用消耗的积分数量</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 礼品卡 -->
+        <div id="fieldsGift" class="type-fields" style="display:none;">
+          <div class="form-row">
+            <div class="form-group">
+              <label>面值金额 <span class="required">*</span></label>
+              <div class="amount-input-group">
+                <input type="number" id="giftAmount" placeholder="请输入面值金额" min="1" />
+                <span class="unit">元</span>
+              </div>
+              <div class="form-hint">礼品卡面值金额，余额可跨订单拆分消费，支持多卡叠加使用</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 积分卡 -->
+        <div id="fieldsPoints" class="type-fields" style="display:none;">
+          <div class="form-row">
+            <div class="form-group">
+              <label>积分面值 <span class="required">*</span></label>
+              <div class="amount-input-group">
+                <input type="number" id="pointsValue" placeholder="请输入每张积分卡含积分值" min="1" />
+                <span class="unit">积分/张</span>
+              </div>
+              <div class="form-hint">每张积分卡充入用户账户的积分数量；积分卡发放给用户后按下方有效期到期</div>
+            </div>
+          </div>
+          <div class="summary-card" style="background:var(--orange-bg);border-color:var(--orange-border);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--orange);">
+              <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+            </svg>
+            <div class="summary-text" style="color:var(--orange);">
+              积分卡发放给用户后<strong>存在有效期</strong>（按下方发放后有效天数 / 有效时长到期）；商城平台品牌积分本身<strong>无有效期</strong>。
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 3: 有效期设置 -->
+      <div class="form-section">
+        <div class="form-section-title">有效期设置</div>
+        <div class="form-hint" style="margin-bottom:16px;color:var(--text-muted);">卡券有两个有效期阶段：发放有效期（卡券发放后多久内可兑换），使用有效期（兑换到账户后多久内可使用）</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>发放后有效天数 <span class="required">*</span></label>
+            <div class="amount-input-group">
+              <input type="number" id="validityDays" placeholder="请输入天数" min="1" value="30" />
+              <span class="unit">天</span>
+            </div>
+            <div class="form-hint">卡券发放后，用户需在此天数内完成兑换领取，逾期卡券自动作废</div>
+          </div>
+          <div class="form-group">
+            <label>有效时长 <span class="required">*</span></label>
+            <div class="amount-input-group" id="redeemDaysCustom">
+              <input type="number" id="validityRedeemDays" placeholder="请输入天数" min="0" value="7" />
+              <span class="unit">天</span>
+            </div>
+            <select id="validityRedeemPoints" style="display:none;">
+              <option value="365">1年</option>
+              <option value="730">2年</option>
+              <option value="1095">3年</option>
+              <option value="0">无</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 4: 兑换设置 -->
+      <div class="form-section">
+        <div class="form-section-title">兑换设置</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>兑换所需积分 <span class="required">*</span></label>
+            <div class="amount-input-group">
+              <input type="number" id="exchangePoints" placeholder="请输入兑换所需积分" min="1" />
+              <span class="unit">积分/张</span>
+            </div>
+          </div>
+        </div>
+        <div class="summary-card">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="16" x2="12" y2="12"/>
+            <line x1="12" y1="8" x2="12.01" y2="8"/>
+          </svg>
+          <div class="summary-text">
+            品牌商城生成一张此卡券需消耗指定积分。<br>
+            <strong>消耗积分 = 兑换所需积分 × 生成数量</strong>。限制越多（如短有效期、限品类），兑换所需积分可设越低。<br>
+            例：100积分面值卡（全场通用+365天）→ 兑换所需积分 100；同面值（限品类+30天）→ 兑换所需积分 80。
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 5: 商品限制 -->
+      <div class="form-section">
+        <div class="form-section-title">商品限制</div>
+
+        <!-- 自营商品使用范围 -->
+        <div class="form-group">
+          <label>自营商品使用范围 <span class="required">*</span></label>
+          <div class="range-tags" id="rangeTags">
+            <div class="range-tag-item selected" data-value="general" onclick="selectRange(this)">通兑</div>
+            <div class="range-tag-item" data-value="category" onclick="selectRange(this)">指定商品分类</div>
+            <div class="range-tag-item" data-value="product" onclick="selectRange(this)">指定单品</div>
+            <div class="range-tag-item" data-value="brand" onclick="selectRange(this)">指定品牌</div>
+            <div class="range-tag-item" data-value="none" onclick="selectRange(this)">不支持自营</div>
+          </div>
+          <div class="form-hint">自营商品五选一：通兑、指定商品分类、指定单品、指定品牌、不支持自营，互斥单选。选"不支持自营"时，第三方范围必填。</div>
+        </div>
+
+        <!-- 指定商品分类子选项 -->
+        <div class="conditional-fields" id="rangeCategoryFields">
+          <div class="form-group">
+            <label>选择商品分类</label>
+            <div class="range-tags" id="categoryTags">
+              <div class="range-tag-item" onclick="this.classList.toggle('selected')">手机品类</div>
+              <div class="range-tag-item" onclick="this.classList.toggle('selected')">电脑数码</div>
+              <div class="range-tag-item" onclick="this.classList.toggle('selected')">家用电器</div>
+              <div class="range-tag-item" onclick="this.classList.toggle('selected')">生活用品</div>
+              <div class="range-tag-item" onclick="this.classList.toggle('selected')">食品饮料</div>
+              <div class="range-tag-item" onclick="this.classList.toggle('selected')">美妆护肤</div>
+              <div class="range-tag-item" onclick="this.classList.toggle('selected')">服饰鞋包</div>
+              <div class="range-tag-item" onclick="this.classList.toggle('selected')">礼品卡</div>
+            </div>
+            <div class="form-hint">可多选，点击切换选中状态</div>
+          </div>
+        </div>
+
+        <!-- 指定单品子选项 -->
+        <div class="conditional-fields" id="rangeProductFields">
+          <div class="form-group">
+            <label>商品 ID（可选多个，逗号分隔）</label>
+            <input type="text" id="productIds" placeholder="如：PROD-001, PROD-002" />
+            <div class="form-hint">输入商品ID，多个以英文逗号分隔。卡券仅限指定单品使用。</div>
+          </div>
+        </div>
+
+        <!-- 指定品牌子选项 -->
+        <div class="conditional-fields" id="rangeBrandFields">
+          <div class="form-group">
+            <label>选择品牌</label>
+            <div class="range-tags" id="brandTags">
+              <div class="range-tag-item" onclick="this.classList.toggle('selected')">苏银</div>
+              <div class="range-tag-item" onclick="this.classList.toggle('selected')">华为</div>
+              <div class="range-tag-item" onclick="this.classList.toggle('selected')">小米</div>
+              <div class="range-tag-item" onclick="this.classList.toggle('selected')">苹果</div>
+              <div class="range-tag-item" onclick="this.classList.toggle('selected')">美的</div>
+              <div class="range-tag-item" onclick="this.classList.toggle('selected')">海尔</div>
+            </div>
+            <div class="form-hint">可多选，选择可使用此模板的品牌</div>
+          </div>
+        </div>
+
+        <!-- 第三方商品使用范围 -->
+        <div class="form-group" style="margin-top:20px;">
+          <label>第三方商品使用范围 <span style="color:var(--text-muted);font-weight:400;">(选填)</span></label>
+          <div class="range-tags" id="thirdpartyTags">
+            <div class="range-tag-item" data-value="movie" onclick="selectThirdparty(this)">电影票</div>
+            <div class="range-tag-item" data-value="cake" onclick="selectThirdparty(this)">蛋糕叔叔</div>
+          </div>
+          <div class="form-hint">可选，配置后卡券也可用于指定第三方服务商品；与自营商品范围独立，可同时配置。</div>
+        </div>
+      </div>
+
+      <!-- Section 6: 授权范围 -->
+      <div class="form-section">
+        <div class="form-section-title">授权范围</div>
+        <div class="checkbox-option" style="margin-top:0;">
+          <input type="checkbox" id="brandVisible" />
+          <label for="brandVisible">品牌商城可用</label>
+        </div>
+        <div class="form-hint">勾选后，该模板展示在各品牌商城端的「卡券列表」中，品牌商城可使用它发放卡券；都不勾选则仅平台运营可用（如平台代发等）。</div>
+        <div class="checkbox-option">
+          <input type="checkbox" id="allowComplaint" />
+          <label for="allowComplaint">客诉可用</label>
+        </div>
+        <div class="form-hint">勾选后，该模板可用于客服补偿/售后赔付（平台补偿）发放，出现在「客诉补偿管理 → 发起补偿」的可选模板中。</div>
+      </div>
+
+      <!-- Form Footer -->
+      <div class="form-footer">
+        <div class="btn-group">
+          <button class="btn btn-gray" onclick="saveTemplate('draft')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+            保存草稿
+          </button>
+          <button class="btn btn-blue" onclick="submitForApproval()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+            提交审核
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 提交审核确认弹窗 -->
+<div class="modal-overlay" id="approvalSubmitModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>提交审核</h3>
+      <button class="modal-close" onclick="closeApprovalSubmitModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;" id="approvalSubmitText"></p>
+      <div style="margin-top:16px;padding:12px;background:var(--orange-bg);border:1px solid var(--orange-border);border-radius:var(--radius-sm);font-size:12px;color:var(--orange);line-height:1.6;">
+        模板提交后进入审核流程，审核通过后自动发布。审核期间可在审批系统中查看进度，驳回后可修改重新提交。
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeApprovalSubmitModal()">取消</button>
+      <button class="btn btn-blue" onclick="confirmSubmitApproval()">确认提交</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ===== 卡券封面图上传 =====
+function previewImage(input){
+  var file=input.files[0];
+  if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    document.getElementById('previewImg').src=e.target.result;
+    document.getElementById('imagePreview').style.display='block';
+    document.getElementById('imagePlaceholder').style.display='none';
+  };
+  reader.readAsDataURL(file);
+}
+function removeImage(e){
+  if(e)e.stopPropagation();
+  document.getElementById('imageFile').value='';
+  document.getElementById('previewImg').src='';
+  document.getElementById('imagePreview').style.display='none';
+  document.getElementById('imagePlaceholder').style.display='flex';
+}
+function replaceImage(e){
+  if(e)e.stopPropagation();
+  document.getElementById('imageFile').click();
+}
+
+// ===== 演示数据 =====
+var DEMO_TEMPLATES = {
+  'M00001': {
+    name: '标准积分卡', type: 'points', usageNote: '适用于全平台积分发放，不可与其他优惠叠加使用',
+    pointsValue: 100,
+    validityDays: 30, validityRedeemDays: 0,
+    exchangePoints: 100,
+    useRange: 'all', useRangeDetail: '',
+    status: 'published',
+    allowComplaint: false
+  },
+  'M00003': {
+    name: '5元购物券', type: 'coupon', usageNote: '适用于全场商品购物抵扣，不可与其他优惠券叠加使用',
+    couponType: 'fixed', couponValue: 5, couponMaxDiscount: '',
+    validityDays: 30, validityRedeemDays: 7,
+    exchangePoints: 5,
+    useRange: 'all', useRangeDetail: '',
+    status: 'published',
+    allowComplaint: true
+  },
+  'M00005': {
+    name: '满200减50券', type: 'fullminus', usageNote: '适用于大额购物场景',
+    fullminusThreshold: 200, fullminusValue: 50, ladder: false,
+    validityDays: 15, validityRedeemDays: 7,
+    exchangePoints: 45,
+    useRange: 'all', useRangeDetail: '',
+    status: 'published'
+  },
+  'M00007': {
+    name: '手机专属8折券', type: 'discount', usageNote: '仅限手机品类使用，最高可优惠50元',
+    discountRate: 80, discountMaxDiscount: 50, discountMinConsumption: 0,
+    validityDays: 10, validityRedeemDays: 3,
+    exchangePoints: 80,
+    useRange: 'category', useRangeDetail: '手机品类',
+    status: 'published'
+  },
+  'M00008': {
+    name: '电影票次卡', type: 'ticket', usageNote: '适用于电影票兑换，支持全部影院和全部影片类型',
+    ticketTimes: 3, ticketPoints: 30,
+    validityDays: 60, validityRedeemDays: 0,
+    exchangePoints: 90,
+    useRange: 'category', useRangeDetail: '电影票兑换',
+    status: 'published',
+    brandVisible: false
+  },
+  'M00006': {
+    name: '满100减20券', type: 'fullminus', usageNote: '适用于中小额购物场景',
+    fullminusThreshold: 100, fullminusValue: 20, ladder: false,
+    validityDays: 20, validityRedeemDays: 7,
+    exchangePoints: 18,
+    useRange: 'all', useRangeDetail: '',
+    status: 'draft'
+  },
+  'M00010': {
+    name: '蛋糕叔叔礼品卡', type: 'gift', usageNote: '适用于蛋糕叔叔品牌商品，余额可跨订单拆分消费，支持多卡叠加使用',
+    giftAmount: 200,
+    validityDays: 90, validityRedeemDays: 0,
+    exchangePoints: 200,
+    useRange: 'none', useRangeDetail: '',
+    status: 'published',
+    allowComplaint: false
+  }
+};
+
+// ===== 工具函数 =====
+function getUrlParam(name) {
+  var reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)');
+  var r = window.location.search.substr(1).match(reg);
+  if (r != null) return decodeURIComponent(r[2]);
+  return null;
+}
+
+function showToast(type, message) {
+  var container = document.getElementById('toastContainer');
+  var toast = document.createElement('div');
+  toast.className = 'toast ' + type;
+  toast.textContent = message;
+  container.appendChild(toast);
+  setTimeout(function() { toast.remove(); }, 3000);
+}
+
+// ===== 类型字段切换 =====
+function updateTypeFields() {
+  var type = document.getElementById('templateType').value;
+
+  // 隐藏所有类型字段
+  var allFields = document.querySelectorAll('.type-fields');
+  allFields.forEach(function(el) { el.style.display = 'none'; });
+
+  // 显示对应类型字段
+  var fieldMap = {
+    'coupon': 'fieldsCoupon',
+    'fullminus': 'fieldsFullminus',
+    'discount': 'fieldsDiscount',
+    'ticket': 'fieldsTicket',
+    'gift': 'fieldsGift',
+    'points': 'fieldsPoints'
+  };
+  if (fieldMap[type]) {
+    document.getElementById(fieldMap[type]).style.display = 'block';
+  }
+
+  // 更新优惠券子字段
+  if (type === 'coupon') {
+    updateCouponSubFields();
+  }
+
+  // 积分卡兑换后有效期为下拉档位（1年/2年/3年/无），其他类型为自定义天数
+  var isPointsType = (type === 'points');
+  document.getElementById('redeemDaysCustom').style.display = isPointsType ? 'none' : 'flex';
+  document.getElementById('validityRedeemPoints').style.display = isPointsType ? 'block' : 'none';
+}
+
+function updateCouponSubFields() {
+  var couponType = document.querySelector('input[name="couponType"]:checked');
+  var isFixed = couponType && couponType.value === 'fixed';
+  document.getElementById('couponFixedFields').style.display = isFixed ? 'flex' : 'none';
+  document.getElementById('couponDiscountFields').style.display = isFixed ? 'none' : 'block';
+}
+
+function toggleLadderFields() {
+  var checked = document.getElementById('fullminusLadder').checked;
+  document.getElementById('ladderFields').style.display = checked ? 'block' : 'none';
+}
+
+// ===== 使用范围切换 =====
+function selectRange(element) {
+  // 自营商品使用范围四选一：点击任意一个，取消其他全部
+  document.querySelectorAll('#rangeTags .range-tag-item').forEach(function(tag) {
+    tag.classList.remove('selected');
+  });
+  element.classList.add('selected');
+  updateUseRangeFields();
+}
+
+function selectThirdparty(element) {
+  // 第三方商品单选：点击任意一个，取消同组其他
+  document.querySelectorAll('#thirdpartyTags .range-tag-item').forEach(function(tag) {
+    tag.classList.remove('selected');
+  });
+  element.classList.add('selected');
+}
+
+function updateUseRangeFields() {
+  // 隐藏自营商品的条件字段
+  ['rangeCategoryFields','rangeProductFields','rangeBrandFields'].forEach(function(id) {
+    document.getElementById(id).style.display = 'none';
+  });
+
+  // 自营范围（四选一）对应条件字段
+  var baseMap = {'category':'rangeCategoryFields','product':'rangeProductFields','brand':'rangeBrandFields'};
+  var baseTag = document.querySelector('#rangeTags .range-tag-item.selected');
+  if (baseTag && baseMap[baseTag.getAttribute('data-value')]) {
+    document.getElementById(baseMap[baseTag.getAttribute('data-value')]).style.display = 'block';
+  }
+}
+
+// ===== 加载模板数据（编辑模式） =====
+function loadTemplateData(templateId, isCopy) {
+  var data = DEMO_TEMPLATES[templateId];
+  if (!data) return;
+
+  // 基本信息
+  document.getElementById('templateName').value = isCopy ? data.name + ' (副本)' : data.name;
+  document.getElementById('templateType').value = data.type;
+  document.getElementById('templateUsageNote').value = data.usageNote || '';
+
+  // 类型设为只读（编辑模式）
+  if (!isCopy && templateId) {
+    document.getElementById('templateType').disabled = true;
+    var typeNote = document.createElement('div');
+    typeNote.className = 'form-hint';
+    typeNote.textContent = '模板类型创建后不可修改';
+    typeNote.style.color = 'var(--orange)';
+    document.getElementById('templateType').parentElement.appendChild(typeNote);
+  }
+
+  // 显示状态选择（编辑模式）：编辑即处于草稿态（已发布需先停用转草稿才能编辑）
+  document.getElementById('statusGroup').style.display = 'block';
+  document.getElementById('templateStatus').value = 'draft';
+  updateHeaderStatus('draft');
+
+  // 显示类型字段并填充
+  updateTypeFields();
+  fillTypeFields(data);
+
+  // 有效期
+  document.getElementById('validityDays').value = data.validityDays || 30;
+  document.getElementById('validityRedeemDays').value = data.validityRedeemDays || 0;
+  // 积分卡兑换后有效期下拉回填
+  if (data.type === 'points') {
+    var pv = String(data.validityRedeemDays != null ? data.validityRedeemDays : 0);
+    document.getElementById('validityRedeemPoints').value = (['365','730','1095','0'].indexOf(pv) >= 0) ? pv : '0';
+  }
+
+  // 兑换
+  document.getElementById('exchangePoints').value = data.exchangePoints;
+
+  // 使用范围
+  fillUseRange(data);
+
+  // 使用范围
+  document.getElementById('brandVisible').checked = data.brandVisible !== false;
+  document.getElementById('allowComplaint').checked = data.allowComplaint === true;
+}
+
+function fillTypeFields(data) {
+  switch (data.type) {
+    case 'coupon':
+      var couponTypeRadio = document.querySelector('input[name="couponType"][value="' + (data.couponType || 'fixed') + '"]');
+      if (couponTypeRadio) couponTypeRadio.checked = true;
+      document.getElementById('couponValue').value = data.couponValue || '';
+      document.getElementById('couponMaxDiscount').value = data.couponMaxDiscount || '';
+      if (data.couponType === 'discount') {
+        document.getElementById('couponDiscountRate').value = data.couponDiscountRate || '';
+        document.getElementById('couponMaxDiscount2').value = data.couponMaxDiscount || '';
+      }
+      updateCouponSubFields();
+      break;
+    case 'fullminus':
+      document.getElementById('fullminusThreshold').value = data.fullminusThreshold || '';
+      document.getElementById('fullminusValue').value = data.fullminusValue || '';
+      document.getElementById('fullminusLadder').checked = data.ladder || false;
+      toggleLadderFields();
+      break;
+    case 'discount':
+      document.getElementById('discountRate').value = data.discountRate || '';
+      document.getElementById('discountMaxDiscount').value = data.discountMaxDiscount || '';
+      document.getElementById('discountMinConsumption').value = data.discountMinConsumption || '';
+      break;
+    case 'ticket':
+      document.getElementById('ticketTimes').value = data.ticketTimes || '';
+      document.getElementById('ticketPoints').value = data.ticketPoints || '';
+      break;
+    case 'gift':
+      document.getElementById('giftAmount').value = data.giftAmount || '';
+      break;
+    case 'points':
+      document.getElementById('pointsValue').value = data.pointsValue || '';
+      break;
+  }
+}
+
+function fillUseRange(data) {
+  // 重置所有
+  document.querySelectorAll('#rangeTags .range-tag-item').forEach(function(tag) { tag.classList.remove('selected'); });
+
+  // 选中对应范围（兼容旧值 all → general）
+  var rangeVal = data.useRange || 'general';
+  if (rangeVal === 'all') rangeVal = 'general';
+  var targetTag = document.querySelector('#rangeTags .range-tag-item[data-value="' + rangeVal + '"]');
+  if (targetTag) {
+    targetTag.classList.add('selected');
+  }
+
+  updateUseRangeFields();
+
+  // 如果有详细范围数据，选中子选项
+  if (data.useRangeDetail && (data.useRange === 'category' || rangeVal === 'category')) {
+    var detailTags = document.querySelectorAll('#categoryTags .range-tag-item');
+    detailTags.forEach(function(tag) {
+      if (data.useRangeDetail.indexOf(tag.textContent.trim()) >= 0) {
+        tag.classList.add('selected');
+      }
+    });
+  }
+  // 第三方商品回填（独立范围，与自营商品解耦）
+  if (data.thirdparty) {
+    var tpTags = document.querySelectorAll('#thirdpartyTags .range-tag-item');
+    tpTags.forEach(function(tag) {
+      if (data.thirdparty.indexOf(tag.getAttribute('data-value')) >= 0 || data.thirdparty.indexOf(tag.textContent.trim()) >= 0) {
+        tag.classList.add('selected');
+      }
+    });
+  }
+}
+
+function updateHeaderStatus(status) {
+  var tag = document.getElementById('headerStatusTag');
+  tag.style.display = 'inline-flex';
+  var map = {
+    'published': { text: '已发布', cls: 'status-published' },
+    'pending': { text: '待审核', cls: 'status-pending' },
+    'draft': { text: '草稿', cls: 'status-draft' }
+  };
+  var info = map[status] || map['draft'];
+  tag.textContent = info.text;
+  tag.className = 'status-tag ' + info.cls;
+}
+
+// ===== 表单校验 =====
+function validateForm() {
+  var name = document.getElementById('templateName').value.trim();
+  var type = document.getElementById('templateType').value;
+  var exchangePoints = document.getElementById('exchangePoints').value;
+
+  if (!name) { showToast('info', '请输入模板名称'); return false; }
+  if (!type) { showToast('info', '请选择模板类型'); return false; }
+  if (!exchangePoints || parseInt(exchangePoints) <= 0) { showToast('info', '请输入有效的兑换所需积分'); return false; }
+
+  // 校验类型特有字段
+  switch (type) {
+    case 'coupon':
+      var couponType = document.querySelector('input[name="couponType"]:checked');
+      if (couponType && couponType.value === 'fixed') {
+        var cv = document.getElementById('couponValue').value;
+        if (!cv || parseInt(cv) <= 0) { showToast('info', '请输入有效的优惠金额'); return false; }
+      } else {
+        var dr = document.getElementById('couponDiscountRate').value;
+        if (!dr || parseFloat(dr) <= 0 || parseFloat(dr) > 99) { showToast('info', '请输入有效的折扣率（1-99）'); return false; }
+      }
+      break;
+    case 'fullminus':
+      var ft = document.getElementById('fullminusThreshold').value;
+      var fv = document.getElementById('fullminusValue').value;
+      if (!ft || parseInt(ft) <= 0) { showToast('info', '请输入有效的满减门槛'); return false; }
+      if (!fv || parseInt(fv) <= 0) { showToast('info', '请输入有效的减免金额'); return false; }
+      if (parseInt(fv) >= parseInt(ft)) { showToast('info', '减免金额不能大于等于满减门槛'); return false; }
+      break;
+    case 'discount':
+      var dr2 = document.getElementById('discountRate').value;
+      if (!dr2 || parseFloat(dr2) <= 0 || parseFloat(dr2) > 99) { showToast('info', '请输入有效的折扣率（1-99）'); return false; }
+      break;
+    case 'ticket':
+      var tt = document.getElementById('ticketTimes').value;
+      var tp = document.getElementById('ticketPoints').value;
+      if (!tt || parseInt(tt) <= 0) { showToast('info', '请输入有效的使用次数'); return false; }
+      if (!tp || parseInt(tp) <= 0) { showToast('info', '请输入有效的每次积分值'); return false; }
+      break;
+    case 'gift':
+      var ga = document.getElementById('giftAmount').value;
+      if (!ga || parseInt(ga) <= 0) { showToast('info', '请输入有效的面值金额'); return false; }
+      break;
+    case 'points':
+      var pv = document.getElementById('pointsValue').value;
+      if (!pv || parseInt(pv) <= 0) { showToast('info', '请输入有效的积分面值'); return false; }
+      break;
+  }
+
+  // 校验有效期
+  var validityDays = document.getElementById('validityDays').value;
+  if (!validityDays || parseInt(validityDays) <= 0) { showToast('info', '请输入有效的发放后有效天数'); return false; }
+  if (type === 'points') {
+    // 积分卡兑换后有效期为下拉档位（1年/2年/3年/无），同步到字段以便提交一致
+    document.getElementById('validityRedeemDays').value = document.getElementById('validityRedeemPoints').value;
+  } else {
+    var redeemDays = document.getElementById('validityRedeemDays').value;
+    if (redeemDays === '' || parseInt(redeemDays) < 0) { showToast('info', '请输入有效时长（可为0）'); return false; }
+  }
+
+  return true;
+}
+
+// ===== 保存草稿 =====
+function saveTemplate(status) {
+  if (!validateForm()) return;
+  var templateId = window._currentTemplateId;
+  var isNew = !templateId;
+  if (isNew) {
+    showToast('success', '模板已保存为草稿，可在列表页继续编辑');
+  } else {
+    showToast('success', '模板修改已保存为草稿');
+  }
+  updateHeaderStatus('draft');
+  document.getElementById('templateStatus').value = 'draft';
+}
+
+// ===== 提交审核 =====
+function submitForApproval() {
+  if (!validateForm()) return;
+  var templateId = window._currentTemplateId;
+  var isNew = !templateId;
+  // 新建/编辑卡券模板均提交审核，审核通过后才发布
+  document.getElementById('approvalSubmitModal').classList.add('open');
+  document.getElementById('approvalSubmitText').textContent = isNew
+    ? '新建卡券模板将提交审核，审核通过后自动发布，品牌商城可见。'
+    : '模板修改将提交审核，审核通过后发布生效。审核期间维持原版本。';
+}
+
+function closeApprovalSubmitModal() {
+  document.getElementById('approvalSubmitModal').classList.remove('open');
+}
+
+function confirmSubmitApproval() {
+  closeApprovalSubmitModal();
+  updateHeaderStatus('pending');
+  document.getElementById('templateStatus').value = 'pending';
+  showToast('success', '已提交审核，可在审批系统中查看进度');
+  setTimeout(function(){ goBack(); }, 1500);
+}
+
+// ===== 返回 =====
+function goBack() {
+  window.location.href = '11.卡券模板列表-原型页面.html';
+}
+
+// ===== 初始化 =====
+(function() {
+  var templateId = getUrlParam('id');
+  var copyId = getUrlParam('copy');
+
+  if (templateId) {
+    // 编辑模式
+    window._currentTemplateId = templateId;
+    document.getElementById('pageTitle').innerHTML = '编辑卡券模板（' + templateId + '）<span class="status-tag status-draft" id="headerStatusTag" style="display:none;">草稿</span>';
+    document.getElementById('pageSubtitle').textContent = '修改卡券模板的配置参数，提交审核通过后发布生效';
+    document.getElementById('breadcrumbTitle').textContent = '编辑卡券模板';
+
+    // 重新获取headerStatusTag引用（因为innerHTML重新渲染了）
+    loadTemplateData(templateId, false);
+  } else if (copyId) {
+    // 复制模式
+    window._currentTemplateId = null;
+    document.getElementById('pageTitle').textContent = '新建卡券模板（复制自 ' + copyId + '）';
+    document.getElementById('pageSubtitle').textContent = '基于现有模板创建新模板，请修改名称和相关参数';
+    document.getElementById('breadcrumbTitle').textContent = '新建卡券模板';
+    loadTemplateData(copyId, true);
+  } else {
+    // 新建模式
+    window._currentTemplateId = null;
+    document.getElementById('breadcrumbTitle').textContent = '新建卡券模板';
+  }
+})();
+</script>
+
+</body>
+</html>

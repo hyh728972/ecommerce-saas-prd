@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>设置 - 苏银豆商城</title>
+<link rel="stylesheet" href="../assets/common.css">
+<style>
+  .settings-content {
+    padding: var(--space-md);
+    padding-bottom: 100px;
+  }
+
+  /* Menu section */
+  .menu-section {
+    background: var(--card-bg);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-md);
+    overflow: hidden;
+  }
+  .menu-section-title {
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+    padding: var(--space-md) 12px 8px;
+  }
+
+  .menu-item {
+    display: flex;
+    align-items: center;
+    padding: var(--space-lg) 12px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--bg-color);
+  }
+  .menu-item:last-child { border-bottom: none; }
+  .menu-item:active { background: var(--hover-bg); }
+  .menu-item .menu-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: var(--space-md);
+    flex-shrink: 0;
+  }
+  .menu-item .menu-icon svg { width: 20px; height: 20px; color: var(--card-bg); }
+  .menu-item .menu-label {
+    flex: 1;
+    font-size: var(--font-base);
+    color: var(--text-color);
+  }
+  .menu-item .menu-value {
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+    margin-right: var(--space-sm);
+  }
+  .menu-item .menu-arrow {
+    color: var(--text-light);
+  }
+  .menu-item .menu-arrow svg { width: 16px; height: 16px; }
+
+  /* Logout button */
+  .logout-section {
+    margin-top: var(--space-xl);
+  }
+  .btn-logout {
+    width: 100%;
+    height: 44px;
+    background: var(--card-bg);
+    color: var(--price-color);
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: var(--font-md);
+    cursor: pointer;
+  }
+  .btn-logout:active { background: var(--hover-bg); }
+
+  /* Version info */
+  .version-info {
+    text-align: center;
+    font-size: var(--font-sm);
+    color: var(--text-muted);
+    margin-top: var(--space-xl);
+  }
+
+  /* WeChat auth overlay */
+  .wx-auth-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  .wx-auth-overlay.show { display: flex; }
+  .wx-auth-popup {
+    width: 280px;
+    background: var(--card-bg);
+    border-radius: var(--radius-md);
+    padding: var(--space-xl);
+    text-align: center;
+  }
+  .wx-auth-popup .wx-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--wechat-green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto var(--space-md);
+  }
+  .wx-auth-popup .wx-icon svg { width: 28px; height: 28px; color: var(--card-bg); }
+  .wx-auth-popup .wx-title {
+    font-size: var(--font-md);
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: var(--space-sm);
+  }
+  .wx-auth-popup .wx-desc {
+    font-size: var(--font-sm);
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: var(--space-lg);
+  }
+  .wx-auth-popup .wx-buttons {
+    display: flex;
+    gap: var(--space-md);
+  }
+  .wx-auth-popup .btn-wx-reject {
+    flex: 1;
+    height: 40px;
+    background: var(--bg-color);
+    color: var(--text-secondary);
+    border: none;
+    border-radius: var(--radius-xl);
+    font-size: var(--font-base);
+    cursor: pointer;
+  }
+  .wx-auth-popup .btn-wx-allow {
+    flex: 1;
+    height: 40px;
+    background: var(--wechat-green);
+    color: var(--card-bg);
+    border: none;
+    border-radius: var(--radius-xl);
+    font-size: var(--font-base);
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .wx-auth-popup .btn-wx-reject:active { background: var(--border-color); }
+  .wx-auth-popup .btn-wx-allow:active { opacity: 0.85; }
+
+  /* User info card */
+  .user-card {
+    background: var(--card-bg);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+    margin-bottom: var(--space-md);
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+  }
+  .user-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: var(--bg-color);
+  }
+  .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .user-info { flex: 1; }
+  .user-name {
+    font-size: var(--font-md);
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: var(--space-xs);
+  }
+  .user-phone {
+    font-size: var(--font-sm);
+    color: var(--text-tertiary);
+  }
+</style>
+</head>
+<body>
+<div class="phone-frame">
+
+  <!-- Sub-page Navigation -->
+  <div class="sub-nav">
+    <div class="status-bar dark">
+      <span class="time">09:41</span>
+      <div class="icons">
+        <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+      </div>
+    </div>
+    <div class="nav-bar">
+      <div class="back-btn" onclick="history.back()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <span class="nav-title">设置</span>
+      <div class="capsule-btn"><img src="../assets/icons/小程序按钮.svg" alt=""></div>
+    </div>
+  </div>
+
+  <!-- Scrollable Content -->
+  <div class="page-scroll">
+    <div class="settings-content">
+
+      <!-- User Card -->
+      <div class="user-card" onclick="location.href='81.个人资料-原型页面.html'" style="cursor:pointer;">
+        <div class="user-avatar">
+          <img id="settingsAvatar" src="../assets/icons/default-avatar.svg" alt="">
+        </div>
+        <div class="user-info">
+          <div class="user-name" id="userName">悦享用户</div>
+          <div class="user-phone" id="userPhone">未登录</div>
+        </div>
+        <div class="menu-arrow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </div>
+
+      <!-- Account Settings -->
+      <div class="menu-section">
+        <div class="menu-section-title">账号设置</div>
+        <div class="menu-item" onclick="location.href='81.个人资料-原型页面.html'">
+          <div class="menu-icon" style="background: linear-gradient(135deg, var(--info-color), var(--info-color));">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+          <span class="menu-label">个人资料</span>
+          <div class="menu-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </div>
+        <div class="menu-item" onclick="location.href='82.修改手机号-原型页面.html'">
+          <div class="menu-icon" style="background: linear-gradient(135deg, var(--success-color), var(--success-dark));">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
+          </div>
+          <span class="menu-label">修改手机号</span>
+          <span class="menu-value" id="phoneDisplay">138****8888</span>
+          <div class="menu-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </div>
+        <div class="menu-item" id="wechatBindItem">
+          <div class="menu-icon" style="background: linear-gradient(135deg, var(--wechat-green), var(--success-color));">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 01.213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.326.326 0 00.167-.054l1.903-1.114a.864.864 0 01.717-.098 10.16 10.16 0 002.837.403c.276 0 .543-.027.811-.05-.857-2.578.157-4.972 1.932-6.446 1.703-1.415 3.882-1.98 5.853-1.838-.576-3.583-4.196-6.348-8.596-6.348zM5.785 5.991c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 01-1.162 1.178A1.17 1.17 0 014.623 7.17c0-.651.52-1.18 1.162-1.18zm5.813 0c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 01-1.162 1.178 1.17 1.17 0 01-1.162-1.178c0-.651.52-1.18 1.162-1.18zm5.34 2.867c-1.797-.052-3.746.512-5.28 1.786-1.72 1.428-2.687 3.72-1.78 6.22.942 2.453 3.666 4.229 6.884 4.229.826 0 1.622-.12 2.361-.336a.722.722 0 01.598.082l1.584.926a.272.272 0 00.139.045c.133 0 .241-.108.241-.243 0-.06-.023-.118-.039-.177l-.326-1.233a.49.49 0 01.178-.553c1.527-1.124 2.502-2.79 2.502-4.635 0-3.25-3.004-6.054-7.062-6.111zm-1.739 2.769c.535 0 .969.44.969.983a.976.976 0 01-.969.983.976.976 0 01-.969-.983c0-.542.434-.983.969-.983zm4.844 0c.535 0 .969.44.969.983a.976.976 0 01-.969.983.976.976 0 01-.969-.983c0-.542.434-.983.969-.983z"/></svg>
+          </div>
+          <span class="menu-label">微信绑定</span>
+          <span class="menu-value" id="wechatStatus">未绑定</span>
+          <div class="menu-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+        </div>
+      </div>
+
+      <!-- Logout -->
+      <div class="logout-section">
+        <button class="btn-logout" id="logoutBtn">退出登录</button>
+      </div>
+
+      <div class="version-info" onclick="location.href='94.关于我们-原型页面.html'" style="cursor:pointer;">苏银豆商城 v1.0.0</div>
+
+    </div>
+  </div>
+
+  <!-- WeChat Auth Popup -->
+  <div class="wx-auth-overlay" id="wechatAuthOverlay">
+    <div class="wx-auth-popup">
+      <div class="wx-icon">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 01.213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.326.326 0 00.167-.054l1.903-1.114a.864.864 0 01.717-.098 10.16 10.16 0 002.837.403c.276 0 .543-.027.811-.05-.857-2.578.157-4.972 1.932-6.446 1.703-1.415 3.882-1.98 5.853-1.838-.576-3.583-4.196-6.348-8.596-6.348zM5.785 5.991c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 01-1.162 1.178A1.17 1.17 0 014.623 7.17c0-.651.52-1.18 1.162-1.18zm5.813 0c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 01-1.162 1.178 1.17 1.17 0 01-1.162-1.178c0-.651.52-1.18 1.162-1.18zm5.34 2.867c-1.797-.052-3.746.512-5.28 1.786-1.72 1.428-2.687 3.72-1.78 6.22.942 2.453 3.666 4.229 6.884 4.229.826 0 1.622-.12 2.361-.336a.722.722 0 01.598.082l1.584.926a.272.272 0 00.139.045c.133 0 .241-.108.241-.243 0-.06-.023-.118-.039-.177l-.326-1.233a.49.49 0 01.178-.553c1.527-1.124 2.502-2.79 2.502-4.635 0-3.25-3.004-6.054-7.062-6.111zm-1.739 2.769c.535 0 .969.44.969.983a.976.976 0 01-.969.983.976.976 0 01-.969-.983c0-.542.434-.983.969-.983zm4.844 0c.535 0 .969.44.969.983a.976.976 0 01-.969.983.976.976 0 01-.969-.983c0-.542.434-.983.969-.983z"/></svg>
+      </div>
+      <div class="wx-title">微信授权绑定</div>
+      <div class="wx-desc">申请获取您的微信昵称和头像，用于绑定微信账号</div>
+      <div class="wx-buttons">
+        <button class="btn-wx-reject" id="wxAuthReject">拒绝</button>
+        <button class="btn-wx-allow" id="wxAuthAllow">允许</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+<script src="../assets/common.js"></script>
+<script src="../assets/auth.js"></script>
+<script src="../assets/auth-guard.js"></script>
+<script>
+(function() {
+  // Load user info (auth-guard ensures we're logged in)
+  var user = Auth.getCurrentUser();
+
+  // Display user info
+  document.getElementById('userName').textContent = user.name || '用户';
+  document.getElementById('userPhone').textContent = Auth.maskPhone(user.phone);
+  document.getElementById('phoneDisplay').textContent = Auth.maskPhone(user.phone);
+  if (user.avatar) document.getElementById('settingsAvatar').src = user.avatar;
+
+  // WeChat bind status
+  function updateWechatStatus() {
+    var current = Auth.getCurrentUser();
+    var statusEl = document.getElementById('wechatStatus');
+    if (current && current.wechatBound) {
+      statusEl.textContent = '已绑定';
+      statusEl.style.color = 'var(--wechat-green)';
+    } else {
+      statusEl.textContent = '未绑定';
+      statusEl.style.color = 'var(--text-tertiary)';
+    }
+  }
+  updateWechatStatus();
+
+  // WeChat bind/unbind click
+  document.getElementById('wechatBindItem').addEventListener('click', function() {
+    var current = Auth.getCurrentUser();
+    if (current && current.wechatBound) {
+      if (confirm('确定要解绑微信吗？解绑后将无法使用微信登录。')) {
+        Auth.unbindWeChat();
+        alert('已解绑微信');
+        updateWechatStatus();
+      }
+    } else {
+      // Show WeChat auth popup
+      document.getElementById('wechatAuthOverlay').classList.add('show');
+    }
+  });
+
+  // WeChat auth popup events
+  document.getElementById('wxAuthReject').addEventListener('click', function() {
+    document.getElementById('wechatAuthOverlay').classList.remove('show');
+  });
+
+  document.getElementById('wxAuthAllow').addEventListener('click', function() {
+    document.getElementById('wechatAuthOverlay').classList.remove('show');
+
+    // Check if this WeChat is already bound to another account
+    var current = Auth.getCurrentUser();
+    if (Auth.isWeChatBoundToOther(current.phone)) {
+      alert('该微信已绑定其他账号，请先在原账号中解绑后再绑定');
+      return;
+    }
+
+    Auth.bindWeChat();
+    alert('绑定成功');
+    updateWechatStatus();
+  });
+
+  document.getElementById('wechatAuthOverlay').addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('show');
+  });
+
+  // Logout
+  document.getElementById('logoutBtn').addEventListener('click', function() {
+    if (confirm('确定要退出登录吗？')) {
+      Auth.logout();
+      location.href = '80.登录-原型页面.html';
+    }
+  });
+})();
+</script>
+<script src="../assets/theme-switcher.js"></script>
+</body>
+</html>

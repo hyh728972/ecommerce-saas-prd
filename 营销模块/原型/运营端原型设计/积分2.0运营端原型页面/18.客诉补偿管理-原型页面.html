@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>客诉补偿管理 - 商城运营平台</title>
+<style>
+:root {
+  --bg-app:#f4f3f0; --bg-sidebar:#1e1e22; --bg-surface:#ffffff; --bg-hover:#f7f6f4; --bg-input:#f9f8f7;
+  --border:#e6e4e0; --border-light:#f0eeeb;
+  --text-primary:#1a1a1c; --text-secondary:#6b6b70; --text-muted:#99999d; --text-sidebar:#c4c4c9;
+  --accent:#2d2d33; --accent-soft:#f0eeeb;
+  --blue:#2563eb; --blue-bg:#f5f8ff; --blue-border:#d4e0fc;
+  --red:#da3e3a; --red-bg:#fef4f3; --red-border:#fcd9d7;
+  --green:#16a34a; --green-bg:#f4fdf6; --green-border:#c6f0d4;
+  --orange:#d97706; --orange-bg:#fffbf0; --orange-border:#fde8c4;
+  --purple:#7c3aed; --purple-bg:#faf8ff; --purple-border:#e4dcfc;
+  --teal:#0d9488; --teal-bg:#ecfdf5; --teal-border:#99f6e4;
+  --gray:#6b7280; --gray-bg:#f8f8f7; --gray-border:#e8e6e3;
+  --radius-sm:4px; --radius:8px; --radius-lg:12px;
+  --shadow:0 1px 3px rgba(0,0,0,.06); --shadow-lg:0 4px 16px rgba(0,0,0,.10);
+  --transition:160ms ease;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:"Microsoft YaHei",sans-serif;background:var(--bg-app);color:var(--text-primary);display:flex;min-height:100vh;-webkit-font-smoothing:antialiased;}
+.sidebar{width:232px;min-width:232px;background:var(--bg-sidebar);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;z-index:10;}
+.sidebar-brand{padding:20px 20px 28px;border-bottom:1px solid rgba(255,255,255,.06);}
+.sidebar-brand .logo{font-size:17px;font-weight:600;color:#fff;letter-spacing:-.02em;display:flex;align-items:center;gap:10px;}
+.sidebar-brand .sub{font-size:11px;color:var(--text-sidebar);margin-top:2px;}
+.sidebar-nav{flex:1;padding:12px 10px;display:flex;flex-direction:column;gap:2px;}
+.nav-section-label{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.25);padding:14px 10px 6px;display:flex;align-items:center;gap:4px;cursor:pointer;user-select:none;}
+.section-arrow{font-size:8px;transition:transform .2s ease;flex-shrink:0;}
+.nav-section.collapsed .section-arrow{transform:rotate(-90deg);}
+.nav-section.collapsed .nav-section-items{display:none;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:6px;color:var(--text-sidebar);font-size:13.5px;cursor:pointer;transition:all var(--transition);text-decoration:none;letter-spacing:.01em;}
+.nav-item:hover{background:rgba(255,255,255,.05);color:#fff;}
+.nav-item.active{background:rgba(255,255,255,.10);color:#fff;font-weight:500;}
+.nav-icon{width:18px;height:18px;opacity:.55;flex-shrink:0;}
+.nav-item.active .nav-icon{opacity:1;}
+.main{flex:1;display:flex;flex-direction:column;min-width:0;}
+.topbar{height:52px;min-height:52px;background:var(--bg-surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 28px;gap:16px;z-index:5;}
+.topbar .breadcrumb{font-size:12.5px;color:var(--text-muted);letter-spacing:.01em;}
+.topbar .breadcrumb span{color:var(--text-primary);font-weight:500;}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:16px;}
+.user-avatar{width:30px;height:30px;border-radius:50%;background:#e6e4e0;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);}
+.content{flex:1;display:flex;flex-direction:column;padding:24px 28px;padding-bottom:60px;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;gap:16px;}
+.page-header h1{font-size:22px;font-weight:600;letter-spacing:-.02em;}
+.page-header p{font-size:13px;color:var(--text-muted);margin-top:2px;}
+.page-header-actions{display:flex;gap:8px;align-items:center;flex-shrink:0;}
+.table-panel{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-lg);display:flex;flex-direction:column;}
+.filter-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:12px 16px;background:var(--bg-surface);}
+.table-panel>.filter-bar{margin-bottom:0;border:none;border-bottom:1px solid var(--border);border-radius:var(--radius-lg) var(--radius-lg) 0 0;}
+.filter-bar input,.filter-bar select{height:36px;padding:0 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;background:var(--bg-surface);color:var(--text-primary);outline:none;transition:border-color var(--transition);}
+.filter-bar input[type="text"]{width:220px;}
+.filter-bar input.filter-keyword{width:280px;}
+.filter-bar input::placeholder{color:var(--text-muted);}
+.filter-bar select{min-width:150px;}
+.filter-bar > input:focus,.filter-bar > select:focus{border-color:var(--accent);}
+.btn-filter{height:36px;padding:0 16px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);font-size:13px;font-family:inherit;cursor:pointer;font-weight:500;transition:opacity var(--transition);}
+.btn-filter:hover{opacity:.88;}
+.btn-reset{height:36px;padding:0 14px;background:transparent;color:var(--text-secondary);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:inherit;cursor:pointer;transition:all var(--transition);}
+.btn-reset:hover{border-color:var(--text-muted);color:var(--text-primary);}
+.filter-bar .filter-extra{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.btn{display:inline-flex;align-items:center;padding:5px 12px;border-radius:var(--radius-sm);font-size:12px;font-family:inherit;cursor:pointer;border:1px solid transparent;transition:all var(--transition);white-space:nowrap;font-weight:500;gap:5px;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{opacity:.88;}
+.btn-outline{border-color:var(--border);color:var(--text-primary);background:var(--bg-surface);}
+.btn-outline:hover{border-color:var(--text-muted);background:var(--bg-hover);}
+.btn-sm{padding:4px 10px;font-size:11.5px;}
+.table-wrap{display:flex;flex-direction:column;}
+.table-scroll{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:1480px;}
+thead th{background:#fafaf9;text-align:left;padding:12px 14px;font-weight:500;font-size:12px;color:var(--text-muted);letter-spacing:.02em;border-bottom:1px solid var(--border);white-space:nowrap;}
+thead th:first-child,tbody td:first-child{padding-left:20px;}
+tbody td{padding:16px 14px;border-bottom:1px solid var(--border-light);vertical-align:top;}
+tbody tr:hover{background:var(--bg-hover);}
+tbody tr td{font-size:13px;}
+.cell-stack{display:flex;flex-direction:column;gap:3px;min-width:0;}
+.cell-stack .primary{font-size:13px;font-weight:500;color:var(--text-primary);line-height:1.35;}
+.cell-stack .secondary{font-size:11.5px;color:var(--text-muted);line-height:1.35;}
+.coupon-info{display:flex;align-items:center;gap:10px;}
+.coupon-avatar{width:32px;height:32px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;letter-spacing:-.02em;}
+.coupon-avatar.points{background:var(--orange-bg);color:var(--orange);}
+.coupon-avatar.coupon{background:var(--blue-bg);color:var(--blue);}
+.coupon-avatar.ticket{background:var(--purple-bg);color:var(--purple);}
+.coupon-name{font-weight:500;color:var(--text-primary);font-size:13px;}
+.coupon-spec{font-size:11.5px;color:var(--text-muted);}
+.code-text{font-family:"Microsoft YaHei",sans-serif;font-size:11.5px;color:var(--text-muted);}
+.batch-no{font-family:"Microsoft YaHei",sans-serif;font-size:12px;color:var(--blue);font-weight:500;}
+.reason-tag{display:inline;color:var(--text-secondary);}
+.status-tag{display:inline-flex;align-items:center;padding:2px 10px;border-radius:100px;font-size:11.5px;font-weight:500;letter-spacing:.01em;white-space:nowrap;border:1px solid transparent;}
+.status-pending{background:var(--orange-bg);color:var(--orange);border-color:var(--orange-border);}
+.status-rejected{background:var(--red-bg);color:var(--red);border-color:var(--red-border);}
+.status-issued{background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border);}
+.status-used{background:var(--green-bg);color:var(--green);border-color:var(--green-border);}
+.actions{display:flex;align-items:center;gap:8px;white-space:nowrap;flex-wrap:nowrap;}
+.action-link{color:var(--blue);font-size:12.5px;cursor:pointer;}
+.action-link:hover{text-decoration:underline;}
+.export-dropdown{position:relative;display:inline-block;}
+.export-dropdown-btn{display:inline-flex;align-items:center;padding:5px 12px;border-radius:var(--radius-sm);font-size:12px;font-family:inherit;cursor:pointer;border:1px solid var(--border);background:var(--bg-surface);color:var(--text-primary);transition:all var(--transition);white-space:nowrap;font-weight:500;gap:5px;}
+.export-dropdown-btn:hover{border-color:var(--text-muted);background:var(--bg-hover);}
+.export-dropdown-btn svg{width:14px;height:14px;}
+.export-menu{display:none;position:absolute;top:100%;right:0;margin-top:4px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-lg);z-index:200;min-width:140px;}
+.export-menu.show{display:block;}
+.export-menu-item{display:block;padding:10px 14px;font-size:13px;color:var(--text-primary);cursor:pointer;border-bottom:1px solid var(--border-light);transition:background var(--transition);}
+.export-menu-item:last-child{border-bottom:none;}
+.export-menu-item:hover{background:var(--bg-hover);}
+.export-menu-item svg{width:14px;height:14px;margin-right:8px;vertical-align:middle;}
+.page-footer-fixed{position:fixed;bottom:0;left:232px;right:0;display:flex;align-items:center;justify-content:space-between;padding:12px 28px;background:#fafaf9;border-top:1px solid var(--border);z-index:100;box-shadow:0 -2px 8px rgba(0,0,0,.06);}
+.page-footer-left{display:flex;align-items:center;gap:12px;}
+.page-footer-right{display:flex;align-items:center;}
+.pagination{display:flex;align-items:center;gap:4px;}
+.pagination .page-btn{min-width:32px;width:32px;height:32px;padding:0;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-surface);cursor:pointer;font-size:12px;color:var(--text-primary);transition:all var(--transition);}
+.pagination .page-btn:hover{border-color:var(--text-muted);}
+.pagination .page-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.pagination .page-btn.disabled{opacity:.35;pointer-events:none;}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:300;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--bg-surface);border-radius:var(--radius-lg);width:100%;max-width:720px;box-shadow:var(--shadow-lg);max-height:90vh;overflow-y:auto;}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg-surface);z-index:2;}
+.modal-header h3{font-size:15px;font-weight:600;}
+.modal-close{background:none;border:none;font-size:20px;color:var(--text-muted);cursor:pointer;padding:4px;line-height:1;}
+.modal-body{padding:20px;}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;padding:14px 20px;border-top:1px solid var(--border);background:var(--bg-hover);position:sticky;bottom:0;}
+.detail-section{margin-bottom:20px;}
+.detail-section-title{font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:10px;padding-left:10px;border-left:3px solid var(--accent);}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 24px;}
+.detail-row{display:flex;padding:7px 0;border-bottom:1px solid var(--border-light);}
+.detail-label{width:100px;font-size:12px;color:var(--text-muted);flex-shrink:0;}
+.detail-value{font-size:13px;color:var(--text-primary);flex:1;word-break:break-all;}
+.detail-value.mono{font-family:"Microsoft YaHei",sans-serif;}
+.detail-row.full{grid-column:1 / -1;}
+.voucher-list{display:flex;gap:8px;flex-wrap:wrap;}
+.voucher-thumb{width:64px;height:64px;border-radius:var(--radius-sm);background:var(--bg-input);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text-muted);text-align:center;line-height:1.3;padding:4px;}
+.mini-stat{flex:1;background:var(--bg-input);border-radius:var(--radius);padding:10px 14px;}
+.mini-stat .ms-val{font-size:18px;font-weight:600;font-family:"Microsoft YaHei",sans-serif;color:var(--text-primary);}
+.mini-stat .ms-label{font-size:11px;color:var(--text-muted);margin-top:2px;}
+.toast-container{position:fixed;top:24px;right:24px;z-index:400;display:flex;flex-direction:column;gap:8px;}
+.toast{background:var(--bg-sidebar);color:#fff;padding:12px 18px;border-radius:var(--radius);font-size:13px;box-shadow:var(--shadow-lg);}
+.toast.success{border-left:3px solid var(--green);}
+.toast.info{border-left:3px solid var(--blue);}
+.toast.warning{border-left:3px solid var(--orange);}
+.stats-row{display:flex;gap:14px;margin-bottom:20px;flex-wrap:wrap;}
+.stat-card{flex:1;min-width:180px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;display:flex;align-items:center;gap:14px;}
+.stat-icon{width:42px;height:42px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.stat-icon.blue{background:var(--blue-bg);color:var(--blue);}
+.stat-icon.purple{background:var(--purple-bg);color:var(--purple);}
+.stat-icon.orange{background:var(--orange-bg);color:var(--orange);}
+.stat-icon.green{background:var(--green-bg);color:var(--green);}
+.stat-card>div:not(.stat-icon){min-width:0;}
+.stat-value{font-size:22px;font-weight:600;letter-spacing:-.02em;line-height:1.2;white-space:nowrap;}
+.stat-value .stat-unit{font-size:13px;font-weight:500;color:var(--text-secondary);margin-left:4px;}
+.stat-label{font-size:12px;color:var(--text-muted);margin-top:3px;}
+</style>
+</head>
+<body>
+
+<aside class="sidebar" id="app-sidebar" data-nav-active="compensation-stat"></aside>
+<script src="../assets/common-sidebar.js"></script>
+
+<div class="main">
+  <div class="topbar">
+    <div class="breadcrumb">售后管理 / <span>客诉补偿管理</span></div>
+    <div class="topbar-right">
+      <span style="font-size:12px;color:var(--text-muted);">客服主管 路宁</span>
+      <div class="user-avatar">路</div>
+    </div>
+  </div>
+  <div class="content">
+    <div class="page-header">
+      <div>
+        <h1>客诉补偿管理</h1>
+        <p>平台直接向品牌商城客户发放的补偿卡券统计，不消耗品牌商城积分池</p>
+      </div>
+      <div class="page-header-actions">
+        <button class="btn btn-primary" onclick="window.location.href='18a.客诉补偿发放-原型页面.html'">+ 发起客诉补偿</button>
+      </div>
+    </div>
+
+    <div class="stats-row" id="statsRow">
+      <div class="stat-card">
+        <div class="stat-icon blue"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg></div>
+        <div><div class="stat-value" id="statTotal">0</div><div class="stat-label">全部批次总数</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        <div><div class="stat-value" id="statRecentCount">0</div><div class="stat-label">近30天补偿批次数</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon purple"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
+        <div><div class="stat-value" id="statRecentValue">¥0</div><div class="stat-label">近30天补偿面值</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon orange"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2h12M6 22h12M6 2v4l6 6-6 6v4M18 2v4l-6 6 6 6v4"/></svg></div>
+        <div><div class="stat-value" id="statPending">0</div><div class="stat-label">审批中</div></div>
+      </div>
+    </div>
+
+    <div class="table-panel">
+      <div class="filter-bar">
+        <input type="text" class="filter-keyword" id="fBatch" placeholder="搜索批次号 / 卡券编号" oninput="filterTable()" />
+        <select id="fReason" onchange="filterTable()">
+          <option value="">全部补偿原因</option>
+          <option value="kefu">客诉补偿</option>
+          <option value="shouhou">售后赔付</option>
+          <option value="offline">线下活动</option>
+          <option value="other">其他</option>
+        </select>
+        <select id="fMall" onchange="filterTable()">
+          <option value="">全部品牌商城</option>
+          <option value="苏银商城">苏银商城</option>
+          <option value="泡泡玛特官方商城">泡泡玛特官方商城</option>
+          <option value="锦程员工福利商城">锦程员工福利商城</option>
+          <option value="美尚内购商城">美尚内购商城</option>
+          <option value="锦程积分商城">锦程积分商城</option>
+          <option value="泡泡玛特企业购">泡泡玛特企业购</option>
+          <option value="蜀味员工专区">蜀味员工专区</option>
+          <option value="汇通内购平台">汇通内购平台</option>
+        </select>
+        <select id="fStatus" onchange="filterTable()">
+          <option value="">全部状态</option>
+          <option value="pending">审批中</option>
+          <option value="rejected">驳回</option>
+          <option value="issued">已发放</option>
+          <option value="used">已使用</option>
+        </select>
+        <select id="fVerify" onchange="filterTable()">
+          <option value="">全部核销状态</option>
+          <option value="verified">已核销/已使用</option>
+          <option value="unverified">未核销/未使用</option>
+        </select>
+        <button class="btn-filter" onclick="filterTable()">筛选</button>
+        <button class="btn-reset" onclick="resetFilter()">重置</button>
+        <div class="filter-extra">
+          <div class="export-dropdown">
+            <button class="export-dropdown-btn" onclick="toggleExportMenu()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              导出
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="export-menu" id="exportMenu">
+              <div class="export-menu-item" onclick="exportAllData()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+                全量导出
+              </div>
+              <div class="export-menu-item" onclick="exportFilteredData()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                筛选导出
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:40px;"><input type="checkbox" id="compCheckAll" onchange="toggleCompAll(this)" /></th>
+                <th style="width:120px;">发放批次号</th>
+                <th style="width: 280px;">卡券信息</th>
+                <th style="width:100px;">补偿原因</th>
+                <th style="width:130px;">来源工单</th>
+                <th>补偿说明</th>
+                <th style="width:120px;">接收用户</th>
+                <th style="width:140px;">所属商城</th>
+                <th style="width:100px;">核销状态</th>
+                <th style="width:100px;">状态</th>
+                <th style="width:160px;">操作人 / 时间</th>
+                <th style="width:140px;">操作</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 页面底部固定操作栏 -->
+<div class="page-footer-fixed">
+  <div class="page-footer-left">
+    <button class="btn btn-outline btn-sm" onclick="exportSelectedData()">导出勾选</button>
+    <div style="font-size:12px;color:var(--text-muted);" id="selectedCount">已选 0 项</div>
+  </div>
+  <div class="page-footer-right">
+    <div style="font-size:12px;color:var(--text-muted);margin-right:16px;" id="tableInfo">共 5 条记录</div>
+    <div class="pagination" id="compPagination"></div>
+    <div style="display:flex;align-items:center;gap:8px;margin-left:16px;">
+      <span style="font-size:12px;color:var(--text-muted);">每页</span>
+      <select id="pageSizeSelect" onchange="changePageSize()" style="height:28px;padding:0 8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:inherit;background:var(--bg-surface);color:var(--text-primary);cursor:pointer;">
+        <option value="10">10条</option>
+        <option value="20" selected>20条</option>
+        <option value="50">50条</option>
+        <option value="100">100条</option>
+      </select>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;margin-left:16px;">
+      <span style="font-size:12px;color:var(--text-muted);">跳转至</span>
+      <input type="number" id="jumpPageInput" min="1" max="1" value="1" style="width:56px;height:28px;padding:0 8px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:inherit;background:var(--bg-surface);color:var(--text-primary);text-align:center;" onkeydown="if(event.key==='Enter')jumpToPage()"/>
+      <span style="font-size:12px;color:var(--text-muted);">页</span>
+      <button onclick="jumpToPage()" style="height:28px;padding:0 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:inherit;background:var(--bg-surface);color:var(--text-primary);cursor:pointer;">跳转</button>
+    </div>
+  </div>
+</div>
+
+<!-- 详情 Modal -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal">
+    <div class="modal-header"><h3>客诉补偿发放详情</h3><button class="modal-close" onclick="closeDetailModal()">&times;</button></div>
+    <div class="modal-body" id="detailBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeDetailModal()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// 原型演示基准日：近30天窗口以此为"今天"
+var STAT_TODAY='2026-07-27';
+var REASON_MAP = {
+  kefu:{label:'客诉补偿',cls:'reason-kefu'},
+  shouhou:{label:'售后赔付',cls:'reason-shouhou'},
+  offline:{label:'线下活动',cls:'reason-kefu'},
+  other:{label:'其他',cls:'reason-shouhou'}
+};
+var STATUS_MAP = {
+  pending:{label:'审批中',cls:'status-pending'},
+  rejected:{label:'驳回',cls:'status-rejected'},
+  issued:{label:'已发放',cls:'status-issued'},
+  used:{label:'已使用',cls:'status-used'}
+};
+var METHOD_MAP = {
+  direct:'选人直充',
+  points:'发放积分'
+};
+
+var COMPENSATIONS = [
+  {batch:'C20260703001',cid:'CP-2026-0012',method:'direct',name:'售后赔付补偿券',template:'15元购物券',face:'¥15元',totalValue:'¥15',reason:'shouhou',mall:'苏银商城',time:'2026-07-03 16:30',issued:1,used:0,status:'pending',operator:'客服-刘艳',receiverName:'张三',receiverPhone:'138****8888',receiverId:'SY-USER-0001',orderNo:'OD202607030088',orderPhone:'138****8888',ticketNo:'CS20260726004',vouchers:['沟通截图','订单截图'],detail:'退货售后赔付，待审批'},
+  {batch:'C20260702001',cid:'CP-2026-0011',method:'direct',name:'客诉安抚券',template:'5元购物券',face:'¥5元',totalValue:'¥5',reason:'kefu',mall:'美尚内购商城',time:'2026-07-02 10:15',issued:1,used:0,status:'rejected',operator:'客服-刘艳',receiverName:'孙七',receiverPhone:'136****5555',receiverId:'HW-USER-0018',orderNo:'OD202607020015',orderPhone:'136****5555',ticketNo:'CS20260726005',vouchers:['客诉聊天记录'],approver:'客服主管-路宁',approveTime:'2026-07-02 14:20',approveOpinion:'凭证不足，请补充物流破损照片后重新提交',detail:'客诉安抚补偿，审批驳回'},
+  {batch:'C20260701001',cid:'CP-2026-0010',method:'direct',name:'15元购物券',template:'15元购物券',face:'¥15元',totalValue:'¥15',reason:'shouhou',mall:'苏银商城',time:'2026-07-01 16:30',issued:1,used:0,status:'issued',operator:'客服-刘艳',receiverName:'李四',receiverPhone:'139****6666',receiverId:'SY-USER-0004',orderNo:'OD202607010042',orderPhone:'139****6666',ticketNo:'CS20260725007',vouchers:['售后工单截图'],approver:'客服主管-路宁',approveTime:'2026-07-01 17:05',approveOpinion:'同意发放',detail:'退货售后赔付，券已发放未核销'},
+  {batch:'C20260626001',cid:'CP-2026-0003',method:'direct',name:'商品质量补偿券',template:'5元购物券',face:'¥5元',totalValue:'¥5',reason:'kefu',mall:'苏银商城',time:'2026-06-26 16:45',issued:1,used:1,status:'used',operator:'客服-刘艳',receiverName:'王五',receiverPhone:'137****2222',receiverId:'SY-USER-0002',orderNo:'',orderPhone:'',vouchers:[],approver:'客服主管-路宁',approveTime:'2026-06-26 17:10',approveOpinion:'同意发放',detail:'商品质量问题，补偿5元券已核销'},
+  {batch:'J20260625001',cid:'CP-2026-0006',method:'points',name:'员工生日福利卡',template:'专属积分卡',face:'100积分',totalValue:'100积分',reason:'shouhou',mall:'泡泡玛特官方商城',time:'2026-06-25 14:20',issued:1,used:0,status:'issued',pointsValid:'1年',operator:'客服-刘艳',receiverName:'李四',receiverPhone:'139****6666',receiverId:'HD-USER-0007',orderNo:'OD202606250031',orderPhone:'139****6666',vouchers:['延误说明截图'],approver:'客服主管-路宁',approveTime:'2026-06-25 15:00',approveOpinion:'同意发放',detail:'配送延误，补偿100积分（有效期1年），已发放未使用'},
+  {batch:'J20260620001',cid:'CP-2026-0009',method:'points',name:'活动客诉补偿积分',template:'标准积分卡',face:'50积分',totalValue:'50积分',reason:'kefu',mall:'蜀味员工专区',time:'2026-06-20 16:00',issued:1,used:1,status:'used',pointsValid:'2年',operator:'客服-刘艳',receiverName:'周八',receiverPhone:'133****7777',receiverId:'ZX-USER-0021',orderNo:'',orderPhone:'',vouchers:['活动客诉记录'],approver:'客服主管-路宁',approveTime:'2026-06-20 16:40',approveOpinion:'同意发放',detail:'活动客诉补偿50积分（有效期2年），已使用'}
+];
+
+function couponNameHtml(c){
+  var name=c.name||c.template||'';
+  if(c.template&&c.template!==name){
+    return name+'<span style="color:var(--text-muted);font-weight:400;">（'+c.template+'）</span>';
+  }
+  return name;
+}
+function couponNamePlain(c){
+  var name=c.name||c.template||'';
+  if(c.template&&c.template!==name)return name+'（'+c.template+'）';
+  return name;
+}
+
+function showToast(type,msg){var c=document.getElementById('toastContainer'),t=document.createElement('div');t.className='toast '+type;t.textContent=msg;c.appendChild(t);setTimeout(function(){t.remove();},3000);}
+
+function getFiltered(){
+  var b=(document.getElementById('fBatch').value||'').trim().toLowerCase();
+  var r=document.getElementById('fReason').value;
+  var m=document.getElementById('fMall').value;
+  var st=document.getElementById('fStatus').value;
+  var vf=document.getElementById('fVerify').value;
+  return COMPENSATIONS.filter(function(c){
+    if(r&&c.reason!==r)return false;
+    if(m&&c.mall!==m)return false;
+    if(st&&c.status!==st)return false;
+    if(b&&(c.batch.toLowerCase().indexOf(b)<0&&c.cid.toLowerCase().indexOf(b)<0&&(c.name||'').toLowerCase().indexOf(b)<0&&(c.template||'').toLowerCase().indexOf(b)<0))return false;
+    if(vf){
+      if(c.status==='pending'||c.status==='rejected')return false;
+      var isVerified=c.used>=c.issued;
+      if(vf==='verified'&&!isVerified)return false;
+      if(vf==='unverified'&&isVerified)return false;
+    }
+    return true;
+  });
+}
+// 真分页状态与渲染
+var currentPage = 1, pageSize = 20;
+function renderPager(elId, page, pages, gotoFn) {
+  var el = document.getElementById(elId); if (!el) return;
+  var h = '<button class="page-btn' + (page <= 1 ? ' disabled' : '') + '"' + (page <= 1 ? '' : ' onclick="' + gotoFn + '(' + (page - 1) + ')"') + '>‹</button>';
+  var nums = [];
+  if (pages <= 7) { for (var i = 1; i <= pages; i++) nums.push(i); }
+  else {
+    nums.push(1);
+    if (page > 3) nums.push('…');
+    for (var j = Math.max(2, page - 1); j <= Math.min(pages - 1, page + 1); j++) nums.push(j);
+    if (page < pages - 2) nums.push('…');
+    nums.push(pages);
+  }
+  nums.forEach(function (n) {
+    h += n === '…' ? '<span style="padding:0 4px;font-size:12px;color:var(--text-muted);">…</span>' : '<button class="page-btn' + (n === page ? ' active' : '') + '" onclick="' + gotoFn + '(' + n + ')">' + n + '</button>';
+  });
+  h += '<button class="page-btn' + (page >= pages ? ' disabled' : '') + '"' + (page >= pages ? '' : ' onclick="' + gotoFn + '(' + (page + 1) + ')"') + '>›</button>';
+  el.innerHTML = h;
+}
+function goPage(p) {
+  var list = getFiltered(), pages = Math.max(1, Math.ceil(list.length / pageSize));
+  currentPage = Math.min(Math.max(1, p), pages);
+  renderTable();
+}
+
+function filterTable(){currentPage=1;renderTable();}
+function resetFilter(){
+  document.getElementById('fBatch').value='';
+  document.getElementById('fReason').value='';
+  document.getElementById('fMall').value='';
+  document.getElementById('fStatus').value='';
+  document.getElementById('fVerify').value='';
+  currentPage=1;
+  renderTable();
+}
+
+function renderTable(){
+  var list=getFiltered();
+  var pages=Math.max(1,Math.ceil(list.length/pageSize));
+  if(currentPage>pages)currentPage=pages;
+  var pageList=list.slice((currentPage-1)*pageSize,currentPage*pageSize);
+  var html='';
+  if(!pageList.length){
+    html='<tr><td colspan="12" style="text-align:center;padding:40px;color:var(--text-muted);">暂无匹配的补偿批次</td></tr>';
+  }else{
+    pageList.forEach(function(c){
+      var ri=REASON_MAP[c.reason],smi=STATUS_MAP[c.status];
+      var isPoints=!!c.pointsValid;
+      var avatarCls=isPoints?'points':'coupon';
+      var avatarText=isPoints?'积':'券';
+      var qty=c.issued||1;
+      var specText=c.face+' × '+qty+'张'+(c.pointsValid?' · 有效期'+c.pointsValid:'');
+      var verifyCell;
+      if(c.status==='pending'||c.status==='rejected'){
+        verifyCell='<span style="font-size:12px;color:var(--text-muted);">—</span>';
+      }else if(c.used>=c.issued){
+        verifyCell='<span class="status-tag status-used">已核销</span>';
+      }else{
+        verifyCell='<span class="status-tag" style="background:var(--gray-bg);color:var(--gray);border-color:var(--gray-border);">未核销</span>';
+      }
+      var approvalAction=c.status==='pending'?'<span class="action-link" onclick="viewApprovalProgress()">审批进度</span>':'';
+      html+='<tr>'+
+        '<td><input type="checkbox" class="comp-row-check" onchange="updateCompSelectedCount()" /></td>'+
+        '<td><div class="cell-stack"><div class="primary"><span class="batch-no">'+c.batch+'</span></div><div class="secondary code-text">'+c.cid+'</div></div></td>'+
+        '<td><div class="coupon-info"><div class="coupon-avatar '+avatarCls+'">'+avatarText+'</div><div><div class="coupon-name">'+couponNameHtml(c)+'</div><div class="coupon-spec">'+specText+'</div></div></div></td>'+
+        '<td><span class="reason-tag '+ri.cls+'">'+ri.label+'</span></td>'+
+        '<td>'+(c.ticketNo?'<span class="batch-no" style="cursor:pointer;" onclick="showToast(\'info\',\'打开来源工单 '+c.ticketNo+'（演示）\')">'+c.ticketNo+'</span>':'<span style="font-size:12px;color:var(--text-muted);">—</span>')+'</td>'+
+        '<td><span style="color:var(--text-secondary);font-size:12px;line-height:1.45;">'+(c.detail||'—')+'</span></td>'+
+        '<td><div class="cell-stack"><div class="primary">'+c.receiverName+'</div><div class="secondary">'+c.receiverPhone+'</div></div></td>'+
+        '<td><div class="cell-stack"><div class="primary">'+c.mall+'</div></div></td>'+
+        '<td>'+verifyCell+'</td>'+
+        '<td><span class="status-tag '+smi.cls+'">'+smi.label+'</span></td>'+
+        '<td><span style="color:var(--text-primary);font-size:12px;">'+c.operator+'</span><br/><span style="color:var(--text-muted);font-size:12px;">'+c.time+'</span></td>'+
+        '<td><div class="actions"><span class="action-link" onclick="viewDetail(\''+c.cid+'\')">详情</span>'+approvalAction+'</div></td>'+
+      '</tr>';
+    });
+  }
+  document.getElementById('tableBody').innerHTML=html;
+  document.getElementById('tableInfo').textContent='共 '+list.length+' 条记录';
+  var compCa=document.getElementById('compCheckAll');
+  if(compCa) compCa.checked=false;
+  updateCompSelectedCount();
+  var ji=document.getElementById('jumpPageInput');
+  if(ji){ji.setAttribute('max',pages);ji.value=currentPage;}
+  renderPager('compPagination',currentPage,pages,'goPage');
+}
+
+function renderStats(){
+  var total=COMPENSATIONS.length,pending=0;
+  var recentCount=0,recentCouponSum=0,recentPointsSum=0;
+  var todayTs=Date.parse(STAT_TODAY.replace(/-/g,'/'))||Date.now();
+  var cutoff=todayTs-30*24*60*60*1000;
+  COMPENSATIONS.forEach(function(c){
+    if(c.status==='pending')pending++;
+    var ts=Date.parse((c.time||'').replace(/-/g,'/'))||0;
+    if(ts>=cutoff){
+      recentCount++;
+      var num=parseFloat((c.face||'').replace(/[^0-9.]/g,''))||0;
+      if(c.method==='points'||!!c.pointsValid)recentPointsSum+=num;else recentCouponSum+=num;
+    }
+  });
+  document.getElementById('statTotal').textContent=total;
+  document.getElementById('statRecentCount').textContent=recentCount;
+  document.getElementById('statRecentValue').innerHTML='¥'+recentCouponSum+(recentPointsSum>0?'<span class="stat-unit">+'+recentPointsSum+'积分</span>':'');
+  document.getElementById('statPending').textContent=pending;
+}
+function dr(label,value,cls){return '<div class="detail-row"><span class="detail-label">'+label+'</span><span class="detail-value '+(cls||'')+'">'+value+'</span></div>';}
+function ms(val,label){return '<div class="mini-stat"><div class="ms-val">'+val+'</div><div class="ms-label">'+label+'</div></div>';}
+
+function compDeduct(c){
+  if(!!c.pointsValid)return '-';
+  if(c.status!=='used')return '-';
+  var f=c.face||'';
+  if(f.indexOf('15元')>=0||f.indexOf('¥15')>=0)return '¥15';
+  if(f.indexOf('5元')>=0||f.indexOf('¥5')>=0)return '¥5';
+  if(f.indexOf('10元')>=0||f.indexOf('¥10')>=0)return '¥10';
+  if(f.indexOf('满200减50')>=0)return '¥50';
+  if(f.indexOf('8折')>=0)return '¥50';
+  return '-';
+}
+function viewDetail(cid){
+  var c=COMPENSATIONS.find(function(x){return x.cid===cid;});
+  if(!c)return;
+  var ri=REASON_MAP[c.reason],smi=STATUS_MAP[c.status];
+  var isPoints=c.method==='points'||!!c.pointsValid;
+  var qty=c.issued||1;
+  var verifyTag;
+  if(c.status==='pending'||c.status==='rejected'){
+    verifyTag='<span style="color:var(--text-muted);">—</span>';
+  }else if(c.used>=c.issued){
+    verifyTag='<span class="status-tag status-used">'+(isPoints?'已使用':'已核销')+'</span>';
+  }else{
+    verifyTag='<span class="status-tag" style="background:var(--gray-bg);color:var(--gray);border-color:var(--gray-border);">'+(isPoints?'未使用':'未核销')+'</span>';
+  }
+  var voucherHtml='—';
+  if(c.vouchers&&c.vouchers.length){
+    voucherHtml='<div class="voucher-list">'+c.vouchers.map(function(v){return '<div class="voucher-thumb">'+v+'</div>';}).join('')+'</div>';
+  }
+  var html='';
+  html+='<div class="detail-section"><div class="detail-section-title">批次基础信息</div><div class="detail-grid">'+
+    dr('发放批次号',c.batch,'mono')+dr('卡券编号',c.cid,'mono')+
+    dr('发放方式',METHOD_MAP[c.method]||'—')+dr('发放数量',qty+' 张')+
+    dr('卡券名称',couponNamePlain(c))+dr('面值 / 总面值',c.face+(c.totalValue?' / '+c.totalValue:''))+
+    dr('积分有效期',isPoints?(c.pointsValid||'—'):'—')+dr('补偿原因','<span class="reason-tag '+ri.cls+'">'+ri.label+'</span>')+
+    dr('状态','<span class="status-tag '+smi.cls+'">'+smi.label+'</span>')+dr('操作人',c.operator)+dr('来源工单',c.ticketNo||'—','mono')+
+    dr('生成时间',c.time)+
+    '<div class="detail-row full"><span class="detail-label">补偿说明</span><span class="detail-value">'+(c.detail||'—')+'</span></div>'+
+    '</div></div>';
+
+  html+='<div class="detail-section"><div class="detail-section-title">发放对象</div><div class="detail-grid">'+
+    dr('接收用户',c.receiverName+'（'+c.receiverPhone+'）')+dr('用户 ID',c.receiverId||'—','mono')+
+    dr('所属商城',c.mall)+dr('商城订单号',c.orderNo||'—','mono')+
+    dr('下单人手机号',c.orderPhone||'—')+
+    '</div></div>';
+
+  html+='<div class="detail-section"><div class="detail-section-title">上传凭证</div>'+
+    '<div class="detail-row full" style="border-bottom:none;padding-top:0;"><span class="detail-value">'+voucherHtml+'</span></div></div>';
+
+  if(isPoints){
+    html+='<div class="detail-section"><div class="detail-section-title">使用信息</div><div class="detail-grid">'+
+      dr('使用状态',verifyTag)+'</div></div>';
+  }else{
+    html+='<div class="detail-section"><div class="detail-section-title">核销信息</div><div class="detail-grid">'+
+      dr('核销状态',verifyTag)+dr('核销方式','单张核销')+dr('实际抵扣金额',compDeduct(c))+'</div></div>';
+  }
+  var note=isPoints?'补偿积分由平台补偿预算承担，不消耗品牌商城积分；积分充入用户账户后按上述有效期到期。':'补偿券由平台补偿预算承担，不消耗品牌商城积分；冻结/作废后未核销部分不返还。';
+  html+='<div style="background:var(--blue-bg);border:1px solid var(--blue-border);border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;color:var(--blue);line-height:1.6;">'+note+'</div>';
+  document.getElementById('detailBody').innerHTML=html;
+  document.getElementById('detailModal').classList.add('open');
+}
+function closeDetailModal(){document.getElementById('detailModal').classList.remove('open');}
+function viewApprovalProgress(){showToast('info','演示：审批进度页面待接入');}
+
+// 导出下拉菜单相关函数
+function toggleExportMenu() {
+  var menu = document.getElementById('exportMenu');
+  menu.classList.toggle('show');
+}
+
+function exportAllData() {
+  toggleExportMenu();
+  showToast('success', '演示：开始全量导出客诉补偿发放统计');
+}
+
+function exportFilteredData() {
+  toggleExportMenu();
+  showToast('success', '演示：开始筛选导出客诉补偿发放统计');
+}
+
+// 列表勾选：导出勾选的补偿记录
+function exportSelectedData() {
+  var checked = document.querySelectorAll('.comp-row-check:checked');
+  if (checked.length === 0) {
+    showToast('warning', '请先勾选要导出的补偿记录');
+    return;
+  }
+  showToast('success', '演示：开始导出勾选的 ' + checked.length + ' 条补偿记录');
+}
+
+// 全选/反选（当前列表）
+function toggleCompAll(master) {
+  document.querySelectorAll('#tableBody .comp-row-check').forEach(function(cb) {
+    cb.checked = master.checked;
+  });
+  updateCompSelectedCount();
+}
+
+// 更新底部"已选 N 项"计数
+function updateCompSelectedCount() {
+  var count = document.querySelectorAll('.comp-row-check:checked').length;
+  var el = document.getElementById('selectedCount');
+  if (el) el.textContent = '已选 ' + count + ' 项';
+}
+
+// 页面大小和跳转相关函数
+function changePageSize() {
+  var select = document.getElementById('pageSizeSelect');
+  pageSize = parseInt(select.value) || 20;
+  currentPage = 1;
+  renderTable();
+  showToast('info', '已切换为每页 ' + pageSize + ' 条记录');
+}
+
+function jumpToPage() {
+  var input = document.getElementById('jumpPageInput');
+  var page = parseInt(input.value) || 1;
+  var maxPage = parseInt(input.getAttribute('max')) || 1;
+  if (page < 1) page = 1;
+  if (page > maxPage) page = maxPage;
+  currentPage = page;
+  renderTable();
+}
+
+// 点击外部关闭导出菜单
+document.addEventListener('click', function(e) {
+  var dropdown = document.querySelector('.export-dropdown');
+  if (dropdown && !dropdown.contains(e.target)) {
+    var menu = document.getElementById('exportMenu');
+    if (menu && menu.classList.contains('show')) {
+      menu.classList.remove('show');
+    }
+  }
+});
+
+document.querySelectorAll('.modal-overlay').forEach(function(o){o.addEventListener('click',function(e){if(e.target===o)o.classList.remove('open');});});
+renderTable();
+renderStats();
+</script>
+
+</body>
+</html>
